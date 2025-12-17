@@ -11,28 +11,28 @@ export const MOCK_USERS: User[] = [
     id: 'user-impelix',
     username: 'impelix',
     email: 'impelix@pumpelix.love',
-    full_name: 'Антон Импеликс',
+    full_name: 'Дмитрий Силантьев',
     timezone: 'Europe/Moscow',
   },
   {
     id: 'user-genorto',
     username: 'genorto',
     email: 'wildberries-manger@dubai.com',
-    full_name: 'Глеб Генорто',
+    full_name: 'Илья Набоков',
     timezone: 'Europe/Moscow',
   },
   {
     id: 'user-kezorka',
     username: 'kezorka',
     email: 'kezorka@polyana.opushka',
-    full_name: 'Костя Кезорка',
+    full_name: 'Егор Коробкин',
     timezone: 'Europe/Moscow',
   },
   {
     id: 'user-titlha',
     username: 'titlha',
     email: 'titlha@brdlha.mephi',
-    full_name: 'Леша Титлха',
+    full_name: 'Алексей Маклюков',
     timezone: 'Europe/Moscow',
   },
   {
@@ -46,14 +46,14 @@ export const MOCK_USERS: User[] = [
     id: 'user-solovieva',
     username: 'solovieva',
     email: 'maria.solovieva@example.com',
-    full_name: 'Мария Соловьева',
+    full_name: 'Робин Пресс',
     timezone: 'Europe/Moscow',
   },
   {
-    id: 'user-petrov',
-    username: 'petrov_ivan',
-    email: 'ivan.petrov@example.com',
-    full_name: 'Иван Петров',
+    id: 'user_kantserov',
+    username: 'roman_kantserov',
+    email: 'roman.kantserov@example.com',
+    full_name: 'Роман Канцеров',
     timezone: 'Europe/Moscow',
   },
   {
@@ -81,7 +81,7 @@ export const MOCK_USERS: User[] = [
     id: 'user-sidorov',
     username: 'sidorov_pm',
     email: 'project.manager@example.com',
-    full_name: 'Сергей Сидоров',
+    full_name: 'Егор Яковлев',
     timezone: 'Europe/Moscow',
   },
   {
@@ -373,7 +373,7 @@ export const MOCK_ASSIGNMENTS: Assignment[] = [
   { id: 'assign-5', task_id: 'task-calendar', user_id: 'user-solovieva', role: 'owner', allocated_hours: 16 },
   
   // UI Kit - Петров owner
-  { id: 'assign-6', task_id: 'task-uikit', user_id: 'user-petrov', role: 'owner', allocated_hours: 12 },
+  { id: 'assign-6', task_id: 'task-uikit', user_id: 'user_kantserov', role: 'owner', allocated_hours: 12 },
   
   // API интеграция - Титлха owner, Ноувей executor
   { id: 'assign-7', task_id: 'task-apiintegration', user_id: 'user-titlha', role: 'owner', allocated_hours: 20 },
@@ -403,7 +403,7 @@ export const MOCK_ASSIGNMENTS: Assignment[] = [
   { id: 'assign-fe-2', task_id: 'proj-frontend', user_id: 'user-genorto', role: 'executor', allocated_hours: 0 },
   { id: 'assign-fe-3', task_id: 'proj-frontend', user_id: 'user-kezorka', role: 'executor', allocated_hours: 0 },
   { id: 'assign-fe-4', task_id: 'proj-frontend', user_id: 'user-solovieva', role: 'executor', allocated_hours: 0 },
-  { id: 'assign-fe-5', task_id: 'proj-frontend', user_id: 'user-petrov', role: 'executor', allocated_hours: 0 },
+  { id: 'assign-fe-5', task_id: 'proj-frontend', user_id: 'user_kantserov', role: 'executor', allocated_hours: 0 },
   { id: 'assign-fe-6', task_id: 'proj-frontend', user_id: 'user-titlha', role: 'executor', allocated_hours: 0 },
   
   // Backend участники
