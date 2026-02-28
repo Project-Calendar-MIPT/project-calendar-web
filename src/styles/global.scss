@@ -54,7 +54,7 @@
   --color-text-primary: #f1f5f9;
   --color-text-secondary: #94a3b8;
   --color-text-disabled: #475569;
-  --color-ghost-hover: #1e293b;
+  --color-ghost-hover: #2d3f55;
   --color-disabled-bg: #1e293b;
   --color-footer-bg: #1e293b;
   --color-input-bg: #1e293b;
@@ -282,10 +282,20 @@ em {
 // Tell the browser to render date inputs with dark chrome in dark theme.
 // This automatically flips the calendar popup colours in supporting browsers,
 // avoiding the clipping / invisibility issues on dark backgrounds.
+// Date inputs — always sync color-scheme so the native popup matches the theme
+input[type='date'],
+input[type='datetime-local'],
+input[type='time'] {
+  color-scheme: light;
+}
+
 [data-theme='dark'] input[type='date'],
 [data-theme='dark'] input[type='datetime-local'],
 [data-theme='dark'] input[type='time'] {
   color-scheme: dark;
+  background-color: var(--color-input-bg) !important;
+  color: var(--color-text-primary) !important;
+  border-color: var(--color-border) !important;
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -300,13 +310,13 @@ em {
   color: var(--color-text-primary);
 
   button {
-    color: var(--color-text-primary);
-    border: 1px solid var(--color-border);
+    color: var(--color-text-primary) !important;
+    border: 1px solid var(--color-border) !important;
     // Use a slightly tinted surface so buttons are visible on both themes
-    background-color: var(--color-surface);
+    background-color: var(--color-surface) !important;
     padding: 5px 10px;
     text-align: center;
-    cursor: pointer;
+    cursor: pointer !important;
     margin: 0 0.5em;
     border-radius: 4px;
     pointer-events: auto !important;
@@ -316,18 +326,19 @@ em {
     &:active,
     &:focus {
       outline: none;
-      background-color: var(--color-ghost-hover);
-      color: var(--color-text-primary);
+      background-color: var(--color-ghost-hover) !important;
+      color: var(--color-text-primary) !important;
     }
 
     &.rbc-active {
-      background-color: $primary;
-      color: #ffffff;
-      border-color: $primary-dark;
+      background-color: $primary !important;
+      color: #ffffff !important;
+      border-color: $primary-dark !important;
+      font-weight: 600;
     }
 
     &:hover:not(.rbc-active) {
-      background-color: var(--color-ghost-hover);
+      background-color: var(--color-ghost-hover) !important;
     }
   }
 
@@ -420,13 +431,29 @@ em {
     background-color: #818cf8;
   }
 
-  // Week/day column lines
+  // Week/day column backgrounds & lines
+  .rbc-day-slot {
+    background-color: var(--color-bg);
+  }
+
   .rbc-day-slot .rbc-time-slot {
     border-color: var(--color-border);
+    background-color: transparent;
   }
 
   .rbc-day-slot + .rbc-day-slot {
     border-left-color: var(--color-border);
+  }
+
+  // All-day cell & header cells
+  .rbc-allday-cell {
+    background-color: var(--color-surface);
+  }
+
+  .rbc-time-header-cell,
+  .rbc-time-header-cell-single-day {
+    background-color: var(--color-surface);
+    color: var(--color-text-primary);
   }
 
   // Agenda view
@@ -463,7 +490,7 @@ em {
   }
 }
 
-// Align light theme too — fixes missing borders
+// Align light theme too — fixes missing borders & white columns
 .rbc-month-view,
 .rbc-time-view,
 .rbc-agenda-view {
@@ -479,5 +506,14 @@ em {
 .rbc-month-row + .rbc-month-row,
 .rbc-timeslot-group {
   border-color: var(--color-border);
+}
+
+// Week/day view columns — ensure they inherit the page background in all themes
+.rbc-day-slot {
+  background-color: var(--color-bg);
+}
+
+.rbc-time-content {
+  background-color: var(--color-bg);
 }
 
