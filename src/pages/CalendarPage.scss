@@ -5,15 +5,16 @@
       cursor: pointer !important;
 
       &:hover {
-        background-color: #f3f4f6;
+        background-color: var(--color-ghost-hover);
       }
     }
   }
 }
 
 .error-card {
-  background-color: #fee2e2;
-  color: #dc2626;
+  background-color: rgba(239, 68, 68, 0.12);
+  color: var(--color-badge-red);
+  border: 1px solid rgba(239, 68, 68, 0.3);
   padding: 16px;
   border-radius: 8px;
   margin-bottom: 16px;

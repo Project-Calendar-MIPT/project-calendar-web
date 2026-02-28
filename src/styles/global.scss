@@ -33,6 +33,16 @@
 
   // Date picker icon — no filter needed on light bg
   --icon-filter: none;
+
+  // Tabs (profile sidebar)
+  --color-tab-active-bg: #e5e7ff;
+  --color-tab-active-text: #4f46e5;
+
+  // Status badges
+  --color-badge-green: #047857;
+  --color-badge-yellow: #92400e;
+  --color-badge-blue: #1d4ed8;
+  --color-badge-red: #b91c1c;
 }
 
 [data-theme='dark'] {
@@ -53,6 +63,16 @@
 
   // Invert the native calendar icon so it's visible on dark input backgrounds
   --icon-filter: invert(1);
+
+  // Tabs
+  --color-tab-active-bg: rgba(99, 102, 241, 0.2);
+  --color-tab-active-text: #a5b4fc;
+
+  // Status badges — lighter for dark bg
+  --color-badge-green: #6ee7b7;
+  --color-badge-yellow: #fcd34d;
+  --color-badge-blue: #93c5fd;
+  --color-badge-red: #fca5a5;
 }
 
 // ────────────────────────────────────────────────────────────────────────────
@@ -309,5 +329,151 @@ em {
 
   label {
     margin: 0 0.5em;
+    color: var(--color-text-primary);
   }
 }
+
+// ─── React Big Calendar — full dark-mode overrides ───────────────────────────
+
+// Apply to all rbc elements via the data-theme attribute on <html>
+[data-theme='dark'] {
+  // Main container & grid lines
+  .rbc-calendar,
+  .rbc-month-view,
+  .rbc-time-view,
+  .rbc-agenda-view {
+    background-color: var(--color-bg);
+    color: var(--color-text-primary);
+    border-color: var(--color-border);
+  }
+
+  // Headers (month names, day names, time gutter)
+  .rbc-header,
+  .rbc-time-header-content,
+  .rbc-time-header-gutter,
+  .rbc-time-gutter {
+    background-color: var(--color-surface);
+    color: var(--color-text-primary);
+    border-color: var(--color-border);
+  }
+
+  .rbc-header + .rbc-header,
+  .rbc-day-bg + .rbc-day-bg {
+    border-color: var(--color-border);
+  }
+
+  // Day cells
+  .rbc-day-bg {
+    background-color: var(--color-bg);
+
+    &.rbc-today {
+      background-color: rgba(99, 102, 241, 0.1);
+    }
+
+    &.rbc-off-range-bg {
+      background-color: var(--color-surface);
+    }
+  }
+
+  // Month row separators
+  .rbc-month-row + .rbc-month-row {
+    border-color: var(--color-border);
+  }
+
+  // "off range" day numbers (prev/next month)
+  .rbc-off-range {
+    color: var(--color-text-disabled);
+  }
+
+  // Date number in cell
+  .rbc-date-cell {
+    color: var(--color-text-primary);
+
+    &.rbc-now {
+      color: #818cf8;
+      font-weight: 700;
+    }
+  }
+
+  // Time slots
+  .rbc-timeslot-group {
+    border-color: var(--color-border);
+    color: var(--color-text-secondary);
+  }
+
+  .rbc-time-slot {
+    border-color: var(--color-border);
+    color: var(--color-text-secondary);
+  }
+
+  .rbc-time-content {
+    border-color: var(--color-border);
+    background-color: var(--color-bg);
+  }
+
+  // Current time indicator line
+  .rbc-current-time-indicator {
+    background-color: #818cf8;
+  }
+
+  // Week/day column lines
+  .rbc-day-slot .rbc-time-slot {
+    border-color: var(--color-border);
+  }
+
+  .rbc-day-slot + .rbc-day-slot {
+    border-left-color: var(--color-border);
+  }
+
+  // Agenda view
+  .rbc-agenda-view table,
+  .rbc-agenda-view table tbody > tr > td {
+    border-color: var(--color-border);
+    color: var(--color-text-primary);
+  }
+
+  .rbc-agenda-view table thead {
+    background-color: var(--color-surface);
+    color: var(--color-text-secondary);
+    border-color: var(--color-border);
+  }
+
+  .rbc-agenda-date-cell,
+  .rbc-agenda-time-cell {
+    color: var(--color-text-secondary);
+  }
+
+  // Show-more link
+  .rbc-show-more {
+    color: #818cf8;
+    background-color: transparent;
+
+    &:hover {
+      color: #a5b4fc;
+    }
+  }
+
+  // "+" row at top of today in month view
+  .rbc-row-segment .rbc-event-label {
+    color: inherit;
+  }
+}
+
+// Align light theme too — fixes missing borders
+.rbc-month-view,
+.rbc-time-view,
+.rbc-agenda-view {
+  border-color: var(--color-border);
+}
+
+.rbc-header {
+  border-color: var(--color-border);
+  color: var(--color-text-primary);
+}
+
+.rbc-day-bg + .rbc-day-bg,
+.rbc-month-row + .rbc-month-row,
+.rbc-timeslot-group {
+  border-color: var(--color-border);
+}
+
