@@ -4,6 +4,19 @@
     padding: 4px 6px;
     border: none;
     font-size: 14px;
+
+    // Preserve our custom priority bg colour when the event is selected.
+    // RBC replaces it with #265985 by default; we override that here.
+    &.rbc-selected {
+        background-color: inherit;
+        outline: 3px solid rgba(79, 70, 229, 0.5);
+        outline-offset: 1px;
+    }
+
+    &:focus {
+        outline: 3px solid rgba(79, 70, 229, 0.5);
+        outline-offset: 1px;
+    }
 }
 
 .calendar-view {

@@ -488,6 +488,60 @@ input[type='time'] {
   .rbc-row-segment .rbc-event-label {
     color: inherit;
   }
+
+  // Overlay popup ("show more" or event popup with popup prop)
+  .rbc-overlay {
+    background-color: var(--color-surface-elevated);
+    border: 1px solid var(--color-border);
+    border-radius: 6px;
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.4);
+    color: var(--color-text-primary);
+
+    .rbc-overlay-header {
+      background-color: var(--color-surface);
+      border-bottom: 1px solid var(--color-border);
+      color: var(--color-text-primary);
+    }
+
+    .rbc-event {
+      // Selected events inside overlay — keep their custom color
+      &.rbc-selected {
+        opacity: 0.85;
+        outline: 2px solid rgba(129, 140, 248, 0.5);
+        outline-offset: 1px;
+      }
+    }
+  }
+
+  // Selected event in calendar — don't let rbc override our custom bg colors
+  .rbc-event.rbc-selected,
+  .rbc-day-slot .rbc-event.rbc-selected {
+    background-color: inherit;
+    outline: 3px solid rgba(129, 140, 248, 0.7);
+    outline-offset: 1px;
+  }
+}
+
+// Overlay in light theme
+.rbc-overlay {
+  background-color: var(--color-surface-elevated);
+  border: 1px solid var(--color-border);
+  border-radius: 6px;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.15);
+
+  .rbc-overlay-header {
+    background-color: var(--color-surface);
+    border-bottom: 1px solid var(--color-border);
+    color: var(--color-text-primary);
+  }
+}
+
+// Selected event — show an outline ring instead of overriding bg color
+.rbc-event.rbc-selected,
+.rbc-day-slot .rbc-event.rbc-selected {
+  background-color: inherit;
+  outline: 3px solid rgba(79, 70, 229, 0.6);
+  outline-offset: 1px;
 }
 
 // Align light theme too — fixes missing borders & white columns
