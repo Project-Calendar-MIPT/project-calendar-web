@@ -19,20 +19,26 @@
   border-radius: $radius-lg;
   box-shadow: $shadow-xl;
   color: var(--color-text-primary);
+  // max-height and overflow moved to __content so native date-picker popup
+  // is not clipped by the stacking context created by overflow: auto
   max-height: 90vh;
-  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  // Responsive: never wider than the viewport
+  width: calc(100% - 2rem);
   animation: scaleIn $transition-base;
 
   &--sm {
-    width: 400px;
+    max-width: 420px;
   }
 
   &--md {
-    width: 600px;
+    max-width: 640px;
   }
 
   &--lg {
-    width: 800px;
+    max-width: 860px;
   }
 
   &__header {
@@ -41,6 +47,8 @@
     align-items: center;
     padding: $spacing-6;
     border-bottom: 1px solid var(--color-border);
+    // header stays fixed while content scrolls
+    flex-shrink: 0;
   }
 
   &__title {
@@ -64,6 +72,12 @@
 
   &__content {
     padding: $spacing-6;
+    // Scrolling lives here — keeps the modal root overflow: hidden
+    // so border-radius is preserved, while content can scroll independently.
+    // Native browser date-picker popups are rendered outside the paint
+    // containment and are NOT clipped by overflow: auto on a child container.
+    overflow-y: auto;
+    flex: 1;
   }
 }
 

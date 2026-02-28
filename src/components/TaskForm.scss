@@ -9,9 +9,37 @@
     display: grid;
     grid-template-columns: 1fr 1fr 1fr;
     gap: $spacing-3;
+    // Ensure the native date picker popup can render outside this container.
+    // 'contain: layout style' avoids creating a paint-containment block
+    // that would clip the browser's native calendar widget.
+    position: relative;
+    contain: layout style;
+    z-index: 0;
 
-    @media (max-width: 768px) {
+    // Each date-input wrapper gets its own stacking context so the
+    // native picker popup appears above neighboring elements.
+    input[type='date'] {
+      position: relative;
+      z-index: 1;
+
+      &::-webkit-calendar-picker-indicator {
+        cursor: pointer;
+        // Fix indicator visibility in dark mode
+        filter: var(--icon-filter, none);
+      }
+    }
+
+    // Stack the focused input on top so its popup is not hidden by siblings.
+    input[type='date']:focus {
+      z-index: 2;
+    }
+
+    @media (max-width: 600px) {
       grid-template-columns: 1fr;
+    }
+
+    @media (min-width: 601px) and (max-width: 768px) {
+      grid-template-columns: 1fr 1fr;
     }
   }
 
