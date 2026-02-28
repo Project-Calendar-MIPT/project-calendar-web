@@ -302,24 +302,28 @@ em {
   button {
     color: var(--color-text-primary);
     border: 1px solid var(--color-border);
-    background-color: var(--color-surface-elevated);
+    // Use a slightly tinted surface so buttons are visible on both themes
+    background-color: var(--color-surface);
     padding: 5px 10px;
     text-align: center;
     cursor: pointer;
     margin: 0 0.5em;
     border-radius: 4px;
     pointer-events: auto !important;
+    font-size: 14px;
+    font-weight: 500;
 
     &:active,
     &:focus {
       outline: none;
       background-color: var(--color-ghost-hover);
-      color: inherit;
+      color: var(--color-text-primary);
     }
 
     &.rbc-active {
-      background-color: #3b82f6;
-      color: white;
+      background-color: $primary;
+      color: #ffffff;
+      border-color: $primary-dark;
     }
 
     &:hover:not(.rbc-active) {
