@@ -26,6 +26,13 @@
     background-color: var(--color-input-bg);
     color: var(--color-text-primary);
     transition: border-color $transition-base;
+    // Match color-scheme to the app theme so the native date picker popup
+    // inherits the correct system colours in Chromium-based browsers.
+    color-scheme: light;
+
+    [data-theme='dark'] & {
+      color-scheme: dark;
+    }
 
     &:focus {
       outline: none;
