@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useRef } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { Input } from '../components/ui/Input';
 import { Button } from '../components/ui/Button';
@@ -59,21 +59,48 @@ const LoginPage: React.FC = () => {
     }
   };
 
-  const handleInputChange = (field: keyof typeof formData) => (
-    e: React.ChangeEvent<HTMLInputElement>
-  ) => {
-    setFormData({ ...formData, [field]: e.target.value });
-    if (errors[field]) {
-      setErrors({ ...errors, [field]: '' });
-    }
-    // Очищаем общую ошибку при изменении поля
-    if (error) {
-      setError('');
-    }
-  };
+  const handleInputChange =
+    (field: keyof typeof formData) => (e: React.ChangeEvent<HTMLInputElement>) => {
+      setFormData({ ...formData, [field]: e.target.value });
+      if (errors[field]) {
+        setErrors({ ...errors, [field]: '' });
+      }
+      // Очищаем общую ошибку при изменении поля
+      if (error) {
+        setError('');
+      }
+    };
+
+  const columnsRef = useRef<any[]>();
+  if (!columnsRef.current) {
+    columnsRef.current = [...Array(15)].map((_, i) => {
+      const depth = Math.random();
+      const scale = depth * 0.6 + 0.4;
+      const width = 30 + scale * 30;
+      const height = 60 + scale * 80;
+      const duration = 14 + (1 - scale) * 6;
+      const leftOffset = Math.random() * 3;
+      const delay = -Math.random() * duration;
+
+      return {
+        left: `${i * 6.5 + leftOffset}%`,
+        width: `${width}px`,
+        height: `${height}px`,
+        opacity: scale * 0.6 + 0.2,
+        animationDuration: `${duration}s`,
+        animationDelay: `${delay}s`,
+        zIndex: Math.floor(scale * 10),
+      };
+    });
+  }
 
   return (
     <div className="login-page">
+      <div className="login-page__background">
+        {columnsRef.current.map((style, i) => (
+          <div key={i} className="login-page__column" style={style} />
+        ))}
+      </div>
       <Card className="login-page__card">
         <div className="login-page__header">
           <h1>Вход</h1>
