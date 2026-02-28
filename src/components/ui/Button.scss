@@ -68,7 +68,7 @@
     color: $primary;
 
     &:hover:not(:disabled) {
-      background-color: $grey-100;
+      background-color: var(--color-ghost-hover);
     }
   }
 

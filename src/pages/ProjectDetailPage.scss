@@ -11,7 +11,7 @@
     gap: $spacing-2;
     margin-bottom: $spacing-6;
     font-size: $font-size-sm;
-    color: $text-secondary;
+    color: var(--color-text-secondary);
   }
 
   &__breadcrumb-link {
@@ -28,7 +28,7 @@
   }
 
   &__breadcrumb-separator {
-    color: $text-disabled;
+    color: var(--color-text-disabled);
   }
 
   &__header {
@@ -52,7 +52,7 @@
   }
 
   &__description {
-    color: $text-secondary;
+    color: var(--color-text-secondary);
     margin: $spacing-2 0 $spacing-4 0;
   }
 
@@ -62,8 +62,8 @@
   }
 
   &__status {
-    background-color: $grey-200;
-    color: $text-primary;
+    background-color: var(--color-ghost-hover);
+    color: var(--color-text-primary);
     padding: $spacing-1 $spacing-2;
     border-radius: $radius-sm;
     font-size: $font-size-sm;

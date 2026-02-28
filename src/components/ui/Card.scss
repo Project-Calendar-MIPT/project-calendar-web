@@ -1,21 +1,22 @@
 @use '../../styles/variables' as *;
 
 .card {
-  background-color: white;
+  background-color: var(--color-surface-elevated);
   border-radius: $radius-md;
   padding: $spacing-4;
   box-shadow: $shadow-md;
   transition: all $transition-base;
+  border: 1px solid var(--color-border);
 
   &__title {
     font-size: $font-size-lg;
     font-weight: $font-weight-semibold;
     margin-bottom: $spacing-3;
-    color: $text-primary;
+    color: var(--color-text-primary);
   }
 
   &__content {
-    color: $text-secondary;
+    color: var(--color-text-secondary);
   }
 
   &--hoverable {

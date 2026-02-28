@@ -2,7 +2,7 @@
 
 .task-tree {
   &__empty {
-    color: $text-secondary;
+    color: var(--color-text-secondary);
     font-size: $font-size-sm;
     padding: $spacing-4;
     text-align: center;
@@ -25,7 +25,7 @@
     background: none;
     border: none;
     cursor: pointer;
-    color: $text-secondary;
+    color: var(--color-text-secondary);
     font-size: $font-size-lg;
     padding: 0;
     width: 24px;
@@ -38,7 +38,7 @@
 
     &:hover {
       background-color: rgba(0, 0, 0, 0.1);
-      color: $text-primary;
+      color: var(--color-text-primary);
     }
   }
 }
@@ -51,13 +51,13 @@
     align-items: center;
     gap: $spacing-3;
     padding: $spacing-2 $spacing-3;
-    background-color: white;
+    background-color: var(--color-surface-elevated);
     border-radius: $radius-sm;
     transition: all $transition-base;
     border: 2px solid transparent;
 
     &:hover {
-      background-color: $grey-100;
+      background-color: var(--color-ghost-hover);
     }
 
     &--selected {
@@ -75,7 +75,7 @@
     width: 20px;
     text-align: center;
     transition: transform $transition-base;
-    color: $text-secondary;
+    color: var(--color-text-secondary);
 
     &--open {
       transform: rotate(90deg);
@@ -97,13 +97,13 @@
 
   &__title {
     font-weight: $font-weight-medium;
-    color: $text-primary;
+    color: var(--color-text-primary);
     flex: 1;
   }
 
   &__status {
-    background-color: $grey-200;
-    color: $text-primary;
+    background-color: var(--color-ghost-hover);
+    color: var(--color-text-primary);
     padding: $spacing-1 $spacing-2;
     border-radius: $radius-sm;
     font-size: $font-size-xs;
@@ -124,7 +124,7 @@
 
   &__empty {
     margin-left: 40px;
-    color: $text-disabled;
+    color: var(--color-text-disabled);
     font-size: $font-size-sm;
     padding: $spacing-2;
   }
