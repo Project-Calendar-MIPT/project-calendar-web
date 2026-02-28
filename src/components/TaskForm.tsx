@@ -1,4 +1,4 @@
-import React, { useState, useEffect /*, useEffect*/ } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Input } from './ui/Input';
 import { Select } from './ui/Select';
 import { Button } from './ui/Button';
@@ -9,7 +9,10 @@ interface TaskFormProps {
   onSubmit: (data: any) => void;
   onCancel: () => void;
   task?: Task;
-  isProject?: boolean; // Флаг, что это проект (без приоритета и статуса)
+  isProject?: boolean;
+
+  projectStartDate?: string;
+  projectEndDate?: string;
 }
 
 const PRIORITY_OPTIONS = [
@@ -19,7 +22,6 @@ const PRIORITY_OPTIONS = [
   { value: 'critical', label: 'Критический' },
 ];
 
-// Функция для расчета разницы в днях между датами
 const calculateDaysDiff = (startDate: string, endDate: string): number => {
   if (!startDate || !endDate) return 0;
   const start = new Date(startDate);
@@ -29,7 +31,6 @@ const calculateDaysDiff = (startDate: string, endDate: string): number => {
   return diffDays >= 0 ? diffDays : 0;
 };
 
-// Функция для добавления дней к дате
 const addDaysToDate = (dateStr: string, days: number): string => {
   if (!dateStr) return '';
   const date = new Date(dateStr);
@@ -42,6 +43,8 @@ export const TaskForm: React.FC<TaskFormProps> = ({
   onCancel,
   task,
   isProject = false,
+  projectStartDate,
+  projectEndDate,
 }) => {
   const [formData, setFormData] = useState({
     title: task?.title || '',
@@ -55,22 +58,26 @@ export const TaskForm: React.FC<TaskFormProps> = ({
 
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [touched, setTouched] = useState<Record<string, boolean>>({});
-  const [lastChangedField, setLastChangedField] = useState<'start' | 'end' | 'duration' | null>(null);
+  const [lastChangedField, setLastChangedField] =
+    useState<'start' | 'end' | 'duration' | null>(null);
 
-  // Пересчет при изменении дат или длительности
+  const isWithinProjectBounds = (date: string) => {
+    if (!date) return true;
+    if (projectStartDate && date < projectStartDate) return false;
+    if (projectEndDate && date > projectEndDate) return false;
+    return true;
+  };
+
   useEffect(() => {
     if (lastChangedField === 'start' && formData.start_date && formData.duration_days > 0) {
-      // Изменили дату начала -> пересчитываем дату окончания
       const newEndDate = addDaysToDate(formData.start_date, formData.duration_days);
-      setFormData(prev => ({ ...prev, end_date: newEndDate }));
+      setFormData((prev) => ({ ...prev, end_date: newEndDate }));
     } else if (lastChangedField === 'end' && formData.start_date && formData.end_date) {
-      // Изменили дату окончания -> пересчитываем длительность
       const newDuration = calculateDaysDiff(formData.start_date, formData.end_date);
-      setFormData(prev => ({ ...prev, duration_days: newDuration }));
+      setFormData((prev) => ({ ...prev, duration_days: newDuration }));
     } else if (lastChangedField === 'duration' && formData.start_date && formData.duration_days >= 0) {
-      // Изменили длительность -> пересчитываем дату окончания
       const newEndDate = addDaysToDate(formData.start_date, formData.duration_days);
-      setFormData(prev => ({ ...prev, end_date: newEndDate }));
+      setFormData((prev) => ({ ...prev, end_date: newEndDate }));
     }
   }, [formData.start_date, formData.end_date, formData.duration_days, lastChangedField]);
 
@@ -79,22 +86,37 @@ export const TaskForm: React.FC<TaskFormProps> = ({
       case 'title':
         if (!value.trim()) return 'Название обязательно';
         return '';
-      case 'end_date':
-        if (value && formData.start_date && value < formData.start_date) {
-          return 'Дата окончания не может быть раньше даты начала';
-        }
+
+      case 'description':
+        if (!value.trim()) return 'Описание обязательно';
         return '';
+
       case 'start_date':
         if (value && formData.end_date && value > formData.end_date) {
           return 'Дата начала не может быть позже даты окончания';
         }
+        if ((projectStartDate || projectEndDate) && value && !isWithinProjectBounds(value)) {
+          return 'Дата начала выходит за пределы дат проекта';
+        }
         return '';
+
+      case 'end_date':
+        if (value && formData.start_date && value < formData.start_date) {
+          return 'Дата окончания не может быть раньше даты начала';
+        }
+        if ((projectStartDate || projectEndDate) && value && !isWithinProjectBounds(value)) {
+          return 'Дата окончания выходит за пределы дат проекта';
+        }
+        return '';
+
       case 'estimated_hours':
         if (value < 0) return 'Количество часов не может быть отрицательным';
         return '';
+
       case 'duration_days':
         if (value < 0) return 'Длительность не может быть отрицательной';
         return '';
+
       default:
         return '';
     }
@@ -111,24 +133,26 @@ export const TaskForm: React.FC<TaskFormProps> = ({
       }
     };
 
-  const handleDateChange = (field: 'start_date' | 'end_date') => (e: React.ChangeEvent<HTMLInputElement>) => {
-    const value = e.target.value;
-    setFormData({ ...formData, [field]: value });
-    setLastChangedField(field === 'start_date' ? 'start' : 'end');
+  const handleDateChange =
+    (field: 'start_date' | 'end_date') => (e: React.ChangeEvent<HTMLInputElement>) => {
+      const value = e.target.value;
+      setFormData({ ...formData, [field]: value });
+      setLastChangedField(field === 'start_date' ? 'start' : 'end');
 
-    if (touched[field]) {
-      const error = validateField(field, value);
-      setErrors((prev) => ({ ...prev, [field]: error }));
-    }
-  };
+      if (touched[field]) {
+        const error = validateField(field, value);
+        setErrors((prev) => ({ ...prev, [field]: error }));
+      }
+    };
 
   const handleDurationChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const value = parseInt(e.target.value) || 0;
-    setFormData({ ...formData, duration_days: value });
+    const safe = Math.max(0, value);
+    setFormData({ ...formData, duration_days: safe });
     setLastChangedField('duration');
 
     if (touched['duration_days']) {
-      const error = validateField('duration_days', value);
+      const error = validateField('duration_days', safe);
       setErrors((prev) => ({ ...prev, duration_days: error }));
     }
   };
@@ -139,8 +163,21 @@ export const TaskForm: React.FC<TaskFormProps> = ({
 
   const handleBlur = (field: string) => () => {
     setTouched((prev) => ({ ...prev, [field]: true }));
-    const error = validateField(field, formData[field as keyof typeof formData]);
+    const error = validateField(field, (formData as any)[field]);
     setErrors((prev) => ({ ...prev, [field]: error }));
+  };
+
+  const handleHoursChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const raw = e.target.value;
+    const num = raw === '' ? 0 : Number(raw);
+    const safe = Number.isFinite(num) ? Math.max(0, num) : 0;
+
+    setFormData((prev) => ({ ...prev, estimated_hours: safe }));
+
+    if (touched['estimated_hours']) {
+      const error = validateField('estimated_hours', safe);
+      setErrors((prev) => ({ ...prev, estimated_hours: error }));
+    }
   };
 
   const handleSubmit = (e: React.FormEvent) => {
@@ -148,8 +185,8 @@ export const TaskForm: React.FC<TaskFormProps> = ({
 
     const newErrors: Record<string, string> = {};
     (Object.keys(formData) as (keyof typeof formData)[]).forEach((field) => {
-      const error = validateField(field, formData[field]);
-      if (error) newErrors[field] = error;
+      const error = validateField(field, (formData as any)[field]);
+      if (error) newErrors[field as string] = error;
     });
 
     if (Object.keys(newErrors).length > 0) {
@@ -158,14 +195,7 @@ export const TaskForm: React.FC<TaskFormProps> = ({
       return;
     }
 
-    // Не отправляем статус при создании - он всегда pending
-    const submitData = { ...formData };
-    if (!task) {
-      // При создании новой задачи статус не отправляем
-      delete (submitData as any).status;
-    }
-
-    onSubmit(submitData);
+    onSubmit({ ...formData });
   };
 
   return (
@@ -186,7 +216,9 @@ export const TaskForm: React.FC<TaskFormProps> = ({
         value={formData.description}
         onChange={handleInputChange('description')}
         onBlur={handleBlur('description')}
+        error={errors.description}
         isTextarea
+        required
       />
 
       <div className="task-form__date-group">
@@ -207,6 +239,7 @@ export const TaskForm: React.FC<TaskFormProps> = ({
           onBlur={handleBlur('duration_days')}
           error={errors.duration_days}
           min="0"
+          step="1"
         />
 
         <Input
@@ -232,11 +265,11 @@ export const TaskForm: React.FC<TaskFormProps> = ({
         label="Ожидаемые часы"
         type="number"
         value={formData.estimated_hours.toString()}
-        onChange={(e) =>
-          setFormData({ ...formData, estimated_hours: parseFloat(e.target.value) || 0 })
-        }
+        onChange={handleHoursChange}
         onBlur={handleBlur('estimated_hours')}
         error={errors.estimated_hours}
+        min="0"
+        step="1"
       />
 
       <div className="task-form__actions">

@@ -3,6 +3,8 @@ import { startOfMonth, endOfMonth } from 'date-fns';
 
 import { CalendarView } from '../components/CalendarView';
 import { TaskDetailModal } from '../components/TaskDetailModal';
+import { TaskForm } from '../components/TaskForm';
+import { Modal } from '../components/ui/Modal';
 import { Loader } from '../components/ui/Loader';
 import { Card } from '../components/ui/Card';
 
@@ -18,6 +20,11 @@ export default function CalendarPage() {
 
   const [selectedTask, setSelectedTask] = useState<Task | null>(null);
   const [modalOpen, setModalOpen] = useState(false);
+
+  const [editOpen, setEditOpen] = useState(false);
+  const [editTask, setEditTask] = useState<Task | null>(null);
+
+  const [editProjectBounds, setEditProjectBounds] = useState<{ start?: string; end?: string }>({});
 
   const loadEvents = useCallback(async (start: Date, end: Date) => {
     if (USE_MOCK) {
@@ -50,28 +57,9 @@ export default function CalendarPage() {
       return;
     }
 
-    // РЕАЛЬНЫЙ API режим (когда будет бэк)
     try {
       setLoading(true);
       setError(null);
-
-      // const start_date = start.toISOString().split('T')[0];
-      // const end_date = end.toISOString().split('T')[0];
-
-      // TODO: когда бэк будет, раскомментить
-      // const response = await apiClient.get('/calendar/tasks', {
-      //     params: { start_date, end_date },
-      // });
-
-      // const mapped = response.data.map((t: any) => ({
-      //     id: t.id,
-      //     title: t.title,
-      //     start: new Date(t.start_date),
-      //     end: new Date(t.end_date),
-      //     resource: t,
-      // }));
-
-      // setEvents(mapped);
     } catch (e) {
       setError('Не удалось загрузить события календаря');
     } finally {
@@ -95,6 +83,101 @@ export default function CalendarPage() {
     } else if (range && typeof range === 'object') {
       const r = range as { start: Date; end: Date };
       loadEvents(r.start, r.end);
+    }
+  };
+
+  const loadProjectBoundsForTask = async (t: Task | null) => {
+    try {
+      if (!t) return {};
+      let current: any = t;
+      let guard = 0;
+
+      while (current?.parent_task_id && guard < 20) {
+        const parent = await (taskService as any).getTask?.(current.parent_task_id);
+        if (!parent) break;
+        current = parent;
+        guard += 1;
+      }
+
+      return { start: current?.start_date, end: current?.end_date };
+    } catch {
+      return {};
+    }
+  };
+
+  const handleEdit = async (taskId: string) => {
+    try {
+      const full = await (taskService as any).getTask?.(taskId);
+      const toEdit = (full || selectedTask) as Task | null;
+
+      setEditTask(toEdit);
+
+      const bounds = await loadProjectBoundsForTask(toEdit);
+      setEditProjectBounds(bounds);
+
+      setEditOpen(true);
+    } catch {
+      // fallback
+      setEditTask(selectedTask);
+      const bounds = await loadProjectBoundsForTask(selectedTask);
+      setEditProjectBounds(bounds);
+      setEditOpen(true);
+    }
+  };
+
+  const handleUpdate = async (data: any) => {
+    if (!editTask) return;
+
+    try {
+      setLoading(true);
+      setError(null);
+
+      const updateFn = (taskService as any).updateTask;
+      if (typeof updateFn !== 'function') {
+        setError('В taskService нет updateTask(). Если скинешь taskService.ts — добавлю.');
+        return;
+      }
+
+      await updateFn(editTask.id, data);
+
+      // перезагрузка календаря
+      const now = new Date();
+      await loadEvents(startOfMonth(now), endOfMonth(now));
+
+      setEditOpen(false);
+      setEditTask(null);
+      setEditProjectBounds({});
+      setModalOpen(false);
+      setSelectedTask(null);
+    } catch (e) {
+      setError('Не удалось обновить задачу');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleDelete = async (taskId: string) => {
+    try {
+      setLoading(true);
+      setError(null);
+
+      const deleteFn = (taskService as any).deleteTask;
+      if (typeof deleteFn !== 'function') {
+        setError('В taskService нет deleteTask(). Если скинешь taskService.ts — добавлю.');
+        return;
+      }
+
+      await deleteFn(taskId);
+
+      const now = new Date();
+      await loadEvents(startOfMonth(now), endOfMonth(now));
+
+      setModalOpen(false);
+      setSelectedTask(null);
+    } catch (e) {
+      setError('Не удалось удалить задачу');
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -126,13 +209,34 @@ export default function CalendarPage() {
         task={selectedTask}
         isOpen={modalOpen}
         onClose={() => setModalOpen(false)}
-        onEdit={(taskId) => {
-          console.log('Редактировать задачу', taskId);
-        }}
-        onDelete={(taskId) => {
-          console.log('Удалить задачу', taskId);
-        }}
+        onEdit={(taskId) => handleEdit(taskId)}
+        onDelete={(taskId) => handleDelete(taskId)}
       />
+
+      <Modal
+        isOpen={editOpen}
+        onClose={() => {
+          setEditOpen(false);
+          setEditTask(null);
+          setEditProjectBounds({});
+        }}
+        title="Редактирование задачи"
+        size="md"
+      >
+        {editTask && (
+          <TaskForm
+            task={editTask}
+            onSubmit={handleUpdate}
+            onCancel={() => {
+              setEditOpen(false);
+              setEditTask(null);
+              setEditProjectBounds({});
+            }}
+            projectStartDate={editProjectBounds.start}
+            projectEndDate={editProjectBounds.end}
+          />
+        )}
+      </Modal>
     </div>
   );
 }

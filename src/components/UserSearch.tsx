@@ -7,28 +7,28 @@ import type { User } from '../types';
 const MOCK_USERS: User[] = [
   {
     id: '1',
-    username: 'woroncov',
+    username: 'Иван',
     email: 'woroncov@example.com',
     full_name: 'Иванов Иван',
     timezone: 'Europe/Moscow',
   },
   {
     id: '2',
-    username: 'eagle',
+    username: 'Петр',
     email: 'eagle@example.com',
     full_name: 'Петров Петр',
     timezone: 'Europe/Moscow',
   },
   {
     id: '3',
-    username: 'whitewolf',
+    username: 'Матвей',
     email: 'whitewolf@example.com',
-    full_name: 'Сидоров Сидор',
+    full_name: 'Матвеев Матвей',
     timezone: 'Europe/Moscow',
   },
   {
     id: '4',
-    username: 'striker',
+    username: 'Алексей',
     email: 'striker@example.com',
     full_name: 'Алексеев Алексей',
     timezone: 'Europe/Moscow',

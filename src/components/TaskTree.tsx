@@ -1,8 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { taskService } from '../api/taskService';
 import type { Task } from '../types';
-import { Modal } from './ui/Modal';
-import { TaskDetailView } from './TaskDetailView';
+import { TaskDetailModal } from './TaskDetailModal';
 import './TaskTree.scss';
 
 interface TaskNodeProps {
@@ -13,7 +12,13 @@ interface TaskNodeProps {
   selectedTaskId: string | null;
 }
 
-const TaskNode: React.FC<TaskNodeProps> = ({ task, level, onTaskClick, onTaskDoubleClick, selectedTaskId }) => {
+const TaskNode: React.FC<TaskNodeProps> = ({
+  task,
+  level,
+  onTaskClick,
+  onTaskDoubleClick,
+  selectedTaskId,
+}) => {
   const [expanded, setExpanded] = useState(false);
   const [subtasks, setSubtasks] = useState<Task[]>([]);
   const [loading, setLoading] = useState(false);
@@ -65,8 +70,8 @@ const TaskNode: React.FC<TaskNodeProps> = ({ task, level, onTaskClick, onTaskDou
           {loading ? '⌛' : '▶'}
         </button>
 
-        <div 
-          className="task-node__info" 
+        <div
+          className="task-node__info"
           onClick={() => onTaskClick(task)}
           onDoubleClick={() => onTaskDoubleClick(task)}
         >
@@ -106,9 +111,11 @@ const TaskNode: React.FC<TaskNodeProps> = ({ task, level, onTaskClick, onTaskDou
 interface TaskTreeProps {
   taskId: string;
   onTaskSelect?: (task: Task | null) => void;
+
+  onAddSubtask?: (parentTask: Task) => void;
 }
 
-export const TaskTree: React.FC<TaskTreeProps> = ({ taskId, onTaskSelect }) => {
+export const TaskTree: React.FC<TaskTreeProps> = ({ taskId, onTaskSelect, onAddSubtask }) => {
   const [tasks, setTasks] = useState<Task[]>([]);
   const [loading, setLoading] = useState(true);
   const [selectedTask, setSelectedTask] = useState<Task | null>(null);
@@ -131,12 +138,9 @@ export const TaskTree: React.FC<TaskTreeProps> = ({ taskId, onTaskSelect }) => {
   };
 
   const handleTaskClick = (task: Task) => {
-    // Toggle selection: если кликнули на уже выбранную задачу, снимаем выбор
     const newSelectedTask = selectedTask?.id === task.id ? null : task;
     setSelectedTask(newSelectedTask);
-    if (onTaskSelect) {
-      onTaskSelect(newSelectedTask);
-    }
+    onTaskSelect?.(newSelectedTask);
   };
 
   const handleTaskDoubleClick = (task: Task) => {
@@ -151,10 +155,10 @@ export const TaskTree: React.FC<TaskTreeProps> = ({ taskId, onTaskSelect }) => {
     <div className="task-tree">
       {tasks.length > 0 ? (
         tasks.map((task) => (
-          <TaskNode 
-            key={task.id} 
-            task={task} 
-            level={0} 
+          <TaskNode
+            key={task.id}
+            task={task}
+            level={0}
             onTaskClick={handleTaskClick}
             onTaskDoubleClick={handleTaskDoubleClick}
             selectedTaskId={selectedTask?.id || null}
@@ -163,25 +167,33 @@ export const TaskTree: React.FC<TaskTreeProps> = ({ taskId, onTaskSelect }) => {
       ) : (
         <div className="task-tree__empty">Нет задач</div>
       )}
+
       {selectedTask && (
         <div className="task-tree__selected">
           <strong>Выбрана задача:</strong> {selectedTask.title}
-          <button 
-            onClick={() => handleTaskClick(selectedTask)}
-            className="task-tree__deselect"
-          >
+
+          {onAddSubtask && (
+            <button
+              onClick={() => onAddSubtask(selectedTask)}
+              className="task-tree__deselect"
+              style={{ marginLeft: 12 }}
+              title="Добавить подзадачу"
+            >
+              + Подзадача
+            </button>
+          )}
+
+          <button onClick={() => handleTaskClick(selectedTask)} className="task-tree__deselect">
             ✕
           </button>
         </div>
       )}
-      
-      <Modal
+
+      <TaskDetailModal
+        task={detailTask}
         isOpen={!!detailTask}
         onClose={() => setDetailTask(null)}
-        title="Детали задачи"
-      >
-        {detailTask && <TaskDetailView task={detailTask} />}
-      </Modal>
+      />
     </div>
   );
 };
