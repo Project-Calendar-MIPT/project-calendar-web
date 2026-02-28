@@ -30,6 +30,9 @@
   // Scrollbar
   --color-scrollbar-thumb: #{$grey-300};
   --color-scrollbar-track: #{$grey-100};
+
+  // Date picker icon — no filter needed on light bg
+  --icon-filter: none;
 }
 
 [data-theme='dark'] {
@@ -47,6 +50,9 @@
   --color-input-bg: #1e293b;
   --color-scrollbar-thumb: #475569;
   --color-scrollbar-track: #1e293b;
+
+  // Invert the native calendar icon so it's visible on dark input backgrounds
+  --icon-filter: invert(1);
 }
 
 // ────────────────────────────────────────────────────────────────────────────
@@ -250,6 +256,19 @@ em {
 .text-secondary {
   color: $text-secondary;
 }
+
+// ─── Date picker dark-mode fixes ────────────────────────────────────────────
+
+// Tell the browser to render date inputs with dark chrome in dark theme.
+// This automatically flips the calendar popup colours in supporting browsers,
+// avoiding the clipping / invisibility issues on dark backgrounds.
+[data-theme='dark'] input[type='date'],
+[data-theme='dark'] input[type='datetime-local'],
+[data-theme='dark'] input[type='time'] {
+  color-scheme: dark;
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
 
 .rbc-toolbar {
   display: flex;
