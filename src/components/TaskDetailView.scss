@@ -13,7 +13,7 @@
 .task-detail__title {
   font-size: 22px;
   font-weight: 800;
-  color: var(--text);
+  color: var(--color-text-primary);
   line-height: 1.2;
   word-break: break-word;
 }
@@ -36,8 +36,8 @@
 }
 
 .task-detail__badge--status {
-  background: #eef2ff;
-  color: #1f2937;
+  background: var(--color-tab-active-bg);
+  color: var(--color-text-primary);
 }
 
 .task-detail__badge--priority {
@@ -55,7 +55,7 @@
 .task-detail__section-title {
   font-size: 16px;
   font-weight: 800;
-  color: var(--text);
+  color: var(--color-text-primary);
   margin-bottom: 10px;
 }
 
@@ -77,12 +77,12 @@
 .task-detail__k {
   font-size: 13px;
   font-weight: 700;
-  color: #6b7280;
+  color: var(--color-text-secondary);
 }
 
 .task-detail__v {
   font-size: 14px;
   font-weight: 700;
-  color: var(--text);
+  color: var(--color-text-primary);
   word-break: break-word;
 }

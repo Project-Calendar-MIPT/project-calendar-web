@@ -1,8 +1,11 @@
+@use '../styles/variables' as *;
+
 .profile-page {
   &__title {
     font-size: 24px;
     font-weight: 600;
     margin-bottom: 24px;
+    color: var(--color-text-primary);
   }
 
   &__layout {
@@ -16,7 +19,8 @@
   }
 
   &__sidebar {
-    background: #f8f9ff;
+    background: var(--color-surface);
+    border: 1px solid var(--color-border);
     border-radius: 24px;
     padding: 16px;
   }
@@ -35,7 +39,8 @@
     gap: 12px;
     padding: 12px;
     border-radius: 16px;
-    background: #ffffff;
+    background: var(--color-surface-elevated);
+    border: 1px solid var(--color-border);
     box-shadow: 0 8px 18px rgba(15, 23, 42, 0.05);
     margin-bottom: 16px;
   }
@@ -51,6 +56,7 @@
     display: flex;
     align-items: center;
     justify-content: center;
+    flex-shrink: 0;
   }
 
   &__user-meta {
@@ -61,11 +67,12 @@
   &__user-name {
     font-size: 15px;
     font-weight: 600;
+    color: var(--color-text-primary);
   }
 
   &__user-username {
     font-size: 13px;
-    color: #6b7280;
+    color: var(--color-text-secondary);
   }
 
   &__error {
@@ -91,23 +98,24 @@
     cursor: pointer;
     font-size: 14px;
     text-align: left;
+    color: var(--color-text-primary);
     transition:
       background 0.15s ease,
       color 0.15s ease,
       transform 0.1s ease;
 
     &:hover {
-      background: rgba(0, 0, 0, 0.03);
+      background: var(--color-ghost-hover);
     }
   }
 
   &__btn--active {
-    background: #e5e7ff;
-    color: #4f46e5;
+    background: var(--color-tab-active-bg);
+    color: var(--color-tab-active-text);
     transform: translateX(1px);
 
     .profile-tabs__bullet {
-      background: #4f46e5;
+      background: var(--color-tab-active-text);
     }
   }
 
@@ -115,7 +123,7 @@
     width: 6px;
     height: 6px;
     border-radius: 999px;
-    background: #d1d5db;
+    background: var(--color-text-disabled);
     flex-shrink: 0;
   }
 
@@ -147,12 +155,12 @@
     font-weight: 500;
     letter-spacing: 0.02em;
     text-transform: uppercase;
-    color: #9ca3af;
+    color: var(--color-text-secondary);
   }
 
   &__value {
     font-size: 14px;
-    color: var(--text);
+    color: var(--color-text-primary);
   }
 }
 
@@ -162,18 +170,25 @@
   font-size: 14px;
 
   thead {
-    background: #f3f4ff;
+    background: var(--color-surface);
 
     th {
       text-align: left;
       padding: 10px 12px;
       font-weight: 500;
-      color: #4b5563;
+      color: var(--color-text-secondary);
+      border-bottom: 1px solid var(--color-border);
     }
   }
 
-  tbody tr:nth-child(even) {
-    background: #f9fafb;
+  tbody {
+    tr {
+      color: var(--color-text-primary);
+    }
+
+    tr:nth-child(even) {
+      background: var(--color-surface);
+    }
   }
 
   &__row {
@@ -183,11 +198,11 @@
       transform 0.08s ease;
 
     &:hover {
-      background: #eef2ff;
+      background: var(--color-ghost-hover);
     }
 
     &--selected {
-      background: #e0e7ff;
+      background: var(--color-tab-active-bg);
     }
   }
 
@@ -205,13 +220,13 @@
     font-weight: 500;
 
     &--work {
-      background: rgba(16, 185, 129, 0.08);
-      color: #047857;
+      background: rgba(16, 185, 129, 0.15);
+      color: var(--color-badge-green);
     }
 
     &--off {
-      background: rgba(156, 163, 175, 0.12);
-      color: #4b5563;
+      background: var(--color-ghost-hover);
+      color: var(--color-text-secondary);
     }
   }
 }
@@ -229,27 +244,28 @@
 .stats-card {
   padding: 14px 16px;
   border-radius: 16px;
-  background: #f9fafb;
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
   box-shadow: 0 6px 14px rgba(15, 23, 42, 0.04);
 
   &__label {
     font-size: 12px;
     text-transform: uppercase;
     letter-spacing: 0.05em;
-    color: #9ca3af;
+    color: var(--color-text-secondary);
     margin-bottom: 6px;
   }
 
   &__value {
     font-size: 24px;
     font-weight: 600;
-    color: var(--text);
+    color: var(--color-text-primary);
   }
 
   &__hint {
     margin-top: 4px;
     font-size: 12px;
-    color: #6b7280;
+    color: var(--color-text-secondary);
   }
 }
 
@@ -264,13 +280,14 @@
   &__item {
     padding: 12px 14px;
     border-radius: 14px;
-    background: #f9fafb;
+    background: var(--color-surface);
+    border: 1px solid var(--color-border);
     transition:
       box-shadow 0.12s ease,
       transform 0.08s ease;
 
     &:hover {
-      box-shadow: 0 6px 16px rgba(15, 23, 42, 0.06);
+      box-shadow: 0 6px 16px rgba(15, 23, 42, 0.08);
       transform: translateY(-1px);
     }
   }
@@ -284,18 +301,18 @@
 
   &__title {
     font-weight: 500;
-    color: var(--text);
+    color: var(--color-text-primary);
   }
 
   &__description {
     font-size: 13px;
-    color: #6b7280;
+    color: var(--color-text-secondary);
     margin: 6px 0 8px;
   }
 
   &__link {
     font-size: 13px;
-    color: #4f46e5;
+    color: $primary;
     text-decoration: none;
     font-weight: 500;
 
@@ -316,7 +333,8 @@
   &__item {
     padding: 10px 12px;
     border-radius: 12px;
-    background: #f9fafb;
+    background: var(--color-surface);
+    border: 1px solid var(--color-border);
     display: flex;
     flex-direction: column;
     gap: 4px;
@@ -332,12 +350,12 @@
   &__title {
     font-size: 14px;
     font-weight: 500;
-    color: var(--text);
+    color: var(--color-text-primary);
   }
 
   &__description {
     font-size: 13px;
-    color: #6b7280;
+    color: var(--color-text-secondary);
   }
 }
 
@@ -350,27 +368,27 @@
   letter-spacing: 0.04em;
 
   &--pending {
-    background: rgba(251, 191, 36, 0.12);
-    color: #92400e;
+    background: rgba(251, 191, 36, 0.15);
+    color: var(--color-badge-yellow);
   }
 
   &--in_progress {
-    background: rgba(59, 130, 246, 0.12);
-    color: #1d4ed8;
+    background: rgba(59, 130, 246, 0.15);
+    color: var(--color-badge-blue);
   }
 
   &--completed {
-    background: rgba(16, 185, 129, 0.12);
-    color: #047857;
+    background: rgba(16, 185, 129, 0.15);
+    color: var(--color-badge-green);
   }
 
   &--cancelled {
-    background: rgba(239, 68, 68, 0.12);
-    color: #b91c1c;
+    background: rgba(239, 68, 68, 0.15);
+    color: var(--color-badge-red);
   }
 }
 
 .profile-empty {
   font-size: 14px;
-  color: #6b7280;
+  color: var(--color-text-secondary);
 }
