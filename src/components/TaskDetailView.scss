@@ -13,7 +13,7 @@
 .task-detail__title {
   font-size: 22px;
   font-weight: 800;
-  color: #111827;
+  color: var(--text);
   line-height: 1.2;
   word-break: break-word;
 }
@@ -47,22 +47,22 @@
 .task-detail__section {
   padding: 14px 14px;
   border-radius: 14px;
-  background: #ffffff;
-  border: 1px solid #e5e7eb;
+  background: var(--color-surface-elevated);
+  border: 1px solid var(--color-border);
   box-shadow: 0 6px 18px rgba(17, 24, 39, 0.06);
 }
 
 .task-detail__section-title {
   font-size: 16px;
   font-weight: 800;
-  color: #111827;
+  color: var(--text);
   margin-bottom: 10px;
 }
 
 .task-detail__text {
   font-size: 14px;
   line-height: 1.5;
-  color: #374151;
+  color: var(--color-text-secondary);
   white-space: pre-wrap;
   word-break: break-word;
 }
@@ -83,6 +83,6 @@
 .task-detail__v {
   font-size: 14px;
   font-weight: 700;
-  color: #111827;
+  color: var(--text);
   word-break: break-word;
 }

@@ -7,9 +7,11 @@ import ProjectDetailPage from './pages/ProjectDetailPage';
 import CalendarPage from './pages/CalendarPage';
 import { ProfilePage } from './pages/ProfilePage';
 import ProtectedRoute from './components/ProtectedRoute';
+import { ThemeProvider } from './context/ThemeContext';
 
 const App: React.FC = () => {
   return (
+    <ThemeProvider>
     <BrowserRouter>
       <Routes>
         <Route path="/register" element={<RegisterPage />} />
@@ -49,6 +51,7 @@ const App: React.FC = () => {
         />
       </Routes>
     </BrowserRouter>
+    </ThemeProvider>
   );
 };
 

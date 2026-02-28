@@ -5,7 +5,7 @@
   display: flex;
   justify-content: center;
   align-items: center;
-  background-color: #f8fafc;
+  background-color: var(--color-surface);
   background-image: 
     radial-gradient(circle at 20% 50%, rgba(59, 130, 246, 0.08) 0%, transparent 50%),
     radial-gradient(circle at 80% 80%, rgba(139, 92, 246, 0.08) 0%, transparent 50%),
@@ -24,12 +24,12 @@
 
     h1 {
       font-size: $font-size-3xl;
-      color: $text-primary;
+      color: var(--color-text-primary);
       margin-bottom: $spacing-2;
     }
 
     p {
-      color: $text-secondary;
+      color: var(--color-text-secondary);
       font-size: $font-size-base;
     }
   }
@@ -51,7 +51,7 @@
   &__footer {
     text-align: center;
     margin-top: $spacing-4;
-    color: $text-secondary;
+    color: var(--color-text-secondary);
 
     a {
       color: $primary;

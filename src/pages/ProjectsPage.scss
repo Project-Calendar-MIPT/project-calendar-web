@@ -47,7 +47,7 @@
   }
 
   &__description {
-    color: $text-secondary;
+    color: var(--color-text-secondary);
     margin-bottom: $spacing-3;
     line-height: $line-height-normal;
   }
@@ -60,8 +60,8 @@
   }
 
   &__status {
-    background-color: $grey-200;
-    color: $text-primary;
+    background-color: var(--color-ghost-hover);
+    color: var(--color-text-primary);
     padding: $spacing-1 $spacing-2;
     border-radius: $radius-sm;
     font-size: $font-size-sm;

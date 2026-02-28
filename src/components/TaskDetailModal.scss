@@ -11,14 +11,14 @@
 }
 
 .task-detail-modal__muted {
-  color: #6b7280;
+  color: var(--color-text-secondary);
   padding: 8px 0;
 }
 
 .task-detail-modal__actions {
   margin-top: 4px;
   padding-top: 14px;
-  border-top: 1px solid #e5e7eb;
+  border-top: 1px solid var(--color-border);
 
   display: flex;
   align-items: center;
@@ -51,9 +51,10 @@
   line-height: 1.45;
 
   border-radius: 12px;
-  border: 1px solid #d1d5db;
+  border: 1px solid var(--color-border);
   outline: none;
-  background: #fff;
+  background: var(--color-input-bg);
+  color: var(--color-text-primary);
 }
 
 .notes-modal__textarea:focus {

@@ -2,11 +2,13 @@ import React, { useState } from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import { Button } from './ui/Button';
 import { authService } from '../api/authService';
+import { useTheme } from '../context/ThemeContext';
 import './Header.scss';
 
 export const Header: React.FC = () => {
   const location = useLocation();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const { theme, toggleTheme } = useTheme();
 
   const handleLogout = () => {
     authService.logout();
@@ -42,6 +44,14 @@ export const Header: React.FC = () => {
         </nav>
 
         <div className="header__actions">
+          <button
+            className="header__theme-toggle"
+            onClick={toggleTheme}
+            aria-label="Toggle theme"
+            title={theme === 'light' ? 'Тёмная тема' : 'Светлая тема'}
+          >
+            {theme === 'light' ? '🌙' : '☀️'}
+          </button>
           <Button onClick={handleLogout} variant="outline" size="sm">
             Выход
           </Button>

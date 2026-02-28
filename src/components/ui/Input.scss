@@ -8,7 +8,7 @@
   &__label {
     font-size: $font-size-sm;
     font-weight: $font-weight-medium;
-    color: $text-primary;
+    color: var(--color-text-primary);
     margin-bottom: $spacing-2;
   }
 
@@ -19,10 +19,12 @@
 
   &__field {
     padding: $spacing-3;
-    border: 2px solid $grey-300;
+    border: 2px solid var(--color-border);
     border-radius: $radius-md;
     font-size: $font-size-base;
     font-family: $font-family-base;
+    background-color: var(--color-input-bg);
+    color: var(--color-text-primary);
     transition: border-color $transition-base;
 
     &:focus {
@@ -31,7 +33,7 @@
     }
 
     &::placeholder {
-      color: $text-disabled;
+      color: var(--color-text-disabled);
     }
 
     &--error {
@@ -43,7 +45,7 @@
     }
 
     &:disabled {
-      background-color: $grey-100;
+      background-color: var(--color-disabled-bg);
       cursor: not-allowed;
     }
   }
