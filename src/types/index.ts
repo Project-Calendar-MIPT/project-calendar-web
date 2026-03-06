@@ -34,9 +34,13 @@ export interface Task {
   description?: string;
   status: 'pending' | 'in_progress' | 'completed' | 'cancelled';
   priority: 'low' | 'medium' | 'high' | 'critical';
+
+  complexity?: 'low' | 'medium' | 'high';
+  novelty?: 'low' | 'medium' | 'high';
+
   start_date: string;
   end_date: string;
-  duration_days?: number; // Длительность в днях
+  duration_days?: number;
   estimated_hours?: number;
   created_at?: string;
   updated_at?: string;
@@ -71,12 +75,3 @@ export interface AssignmentData {
   role: 'owner' | 'supervisor' | 'executor' | 'hybrid' | 'spectator';
   allocated_hours?: number;
 }
-
-export interface CalendarEvent {
-  id: string;
-  title: string;
-  start: Date;
-  end: Date;
-  resource: Task;
-}
-

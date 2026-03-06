@@ -21,8 +21,12 @@ const ProjectDetailPage: React.FC = () => {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [selectedTask, setSelectedTask] = useState<Task | null>(null);
 
+  const [taskTreeRefreshKey, setTaskTreeRefreshKey] = useState(0);
+
   useEffect(() => {
-    if (id) loadProject();
+    if (id) {
+      loadProject();
+    }
   }, [id]);
 
   const loadProject = async () => {
@@ -47,6 +51,9 @@ const ProjectDetailPage: React.FC = () => {
       });
 
       await loadProject();
+
+      setTaskTreeRefreshKey((prev) => prev + 1);
+
       setIsModalOpen(false);
       setSelectedTask(null);
     } catch (err: any) {
@@ -54,11 +61,17 @@ const ProjectDetailPage: React.FC = () => {
     }
   };
 
-  const handleTaskSelect = (task: Task | null) => setSelectedTask(task);
+  const handleTaskSelect = (task: Task | null) => {
+    setSelectedTask(task);
+  };
 
   const handleAddSubtask = (parentTask: Task) => {
     setSelectedTask(parentTask);
     setIsModalOpen(true);
+  };
+
+  const handleAssignmentChange = () => {
+    setTaskTreeRefreshKey((prev) => prev + 1);
   };
 
   if (loading) {
@@ -104,13 +117,23 @@ const ProjectDetailPage: React.FC = () => {
       <div className="project-detail-page__tasks">
         <h2>Задачи</h2>
         {id && (
-          <TaskTree taskId={id} onTaskSelect={handleTaskSelect} onAddSubtask={handleAddSubtask} />
+          <TaskTree
+            key={taskTreeRefreshKey}
+            taskId={id}
+            onTaskSelect={handleTaskSelect}
+            onAddSubtask={handleAddSubtask}
+          />
         )}
       </div>
 
       <div className="project-detail-page__assignments">
         <h2>Участники</h2>
-        {id && <AssignmentManager projectId={id} />}
+        {id && (
+          <AssignmentManager
+            projectId={id}
+            onAssignmentChange={handleAssignmentChange}
+          />
+        )}
       </div>
 
       <Modal

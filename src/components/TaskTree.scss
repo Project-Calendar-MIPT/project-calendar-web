@@ -129,3 +129,28 @@
     padding: $spacing-2;
   }
 }
+
+.task-node__title-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.task-node__executor {
+  font-size: 12px;
+  color: #6b7280;
+  margin-top: 2px;
+}
+
+.task-node__title-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.task-node__executor {
+  font-size: 12px;
+  color: #6b7280;
+  margin-top: 2px;
+}

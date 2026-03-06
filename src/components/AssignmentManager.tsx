@@ -11,20 +11,30 @@ import './AssignmentManager.scss';
 
 interface AssignmentManagerProps {
   projectId: string;
+  onAssignmentChange?: () => void;
 }
 
 const ROLE_OPTIONS = [
-  // owner нельзя назначить вручную
   { value: 'supervisor', label: 'Руководитель' },
   { value: 'executor', label: 'Исполнитель' },
   { value: 'hybrid', label: 'Гибридная' },
   { value: 'spectator', label: 'Наблюдатель' },
 ];
 
-export const AssignmentManager: React.FC<AssignmentManagerProps> = ({ projectId }) => {
+type MemberItem = {
+  user_id: string;
+  role: string;
+};
+
+export const AssignmentManager: React.FC<AssignmentManagerProps> = ({
+  projectId,
+  onAssignmentChange,
+}) => {
   const [assignments, setAssignments] = useState<Assignment[]>([]);
-  const [pendingTasks, setPendingTasks] = useState<Task[]>([]);
+  const [projectTasks, setProjectTasks] = useState<Task[]>([]);
+  const [assignableTasks, setAssignableTasks] = useState<Task[]>([]);
   const [projectMembers, setProjectMembers] = useState<string[]>([]);
+  const [displayMembers, setDisplayMembers] = useState<MemberItem[]>([]);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [formData, setFormData] = useState({
     task_id: '',
@@ -34,35 +44,96 @@ export const AssignmentManager: React.FC<AssignmentManagerProps> = ({ projectId 
   });
   const [error, setError] = useState('');
 
+  const rolePriority: Record<string, number> = {
+    owner: 5,
+    supervisor: 4,
+    hybrid: 3,
+    executor: 2,
+    spectator: 1,
+  };
+
+  const collectAllProjectTasks = (allTasks: Task[], rootProjectId: string): Task[] => {
+    const result: Task[] = [];
+    const visited = new Set<string>();
+
+    const dfs = (parentId: string) => {
+      const children = allTasks.filter((t) => t.parent_task_id === parentId);
+
+      for (const child of children) {
+        if (visited.has(child.id)) continue;
+        visited.add(child.id);
+        result.push(child);
+        dfs(child.id);
+      }
+    };
+
+    const projectTask = allTasks.find((t) => t.id === rootProjectId);
+    if (projectTask) {
+      visited.add(projectTask.id);
+      result.push(projectTask);
+    }
+
+    dfs(rootProjectId);
+
+    return result;
+  };
+
   const loadAssignments = React.useCallback(async () => {
     try {
-      // Загружаем все задачи проекта
       const allTasks = await taskService.getTasks();
-      const projectTasks = allTasks.filter((t) => 
-        t.id === projectId || t.parent_task_id === projectId
-      );
-      
-      // Загружаем назначения для всех задач проекта
+
+      const relatedTasks = collectAllProjectTasks(allTasks, projectId);
+      setProjectTasks(relatedTasks);
+
       const allAssignments: Assignment[] = [];
-      for (const task of projectTasks) {
+      for (const task of relatedTasks) {
         const taskAssignments = await assignmentService.getAssignments(task.id);
         allAssignments.push(...taskAssignments);
       }
       setAssignments(allAssignments);
-      
-      // Получаем список участников проекта (назначенных на сам проект)
+
       const projectAssignments = await assignmentService.getAssignments(projectId);
-      const memberIds = projectAssignments.map(a => a.user_id);
+      const memberIds = projectAssignments.map((a) => a.user_id);
       setProjectMembers(memberIds);
-      
-      // Фильтруем только задачи со статусом pending
-      const pending = projectTasks.filter((t) => t.status === 'pending');
-      setPendingTasks(pending);
+
+      const availableTasks = relatedTasks.filter(
+        (t) =>
+          t.id !== projectId &&
+          t.status !== 'completed' &&
+          t.status !== 'cancelled'
+      );
+      setAssignableTasks(availableTasks);
+
+      const uniqueMembersMap = new Map<string, MemberItem>();
+
+      allAssignments.forEach((assignment) => {
+        const existing = uniqueMembersMap.get(assignment.user_id);
+
+        if (!existing) {
+          uniqueMembersMap.set(assignment.user_id, {
+            user_id: assignment.user_id,
+            role: assignment.role,
+          });
+          return;
+        }
+
+        const currentPriority = rolePriority[assignment.role] || 0;
+        const existingPriority = rolePriority[existing.role] || 0;
+
+        if (currentPriority > existingPriority) {
+          uniqueMembersMap.set(assignment.user_id, {
+            user_id: assignment.user_id,
+            role: assignment.role,
+          });
+        }
+      });
+
+      setDisplayMembers(Array.from(uniqueMembersMap.values()));
     } catch (err) {
       console.error('Ошибка при загрузке назначений:', err);
     }
   }, [projectId]);
-  
+
   useEffect(() => {
     loadAssignments();
   }, [loadAssignments]);
@@ -87,20 +158,36 @@ export const AssignmentManager: React.FC<AssignmentManagerProps> = ({ projectId 
         role: formData.role as any,
         allocated_hours: formData.allocated_hours,
       });
-      loadAssignments();
+
+      await loadAssignments();
+      onAssignmentChange?.();
+
       setIsModalOpen(false);
-      setFormData({ task_id: '', user_id: '', role: 'executor', allocated_hours: 0 });
+      setFormData({
+        task_id: '',
+        user_id: '',
+        role: 'executor',
+        allocated_hours: 0,
+      });
     } catch (err: any) {
       setError(err.message || 'Ошибка при назначении');
     }
   };
 
-  const handleRemoveAssignment = async (assignmentId: string) => {
+  const handleRemoveMember = async (userId: string) => {
     try {
-      await assignmentService.removeAssignment(assignmentId);
-      loadAssignments();
+      const userAssignments = assignments.filter(
+        (a) => a.user_id === userId && a.role !== 'owner'
+      );
+
+      for (const assignment of userAssignments) {
+        await assignmentService.removeAssignment(assignment.id);
+      }
+
+      await loadAssignments();
+      onAssignmentChange?.();
     } catch (err) {
-      console.error('Ошибка при удалении назначения:', err);
+      console.error('Ошибка при удалении участника:', err);
     }
   };
 
@@ -120,6 +207,10 @@ export const AssignmentManager: React.FC<AssignmentManagerProps> = ({ projectId 
     return labels[role] || role;
   };
 
+  const buildTaskLabel = (task: Task): string => {
+    return task.title;
+  };
+
   return (
     <div className="assignment-manager">
       <div className="assignment-manager__header">
@@ -129,32 +220,30 @@ export const AssignmentManager: React.FC<AssignmentManagerProps> = ({ projectId 
         </Button>
       </div>
 
-      {assignments.length > 0 ? (
+      {displayMembers.length > 0 ? (
         <div className="assignment-manager__list">
-          {assignments.map((assignment) => {
-            const task = pendingTasks.find(t => t.id === assignment.task_id) || 
-                         assignments.find(a => a.id === assignment.task_id);
-            return (
-              <div key={assignment.id} className="assignment-manager__item">
-                <div className="assignment-manager__info">
-                  <span className="assignment-manager__user">{getUserName(assignment.user_id)}</span>
-                  <span className="assignment-manager__role">{getRoleLabel(assignment.role)}</span>
-                  {assignment.allocated_hours > 0 && (
-                    <span className="assignment-manager__hours">{assignment.allocated_hours}ч</span>
-                  )}
-                </div>
-                {assignment.role !== 'owner' && (
-                  <Button
-                    onClick={() => handleRemoveAssignment(assignment.id)}
-                    variant="danger"
-                    size="sm"
-                  >
-                    Удалить
-                  </Button>
-                )}
+          {displayMembers.map((member) => (
+            <div key={member.user_id} className="assignment-manager__item">
+              <div className="assignment-manager__info">
+                <span className="assignment-manager__user">
+                  {getUserName(member.user_id)}
+                </span>
+                <span className="assignment-manager__role">
+                  {getRoleLabel(member.role)}
+                </span>
               </div>
-            );
-          })}
+
+              {member.role !== 'owner' && (
+                <Button
+                  onClick={() => handleRemoveMember(member.user_id)}
+                  variant="danger"
+                  size="sm"
+                >
+                  Удалить
+                </Button>
+              )}
+            </div>
+          ))}
         </div>
       ) : (
         <p className="assignment-manager__empty">Никого не назначено</p>
@@ -169,9 +258,9 @@ export const AssignmentManager: React.FC<AssignmentManagerProps> = ({ projectId 
         <form onSubmit={handleAssignUser} className="assignment-manager__form">
           <Select
             label="Задача"
-            options={pendingTasks.map((t) => ({
+            options={assignableTasks.map((t) => ({
               value: t.id,
-              label: t.title,
+              label: buildTaskLabel(t),
             }))}
             value={formData.task_id}
             onChange={(e) => setFormData({ ...formData, task_id: e.target.value })}
@@ -203,7 +292,10 @@ export const AssignmentManager: React.FC<AssignmentManagerProps> = ({ projectId 
             type="number"
             value={formData.allocated_hours.toString()}
             onChange={(e) =>
-              setFormData({ ...formData, allocated_hours: parseFloat(e.target.value) || 0 })
+              setFormData({
+                ...formData,
+                allocated_hours: parseFloat(e.target.value) || 0,
+              })
             }
           />
 

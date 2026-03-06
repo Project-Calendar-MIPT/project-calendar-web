@@ -10,7 +10,6 @@ interface TaskFormProps {
   onCancel: () => void;
   task?: Task;
   isProject?: boolean;
-
   projectStartDate?: string;
   projectEndDate?: string;
 }
@@ -20,6 +19,18 @@ const PRIORITY_OPTIONS = [
   { value: 'medium', label: 'Средний' },
   { value: 'high', label: 'Высокий' },
   { value: 'critical', label: 'Критический' },
+];
+
+const COMPLEXITY_OPTIONS = [
+  { value: 'low', label: 'Низкая' },
+  { value: 'medium', label: 'Средняя' },
+  { value: 'high', label: 'Высокая' },
+];
+
+const NOVELTY_OPTIONS = [
+  { value: 'low', label: 'Низкая' },
+  { value: 'medium', label: 'Средняя' },
+  { value: 'high', label: 'Высокая' },
 ];
 
 const calculateDaysDiff = (startDate: string, endDate: string): number => {
@@ -54,6 +65,10 @@ export const TaskForm: React.FC<TaskFormProps> = ({
     duration_days: task?.duration_days || 0,
     priority: task?.priority || 'medium',
     estimated_hours: task?.estimated_hours || 0,
+
+    // ✅ новые необязательные поля
+    complexity: task?.complexity || 'medium',
+    novelty: task?.novelty || 'medium',
   });
 
   const [errors, setErrors] = useState<Record<string, string>>({});
@@ -157,10 +172,6 @@ export const TaskForm: React.FC<TaskFormProps> = ({
     }
   };
 
-  const handleSelectChange = (field: string, value: string) => {
-    setFormData({ ...formData, [field]: value });
-  };
-
   const handleBlur = (field: string) => () => {
     setTouched((prev) => ({ ...prev, [field]: true }));
     const error = validateField(field, (formData as any)[field]);
@@ -257,9 +268,50 @@ export const TaskForm: React.FC<TaskFormProps> = ({
           label="Приоритет"
           options={PRIORITY_OPTIONS}
           value={formData.priority}
-          onChange={(e) => handleSelectChange('priority', e.target.value)}
+          includePlaceholder={false}
+          onChange={(e) => setFormData((prev) => ({ ...prev, priority: e.target.value as any }))}
         />
       )}
+
+      <div className="task-form__info-field">
+        <div className="task-form__label-with-info">
+          <span>Сложность</span>
+          <button
+            type="button"
+            className="task-form__info-button"
+            title="Сложность — насколько трудной является задача по объёму, координации и усилиям"
+          >
+            i
+          </button>
+        </div>
+
+        <Select
+          options={COMPLEXITY_OPTIONS}
+          value={formData.complexity}
+          includePlaceholder={false}
+          onChange={(e) => setFormData((prev) => ({ ...prev, complexity: e.target.value as any }))}
+        />
+      </div>
+
+      <div className="task-form__info-field">
+        <div className="task-form__label-with-info">
+          <span>Новизна</span>
+          <button
+            type="button"
+            className="task-form__info-button"
+            title="Новизна — насколько задача требует нового подхода, неизвестных решений или новых технологий"
+          >
+            i
+          </button>
+        </div>
+
+        <Select
+          options={NOVELTY_OPTIONS}
+          value={formData.novelty}
+          includePlaceholder={false}
+          onChange={(e) => setFormData((prev) => ({ ...prev, novelty: e.target.value as any }))}
+        />
+      </div>
 
       <Input
         label="Ожидаемые часы"

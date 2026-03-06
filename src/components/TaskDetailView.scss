@@ -86,3 +86,30 @@
   color: var(--color-text-primary);
   word-break: break-word;
 }
+
+.task-detail__k--with-info {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.task-detail__info-button {
+  width: 20px;
+  height: 20px;
+  border: 1px solid #cbd5e1;
+  border-radius: 50%;
+  background: #fff;
+  color: #475569;
+  font-size: 12px;
+  font-weight: 700;
+  cursor: help;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0;
+  line-height: 1;
+}
+
+.task-detail__info-button:hover {
+  background: #f8fafc;
+}
