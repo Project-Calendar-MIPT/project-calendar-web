@@ -1,4 +1,7 @@
 @use '../styles/variables' as *;
+@use '../styles/floating-columns' as *;
+
+@include floating-columns-keyframes(registerPageFloatUp);
 
 .register-page {
   min-height: 100vh;
@@ -15,32 +18,12 @@
   overflow: hidden;
 
   &__background {
-    position: absolute;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    pointer-events: none;
-    z-index: 0;
+    @include floating-columns-background;
   }
 
   &__column {
-    position: absolute;
-    bottom: -150px;
-    background: rgba(59, 130, 246, 0.5);
-    border-radius: 25px;
+    @include floating-column;
     animation: registerPageFloatUp linear infinite;
-    box-shadow: 0 0 20px rgba(59, 130, 246, 0.3);
-    will-change: transform;
-  }
-
-  @keyframes registerPageFloatUp {
-    0% {
-      transform: translateY(0);
-    }
-    100% {
-      transform: translateY(calc(-100vh - 500px));
-    }
   }
 
   &__card {

@@ -77,8 +77,8 @@ const LoginPage: React.FC = () => {
   return (
     <div className="login-page">
       <div className="login-page__background" aria-hidden="true">
-        {columns.map((style, i) => (
-          <div key={i} className="login-page__column" style={style} />
+        {columns.map((column) => (
+          <div key={column.id} className="login-page__column" style={column.style} />
         ))}
       </div>
       <Card className="login-page__card">

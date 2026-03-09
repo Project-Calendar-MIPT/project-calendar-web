@@ -127,8 +127,8 @@ const RegisterPage: React.FC = () => {
   return (
     <div className="register-page">
       <div className="register-page__background" aria-hidden="true">
-        {columns.map((style, i) => (
-          <div key={i} className="register-page__column" style={style} />
+        {columns.map((column) => (
+          <div key={column.id} className="register-page__column" style={column.style} />
         ))}
       </div>
       <Card className="register-page__card">
