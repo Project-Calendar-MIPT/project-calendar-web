@@ -11,11 +11,12 @@ interface FloatingColumn {
  * @returns Массив объектов с уникальным id и стилями для колонок
  */
 export const useFloatingColumns = (count: number = 15): FloatingColumn[] => {
-  const columnsRef = useRef<FloatingColumn[]>();
+  const columnsRef = useRef<FloatingColumn[]>([]);
   const countRef = useRef(count);
 
   // Пересоздаём колонки только если изменился count
-  if (!columnsRef.current || countRef.current !== count) {
+  if (columnsRef.current.length === 0 || countRef.current !== count) {
+    const spacing = 100 / count; // Динамическое распределение по ширине
     columnsRef.current = [...Array(count)].map((_, i) => {
       const depth = Math.random();
       const width = 30 + depth * 30; // 30-60px
@@ -27,7 +28,7 @@ export const useFloatingColumns = (count: number = 15): FloatingColumn[] => {
       return {
         id: `column-${i}-${Math.random().toString(36).slice(2, 11)}`,
         style: {
-          left: `${i * 6.5 + leftOffset}%`,
+          left: `${i * spacing + leftOffset}%`,
           width: `${width}px`,
           height: `${height}px`,
           opacity: 0.2 + depth * 0.6, // 0.2-0.8
