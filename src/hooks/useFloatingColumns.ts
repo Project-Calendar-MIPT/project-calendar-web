@@ -1,4 +1,4 @@
-import { useRef, type CSSProperties } from 'react';
+import { useMemo, type CSSProperties } from 'react';
 
 interface FloatingColumn {
   id: string;
@@ -11,13 +11,14 @@ interface FloatingColumn {
  * @returns Массив объектов с уникальным id и стилями для колонок
  */
 export const useFloatingColumns = (count: number = 15): FloatingColumn[] => {
-  const columnsRef = useRef<FloatingColumn[]>([]);
-  const countRef = useRef(count);
+  return useMemo(() => {
+    // Guard для некорректных значений count
+    if (count <= 0) {
+      return [];
+    }
 
-  // Пересоздаём колонки только если изменился count
-  if (columnsRef.current.length === 0 || countRef.current !== count) {
     const spacing = 100 / count; // Динамическое распределение по ширине
-    columnsRef.current = [...Array(count)].map((_, i) => {
+    return [...Array(count)].map((_, i) => {
       const depth = Math.random();
       const width = 30 + depth * 30; // 30-60px
       const height = 60 + depth * 80; // 60-140px
@@ -38,8 +39,5 @@ export const useFloatingColumns = (count: number = 15): FloatingColumn[] => {
         },
       };
     });
-    countRef.current = count;
-  }
-
-  return columnsRef.current;
+  }, [count]);
 };

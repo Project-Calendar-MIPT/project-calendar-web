@@ -14,11 +14,10 @@
   background: rgb(59, 130, 246);
   border-radius: 25px;
   box-shadow: 0 0 8px rgb(59, 130, 246);
-  will-change: transform;
 
   @media (prefers-reduced-motion: reduce) {
     animation: none !important;
-    opacity: 0.3;
+    opacity: 0.3 !important;
   }
 }
 
@@ -29,14 +28,6 @@
     }
     100% {
       transform: translateY(calc(-100vh - 500px));
-    }
-  }
-
-  @media (prefers-reduced-motion: reduce) {
-    @keyframes #{$name} {
-      0%, 100% {
-        transform: translateY(0);
-      }
     }
   }
 }
