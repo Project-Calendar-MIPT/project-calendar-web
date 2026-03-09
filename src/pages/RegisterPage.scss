@@ -15,7 +15,6 @@
     radial-gradient(circle at 40% 20%, rgba(16, 185, 129, 0.05) 0%, transparent 50%);
   padding: $spacing-6;
   position: relative;
-  overflow: hidden;
 
   &__background {
     @include floating-columns-background;
