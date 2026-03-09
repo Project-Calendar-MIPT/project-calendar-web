@@ -29,11 +29,12 @@
     bottom: -150px;
     background: rgba(59, 130, 246, 0.5);
     border-radius: 25px;
-    animation: floatUp linear infinite;
+    animation: loginPageFloatUp linear infinite;
     box-shadow: 0 0 20px rgba(59, 130, 246, 0.3);
+    will-change: transform;
   }
 
-  @keyframes floatUp {
+  @keyframes loginPageFloatUp {
     0% {
       transform: translateY(0);
     }

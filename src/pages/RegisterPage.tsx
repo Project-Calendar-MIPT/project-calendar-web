@@ -1,10 +1,11 @@
-import React, { useState, useRef } from 'react';
+import React, { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { Input } from '../components/ui/Input';
 import { Button } from '../components/ui/Button';
 import { Card } from '../components/ui/Card';
 import { WorkScheduleForm } from '../components/ui/WorkScheduleForm';
 import { authService } from '../api/authService';
+import { useFloatingColumns } from '../hooks/useFloatingColumns';
 import type { RegisterData, WorkScheduleDay } from '../types';
 import './RegisterPage.scss';
 
@@ -121,33 +122,12 @@ const RegisterPage: React.FC = () => {
     setErrors((prev) => ({ ...prev, [field]: msg }));
   };
 
-  const columnsRef = useRef<any[]>();
-  if (!columnsRef.current) {
-    columnsRef.current = [...Array(15)].map((_, i) => {
-      const depth = Math.random();
-      const scale = depth * 0.6 + 0.4;
-      const width = 30 + scale * 30;
-      const height = 60 + scale * 80;
-      const duration = 14 + (1 - scale) * 6;
-      const leftOffset = Math.random() * 3;
-      const delay = -Math.random() * duration;
-
-      return {
-        left: `${i * 6.5 + leftOffset}%`,
-        width: `${width}px`,
-        height: `${height}px`,
-        opacity: scale * 0.6 + 0.2,
-        animationDuration: `${duration}s`,
-        animationDelay: `${delay}s`,
-        zIndex: Math.floor(scale * 10),
-      };
-    });
-  }
+  const columns = useFloatingColumns(15);
 
   return (
     <div className="register-page">
-      <div className="register-page__background">
-        {columnsRef.current.map((style, i) => (
+      <div className="register-page__background" aria-hidden="true">
+        {columns.map((style, i) => (
           <div key={i} className="register-page__column" style={style} />
         ))}
       </div>
