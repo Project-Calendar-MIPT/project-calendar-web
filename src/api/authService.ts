@@ -27,8 +27,13 @@ export const authService = {
       id: 'temp-' + Date.now(),
       username: data.username,
       email: data.email,
-      full_name: data.full_name,
+      last_name: data.last_name,
+      first_name: data.first_name,
+      middle_name: data.middle_name,
       timezone: data.timezone,
+      telegram: data.telegram,
+      phone: data.phone,
+      contacts_visible: data.contacts_visible,
     };
 
     const token = 'fake-jwt-token-' + fakeUser.id;

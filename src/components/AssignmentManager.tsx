@@ -106,7 +106,9 @@ export const AssignmentManager: React.FC<AssignmentManagerProps> = ({ projectId 
 
   const getUserName = (userId: string): string => {
     const user = MOCK_USERS.find((u) => u.id === userId);
-    return user?.full_name || user?.username || 'Unknown';
+    if (!user) return 'Unknown';
+    const fullName = [user.last_name, user.first_name, user.middle_name].filter(Boolean).join(' ');
+    return fullName || user.username || 'Unknown';
   };
 
   const getRoleLabel = (role: string): string => {

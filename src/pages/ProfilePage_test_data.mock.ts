@@ -5,10 +5,15 @@ export type MockTask = Task & { allocated_hours: number };
 
 const mockUser: User = {
     id: 'user-1',
-    full_name: 'Иванов Иван',
+    last_name: 'Иванов',
+    first_name: 'Иван',
+    middle_name: 'Иванович',
     username: 'ivan',
     email: 'ivan@example.com',
     timezone: 'Europe/Moscow',
+    telegram: '@ivan',
+    phone: '+7 (999) 123-45-67',
+    contacts_visible: true,
 };
 
 const mockWorkSchedule: WorkScheduleDay[] = [

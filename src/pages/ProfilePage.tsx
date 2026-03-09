@@ -197,9 +197,14 @@ export const ProfilePage: React.FC = () => {
   }
 
   const avatarLetter =
-    (user?.full_name && user.full_name.trim()[0]) ||
+    (user?.last_name && user.last_name.trim()[0]) ||
+    (user?.first_name && user.first_name.trim()[0]) ||
     (user?.username && user.username.trim()[0]) ||
     '?';
+
+  const fullName = user
+    ? [user.last_name, user.first_name, user.middle_name].filter(Boolean).join(' ')
+    : '';
 
   return (
     <div className="profile-page">
@@ -213,7 +218,7 @@ export const ProfilePage: React.FC = () => {
                 {avatarLetter.toUpperCase()}
               </div>
               <div className="profile-page__user-meta">
-                <div className="profile-page__user-name">{user.full_name || user.username}</div>
+                <div className="profile-page__user-name">{fullName || user.username}</div>
                 <div className="profile-page__user-username">@{user.username}</div>
               </div>
             </div>
@@ -242,11 +247,35 @@ export const ProfilePage: React.FC = () => {
               <div className="profile-info">
                 <div className="profile-info__row">
                   <span className="profile-info__label">ФИО</span>
-                  <span className="profile-info__value">{user.full_name || '—'}</span>
+                  <span className="profile-info__value">{fullName || '—'}</span>
+                </div>
+                <div className="profile-info__row">
+                  <span className="profile-info__label">Фамилия</span>
+                  <span className="profile-info__value">{user.last_name || '—'}</span>
+                </div>
+                <div className="profile-info__row">
+                  <span className="profile-info__label">Имя</span>
+                  <span className="profile-info__value">{user.first_name || '—'}</span>
+                </div>
+                <div className="profile-info__row">
+                  <span className="profile-info__label">Отчество</span>
+                  <span className="profile-info__value">{user.middle_name || '—'}</span>
                 </div>
                 <div className="profile-info__row">
                   <span className="profile-info__label">Username</span>
                   <span className="profile-info__value">@{user.username || '—'}</span>
+                </div>
+                <div className="profile-info__row">
+                  <span className="profile-info__label">Telegram</span>
+                  <span className="profile-info__value">{user.telegram || '—'}</span>
+                </div>
+                <div className="profile-info__row">
+                  <span className="profile-info__label">Телефон</span>
+                  <span className="profile-info__value">{user.phone || '—'}</span>
+                </div>
+                <div className="profile-info__row">
+                  <span className="profile-info__label">Видимость контактов</span>
+                  <span className="profile-info__value">{user.contacts_visible ? 'Видимы' : 'Скрыты'}</span>
                 </div>
                 <div className="profile-info__row">
                   <span className="profile-info__label">Email</span>

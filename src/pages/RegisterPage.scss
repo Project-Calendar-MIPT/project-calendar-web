@@ -96,4 +96,31 @@
       }
     }
   }
+
+  &__section {
+    margin-bottom: $spacing-6;
+  }
+
+  &__section-title {
+    font-size: $font-size-lg;
+    font-weight: $font-weight-semibold;
+    margin-bottom: $spacing-4;
+    color: var(--color-text-primary);
+  }
+
+  &__checkbox {
+    margin-top: $spacing-3;
+
+    label {
+      display: flex;
+      align-items: center;
+      gap: $spacing-2;
+      cursor: pointer;
+      color: var(--color-text-primary);
+
+      input[type='checkbox'] {
+        cursor: pointer;
+      }
+    }
+  }
 }
