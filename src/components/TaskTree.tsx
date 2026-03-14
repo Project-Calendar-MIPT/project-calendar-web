@@ -22,6 +22,53 @@ const TaskNode: React.FC<TaskNodeProps> = ({
   const [expanded, setExpanded] = useState(false);
   const [subtasks, setSubtasks] = useState<Task[]>([]);
   const [loading, setLoading] = useState(false);
+  const [executorName, setExecutorName] = useState<string>('Не назначен');
+
+  useEffect(() => {
+    let cancelled = false;
+    const loadExecutor = async () => {
+      try {
+        const [assignments, users] = await Promise.all([
+          taskService.getTaskAssignments(task.id),
+          taskService.getTaskUsers(task.id),
+        ]);
+
+        if (cancelled) return;
+
+        const executorAssignment = assignments.find((a) => a.role === 'executor');
+
+        if (!executorAssignment) {
+          setExecutorName('Не назначен');
+          return;
+        }
+
+        const executorUser = (users as any[]).find((u) => u.id === executorAssignment.user_id);
+
+        if (!executorUser) {
+          setExecutorName('Не назначен');
+          return;
+        }
+
+        setExecutorName(
+          executorUser.full_name ||
+            executorUser.username ||
+            executorUser.email ||
+            'Не назначен'
+        );
+      } catch (err) {
+        console.error('Ошибка при загрузке исполнителя задачи:', err);
+        if (!cancelled) {
+          setExecutorName('Не назначен');
+        }
+      }
+    };
+
+    loadExecutor();
+
+    return () => {
+      cancelled = true;
+    };
+  }, [task.id]);
 
   const handleExpand = async () => {
     if (!expanded) {
@@ -47,6 +94,16 @@ const TaskNode: React.FC<TaskNodeProps> = ({
     return colors[priority] || '#6b7280';
   };
 
+  const getPriorityLabel = (priority: string): string => {
+    const labels: Record<string, string> = {
+      critical: 'Критический',
+      high: 'Высокий',
+      medium: 'Средний',
+      low: 'Низкий',
+    };
+    return labels[priority] || priority;
+  };
+
   const getStatusLabel = (status: string): string => {
     const labels: Record<string, string> = {
       pending: 'Новая',
@@ -55,6 +112,12 @@ const TaskNode: React.FC<TaskNodeProps> = ({
       cancelled: 'Отменена',
     };
     return labels[status] || status;
+  };
+
+  const getClassificationLabel = (task: Task): string => {
+    return Number(task.estimated_hours ?? 0) > 0
+      ? 'С назначенным временем'
+      : 'Без назначенного времени';
   };
 
   const isSelected = task.id === selectedTaskId;
@@ -75,14 +138,25 @@ const TaskNode: React.FC<TaskNodeProps> = ({
           onClick={() => onTaskClick(task)}
           onDoubleClick={() => onTaskDoubleClick(task)}
         >
-          <span className="task-node__title">{task.title}</span>
-          <span className="task-node__status">{getStatusLabel(task.status)}</span>
-          <span
-            className="task-node__priority"
-            style={{ backgroundColor: getPriorityColor(task.priority) }}
-          >
-            {task.priority}
-          </span>
+          <div className="task-node__title-row">
+            <span className="task-node__title">{task.title}</span>
+
+            <span className="task-node__status">{getStatusLabel(task.status)}</span>
+
+            <span
+              className="task-node__priority"
+              style={{ backgroundColor: getPriorityColor(task.priority) }}
+            >
+              {getPriorityLabel(task.priority)}
+            </span>
+          </div>
+
+          <div className="task-node__meta-row">
+            <span className="task-node__classification">
+              {getClassificationLabel(task)}
+            </span>
+            <span className="task-node__executor">Исполнитель: {executorName}</span>
+          </div>
         </div>
       </div>
 
@@ -111,7 +185,6 @@ const TaskNode: React.FC<TaskNodeProps> = ({
 interface TaskTreeProps {
   taskId: string;
   onTaskSelect?: (task: Task | null) => void;
-
   onAddSubtask?: (parentTask: Task) => void;
 }
 

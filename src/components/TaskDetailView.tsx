@@ -39,6 +39,24 @@ const getPriorityLabel = (priority: string): string => {
   return labels[priority] || priority;
 };
 
+const getComplexityLabel = (value?: string): string => {
+  const labels: Record<string, string> = {
+    low: 'Низкая',
+    medium: 'Средняя',
+    high: 'Высокая',
+  };
+  return value ? labels[value] || value : '—';
+};
+
+const getNoveltyLabel = (value?: string): string => {
+  const labels: Record<string, string> = {
+    low: 'Низкая',
+    medium: 'Средняя',
+    high: 'Высокая',
+  };
+  return value ? labels[value] || value : '—';
+};
+
 const getPriorityColor = (priority: string): string => {
   const colors: Record<string, string> = {
     critical: '#ef4444',
@@ -59,6 +77,7 @@ export const TaskDetailView: React.FC<TaskDetailViewProps> = ({ task }) => {
           <span className="task-detail__badge task-detail__badge--status">
             {getStatusLabel(task.status)}
           </span>
+
           <span
             className="task-detail__badge task-detail__badge--priority"
             style={{ backgroundColor: getPriorityColor(task.priority) }}
@@ -71,6 +90,36 @@ export const TaskDetailView: React.FC<TaskDetailViewProps> = ({ task }) => {
       <div className="task-detail__section">
         <div className="task-detail__section-title">Описание</div>
         <div className="task-detail__text">{task.description || '—'}</div>
+      </div>
+
+      <div className="task-detail__section">
+        <div className="task-detail__section-title">Параметры</div>
+
+        <div className="task-detail__kv">
+          <div className="task-detail__k task-detail__k--with-info">
+            <span>Сложность</span>
+            <button
+              type="button"
+              className="task-detail__info-button"
+              title="Сложность — насколько трудной является задача по объёму, координации и усилиям"
+            >
+              i
+            </button>
+          </div>
+          <div className="task-detail__v">{getComplexityLabel(task.complexity)}</div>
+
+          <div className="task-detail__k task-detail__k--with-info">
+            <span>Новизна</span>
+            <button
+              type="button"
+              className="task-detail__info-button"
+              title="Новизна — насколько задача требует нового подхода, неизвестных решений или новых технологий"
+            >
+              i
+            </button>
+          </div>
+          <div className="task-detail__v">{getNoveltyLabel(task.novelty)}</div>
+        </div>
       </div>
 
       <div className="task-detail__section">

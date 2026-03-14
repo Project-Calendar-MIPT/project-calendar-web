@@ -45,7 +45,29 @@ const getAllocatedHours = (task: Task): number => {
   return task.estimated_hours || 0;
 };
 
-// Фиктивное рабочее расписание (понедельник-пятница 9:00-18:00)
+const getTaskUrgency = (task: Task): 'overdue' | null => {
+  if (!task.end_date) return null;
+
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
+
+  const endDate = new Date(task.end_date);
+  endDate.setHours(0, 0, 0, 0);
+
+  if (endDate < today) return 'overdue';
+
+  return null;
+};
+
+const formatUrgencyLabel = (urgency: 'overdue' | null): string => {
+  switch (urgency) {
+    case 'overdue':
+      return 'Просрочено';
+    default:
+      return '';
+  }
+};
+
 const DEFAULT_WORK_SCHEDULE: WorkScheduleDay[] = [
   { day_of_week: 1, is_working_day: true, start_time: '09:00', end_time: '18:00' },
   { day_of_week: 2, is_working_day: true, start_time: '09:00', end_time: '18:00' },
@@ -61,19 +83,12 @@ async function fakeLoadProfileData(): Promise<{
   workSchedule: WorkScheduleDay[];
   tasks: Task[];
 }> {
-  // Получаем текущего пользователя
   const user = await authService.getCurrentUser();
-  
-  // Получаем все задачи
   const allTasks = await taskService.getTasks();
-  
-  // Получаем назначения текущего пользователя
-  const userAssignments = assignmentService.getMockAssignments().filter(a => a.user_id === user.id);
-  const userTaskIds = userAssignments.map(a => a.task_id);
-  
-  // Фильтруем задачи пользователя
-  const tasks = allTasks.filter(t => userTaskIds.includes(t.id));
-  
+  const userAssignments = assignmentService.getMockAssignments().filter((a) => a.user_id === user.id);
+  const userTaskIds = userAssignments.map((a) => a.task_id);
+  const tasks = allTasks.filter((t) => userTaskIds.includes(t.id));
+
   return new Promise((resolve) => {
     setTimeout(() => {
       resolve({
@@ -400,17 +415,37 @@ export const ProfilePage: React.FC = () => {
                 <p className="profile-empty">Пока нет задач</p>
               ) : (
                 <ul className="task-list">
-                  {tasks.map((t) => (
-                    <li key={t.id} className="task-list__item">
-                      <div className="task-list__main">
-                        <span className="task-list__title">{t.title}</span>
-                        <span className={`task-status-badge task-status-badge--${t.status}`}>
-                          {formatStatusLabel(t.status)}
-                        </span>
-                      </div>
-                      {t.description && <p className="task-list__description">{t.description}</p>}
-                    </li>
-                  ))}
+                  {tasks.map((t) => {
+                    const urgency = getTaskUrgency(t);
+
+                    return (
+                      <li
+                        key={t.id}
+                        className={
+                          'task-list__item' +
+                          (urgency ? ` task-list__item--${urgency}` : '')
+                        }
+                      >
+                        <div className="task-list__main">
+                          <span className="task-list__title">{t.title}</span>
+
+                          <div className="task-list__badges">
+                            {urgency && (
+                              <span className={`task-urgency-badge task-urgency-badge--${urgency}`}>
+                                {formatUrgencyLabel(urgency)}
+                              </span>
+                            )}
+
+                            <span className={`task-status-badge task-status-badge--${t.status}`}>
+                              {formatStatusLabel(t.status)}
+                            </span>
+                          </div>
+                        </div>
+
+                        {t.description && <p className="task-list__description">{t.description}</p>}
+                      </li>
+                    );
+                  })}
                 </ul>
               )}
             </Card>
