@@ -45,6 +45,22 @@ let mockTasks: Task[] = [...MOCK_TASKS];
 
 const genId = () => 'task-' + Math.random().toString(36).slice(2);
 
+const normalizeHours = (value: unknown): number => {
+  const num = Number(value ?? 0);
+  return Number.isFinite(num) ? Math.max(0, num) : 0;
+};
+
+const getAutoStatus = (
+  estimatedHours: number,
+  currentStatus?: Task['status']
+): Task['status'] => {
+  if (currentStatus === 'completed' || currentStatus === 'cancelled') {
+    return currentStatus;
+  }
+
+  return estimatedHours > 0 ? 'in_progress' : 'pending';
+};
+
 export const taskService = {
   async getTasks(params?: TasksQueryParams): Promise<Task[]> {
     await new Promise((r) => setTimeout(r, 200));
@@ -75,20 +91,21 @@ export const taskService = {
     await new Promise((r) => setTimeout(r, 300));
 
     const now = new Date().toISOString().split('T')[0];
+    const estimatedHours = normalizeHours(data.estimated_hours);
 
     const newTask: Task = {
       id: genId(),
       parent_task_id: data.parent_task_id ?? null,
       title: data.title || 'Без названия',
       description: data.description || '',
-      status: 'pending',
+      status: getAutoStatus(estimatedHours),
       priority: data.priority || 'medium',
       complexity: data.complexity,
       novelty: data.novelty,
       start_date: data.start_date || now,
       end_date: data.end_date || now,
       duration_days: data.duration_days,
-      estimated_hours: data.estimated_hours ?? 0,
+      estimated_hours: estimatedHours,
       created_at: new Date().toISOString(),
       updated_at: new Date().toISOString(),
     };
@@ -105,9 +122,17 @@ export const taskService = {
       throw new Error('Task not found');
     }
 
+    const currentTask = mockTasks[index];
+    const estimatedHours =
+      data.estimated_hours !== undefined
+        ? normalizeHours(data.estimated_hours)
+        : normalizeHours(currentTask.estimated_hours);
+
     const updated: Task = {
-      ...mockTasks[index],
+      ...currentTask,
       ...data,
+      estimated_hours: estimatedHours,
+      status: getAutoStatus(estimatedHours, currentTask.status),
       updated_at: new Date().toISOString(),
     };
 
@@ -147,7 +172,6 @@ export const taskService = {
     const assignments = assignmentService
       .getMockAssignments()
       .filter((a) => a.task_id === taskId);
-
     const userIds = assignments.map((a) => a.user_id);
 
     return MOCK_USERS.filter((user) => userIds.includes(user.id));

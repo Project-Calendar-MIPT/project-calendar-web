@@ -21,18 +21,6 @@ const PRIORITY_OPTIONS = [
   { value: 'critical', label: 'Критический' },
 ];
 
-const COMPLEXITY_OPTIONS = [
-  { value: 'low', label: 'Низкая' },
-  { value: 'medium', label: 'Средняя' },
-  { value: 'high', label: 'Высокая' },
-];
-
-const NOVELTY_OPTIONS = [
-  { value: 'low', label: 'Низкая' },
-  { value: 'medium', label: 'Средняя' },
-  { value: 'high', label: 'Высокая' },
-];
-
 const calculateDaysDiff = (startDate: string, endDate: string): number => {
   if (!startDate || !endDate) return 0;
   const start = new Date(startDate);
@@ -65,10 +53,6 @@ export const TaskForm: React.FC<TaskFormProps> = ({
     duration_days: task?.duration_days || 0,
     priority: task?.priority || 'medium',
     estimated_hours: task?.estimated_hours || 0,
-
-    // ✅ новые необязательные поля
-    complexity: task?.complexity || 'medium',
-    novelty: task?.novelty || 'medium',
   });
 
   const [errors, setErrors] = useState<Record<string, string>>({});
@@ -90,7 +74,11 @@ export const TaskForm: React.FC<TaskFormProps> = ({
     } else if (lastChangedField === 'end' && formData.start_date && formData.end_date) {
       const newDuration = calculateDaysDiff(formData.start_date, formData.end_date);
       setFormData((prev) => ({ ...prev, duration_days: newDuration }));
-    } else if (lastChangedField === 'duration' && formData.start_date && formData.duration_days >= 0) {
+    } else if (
+      lastChangedField === 'duration' &&
+      formData.start_date &&
+      formData.duration_days >= 0
+    ) {
       const newEndDate = addDaysToDate(formData.start_date, formData.duration_days);
       setFormData((prev) => ({ ...prev, end_date: newEndDate }));
     }
@@ -101,20 +89,9 @@ export const TaskForm: React.FC<TaskFormProps> = ({
       case 'title':
         if (!value.trim()) return 'Название обязательно';
         return '';
-
       case 'description':
         if (!value.trim()) return 'Описание обязательно';
         return '';
-
-      case 'start_date':
-        if (value && formData.end_date && value > formData.end_date) {
-          return 'Дата начала не может быть позже даты окончания';
-        }
-        if ((projectStartDate || projectEndDate) && value && !isWithinProjectBounds(value)) {
-          return 'Дата начала выходит за пределы дат проекта';
-        }
-        return '';
-
       case 'end_date':
         if (value && formData.start_date && value < formData.start_date) {
           return 'Дата окончания не может быть раньше даты начала';
@@ -123,15 +100,20 @@ export const TaskForm: React.FC<TaskFormProps> = ({
           return 'Дата окончания выходит за пределы дат проекта';
         }
         return '';
-
+      case 'start_date':
+        if (value && formData.end_date && value > formData.end_date) {
+          return 'Дата начала не может быть позже даты окончания';
+        }
+        if ((projectStartDate || projectEndDate) && value && !isWithinProjectBounds(value)) {
+          return 'Дата начала выходит за пределы дат проекта';
+        }
+        return '';
       case 'estimated_hours':
         if (value < 0) return 'Количество часов не может быть отрицательным';
         return '';
-
       case 'duration_days':
         if (value < 0) return 'Длительность не может быть отрицательной';
         return '';
-
       default:
         return '';
     }
@@ -172,41 +154,50 @@ export const TaskForm: React.FC<TaskFormProps> = ({
     }
   };
 
+  const handleSelectChange = (field: string, value: string) => {
+    setFormData({ ...formData, [field]: value });
+  };
+
   const handleBlur = (field: string) => () => {
     setTouched((prev) => ({ ...prev, [field]: true }));
-    const error = validateField(field, (formData as any)[field]);
+    const error = validateField(field, formData[field as keyof typeof formData]);
     setErrors((prev) => ({ ...prev, [field]: error }));
   };
 
-  const handleHoursChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const raw = e.target.value;
-    const num = raw === '' ? 0 : Number(raw);
-    const safe = Number.isFinite(num) ? Math.max(0, num) : 0;
+  const handleEstimatedHoursChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const value = Number(e.target.value);
+    const safeValue = Number.isFinite(value) ? Math.max(0, value) : 0;
 
-    setFormData((prev) => ({ ...prev, estimated_hours: safe }));
+    setFormData({ ...formData, estimated_hours: safeValue });
 
     if (touched['estimated_hours']) {
-      const error = validateField('estimated_hours', safe);
+      const error = validateField('estimated_hours', safeValue);
       setErrors((prev) => ({ ...prev, estimated_hours: error }));
     }
   };
 
+  const hasAssignedTime = Number(formData.estimated_hours) > 0;
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
 
     const newErrors: Record<string, string> = {};
     (Object.keys(formData) as (keyof typeof formData)[]).forEach((field) => {
-      const error = validateField(field, (formData as any)[field]);
-      if (error) newErrors[field as string] = error;
+      const error = validateField(field, formData[field]);
+      if (error) newErrors[field] = error;
     });
 
     if (Object.keys(newErrors).length > 0) {
       setErrors(newErrors);
-      setTouched(Object.keys(formData).reduce((acc, key) => ({ ...acc, [key]: true }), {}));
+      setTouched(
+        Object.keys(formData).reduce((acc, key) => ({ ...acc, [key]: true }), {})
+      );
       return;
     }
 
-    onSubmit({ ...formData });
+    onSubmit({
+      ...formData,
+      status: hasAssignedTime ? 'in_progress' : 'pending',
+    });
   };
 
   return (
@@ -268,61 +259,28 @@ export const TaskForm: React.FC<TaskFormProps> = ({
           label="Приоритет"
           options={PRIORITY_OPTIONS}
           value={formData.priority}
-          includePlaceholder={false}
-          onChange={(e) => setFormData((prev) => ({ ...prev, priority: e.target.value as any }))}
+          onChange={(e) => handleSelectChange('priority', e.target.value)}
         />
       )}
-
-      <div className="task-form__info-field">
-        <div className="task-form__label-with-info">
-          <span>Сложность</span>
-          <button
-            type="button"
-            className="task-form__info-button"
-            title="Сложность — насколько трудной является задача по объёму, координации и усилиям"
-          >
-            i
-          </button>
-        </div>
-
-        <Select
-          options={COMPLEXITY_OPTIONS}
-          value={formData.complexity}
-          includePlaceholder={false}
-          onChange={(e) => setFormData((prev) => ({ ...prev, complexity: e.target.value as any }))}
-        />
-      </div>
-
-      <div className="task-form__info-field">
-        <div className="task-form__label-with-info">
-          <span>Новизна</span>
-          <button
-            type="button"
-            className="task-form__info-button"
-            title="Новизна — насколько задача требует нового подхода, неизвестных решений или новых технологий"
-          >
-            i
-          </button>
-        </div>
-
-        <Select
-          options={NOVELTY_OPTIONS}
-          value={formData.novelty}
-          includePlaceholder={false}
-          onChange={(e) => setFormData((prev) => ({ ...prev, novelty: e.target.value as any }))}
-        />
-      </div>
 
       <Input
         label="Ожидаемые часы"
         type="number"
         value={formData.estimated_hours.toString()}
-        onChange={handleHoursChange}
+        onChange={handleEstimatedHoursChange}
         onBlur={handleBlur('estimated_hours')}
         error={errors.estimated_hours}
         min="0"
         step="1"
       />
+
+      {!isProject && (
+        <div className="task-form__hint">
+          {hasAssignedTime
+            ? 'С назначенным временем — задача перейдёт в статус «В процессе»'
+            : 'Без назначенного времени — задача считается идеей / планом'}
+        </div>
+      )}
 
       <div className="task-form__actions">
         <Button type="submit" variant="primary">

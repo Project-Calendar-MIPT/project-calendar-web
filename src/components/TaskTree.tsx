@@ -22,12 +22,10 @@ const TaskNode: React.FC<TaskNodeProps> = ({
   const [expanded, setExpanded] = useState(false);
   const [subtasks, setSubtasks] = useState<Task[]>([]);
   const [loading, setLoading] = useState(false);
-
   const [executorName, setExecutorName] = useState<string>('Не назначен');
 
   useEffect(() => {
     let cancelled = false;
-
     const loadExecutor = async () => {
       try {
         const [assignments, users] = await Promise.all([
@@ -44,9 +42,7 @@ const TaskNode: React.FC<TaskNodeProps> = ({
           return;
         }
 
-        const executorUser = (users as any[]).find(
-          (u) => u.id === executorAssignment.user_id
-        );
+        const executorUser = (users as any[]).find((u) => u.id === executorAssignment.user_id);
 
         if (!executorUser) {
           setExecutorName('Не назначен');
@@ -118,6 +114,12 @@ const TaskNode: React.FC<TaskNodeProps> = ({
     return labels[status] || status;
   };
 
+  const getClassificationLabel = (task: Task): string => {
+    return Number(task.estimated_hours ?? 0) > 0
+      ? 'С назначенным временем'
+      : 'Без назначенного времени';
+  };
+
   const isSelected = task.id === selectedTaskId;
 
   return (
@@ -149,7 +151,12 @@ const TaskNode: React.FC<TaskNodeProps> = ({
             </span>
           </div>
 
-          <div className="task-node__executor">Исполнитель: {executorName}</div>
+          <div className="task-node__meta-row">
+            <span className="task-node__classification">
+              {getClassificationLabel(task)}
+            </span>
+            <span className="task-node__executor">Исполнитель: {executorName}</span>
+          </div>
         </div>
       </div>
 
