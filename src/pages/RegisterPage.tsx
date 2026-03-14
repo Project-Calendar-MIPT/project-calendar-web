@@ -5,6 +5,7 @@ import { Button } from '../components/ui/Button';
 import { Card } from '../components/ui/Card';
 import { WorkScheduleForm } from '../components/ui/WorkScheduleForm';
 import { authService } from '../api/authService';
+import { useFloatingColumns } from '../hooks/useFloatingColumns';
 import type { RegisterData, WorkScheduleDay } from '../types';
 import './RegisterPage.scss';
 
@@ -121,8 +122,15 @@ const RegisterPage: React.FC = () => {
     setErrors((prev) => ({ ...prev, [field]: msg }));
   };
 
+  const columns = useFloatingColumns(15);
+
   return (
     <div className="register-page">
+      <div className="register-page__background" aria-hidden="true">
+        {columns.map((column) => (
+          <div key={column.id} className="register-page__column" style={column.style} />
+        ))}
+      </div>
       <Card className="register-page__card">
         <div className="register-page__header">
           <h1>Регистрация</h1>

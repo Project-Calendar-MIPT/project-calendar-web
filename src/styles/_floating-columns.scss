@@ -1,0 +1,33 @@
+// Общие стили для анимированного фона с плавающими колонками
+
+@mixin floating-columns-background {
+  position: absolute;
+  inset: 0;
+  overflow: hidden;
+  pointer-events: none;
+  z-index: 0;
+}
+
+@mixin floating-column {
+  position: absolute;
+  bottom: -150px;
+  background: rgb(59, 130, 246);
+  border-radius: 25px;
+  box-shadow: 0 0 8px rgb(59, 130, 246);
+
+  @media (prefers-reduced-motion: reduce) {
+    animation: none !important;
+    opacity: 0.3 !important;
+  }
+}
+
+@mixin floating-columns-keyframes($name) {
+  @keyframes #{$name} {
+    0% {
+      transform: translateY(0);
+    }
+    100% {
+      transform: translateY(calc(-100vh - 500px));
+    }
+  }
+}

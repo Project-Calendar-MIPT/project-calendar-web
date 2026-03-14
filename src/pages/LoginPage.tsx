@@ -4,6 +4,7 @@ import { Input } from '../components/ui/Input';
 import { Button } from '../components/ui/Button';
 import { Card } from '../components/ui/Card';
 import { authService } from '../api/authService';
+import { useFloatingColumns } from '../hooks/useFloatingColumns';
 import './LoginPage.scss';
 
 const LoginPage: React.FC = () => {
@@ -59,21 +60,27 @@ const LoginPage: React.FC = () => {
     }
   };
 
-  const handleInputChange = (field: keyof typeof formData) => (
-    e: React.ChangeEvent<HTMLInputElement>
-  ) => {
-    setFormData({ ...formData, [field]: e.target.value });
-    if (errors[field]) {
-      setErrors({ ...errors, [field]: '' });
-    }
-    // Очищаем общую ошибку при изменении поля
-    if (error) {
-      setError('');
-    }
-  };
+  const handleInputChange =
+    (field: keyof typeof formData) => (e: React.ChangeEvent<HTMLInputElement>) => {
+      setFormData({ ...formData, [field]: e.target.value });
+      if (errors[field]) {
+        setErrors({ ...errors, [field]: '' });
+      }
+      // Очищаем общую ошибку при изменении поля
+      if (error) {
+        setError('');
+      }
+    };
+
+  const columns = useFloatingColumns(15);
 
   return (
     <div className="login-page">
+      <div className="login-page__background" aria-hidden="true">
+        {columns.map((column) => (
+          <div key={column.id} className="login-page__column" style={column.style} />
+        ))}
+      </div>
       <Card className="login-page__card">
         <div className="login-page__header">
           <h1>Вход</h1>
