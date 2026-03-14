@@ -1,13 +1,7 @@
 @use '../../styles/variables' as *;
 
 .work-schedule {
-  margin: $spacing-6 0;
-
-  &__title {
-    font-size: $font-size-lg;
-    font-weight: $font-weight-semibold;
-    margin-bottom: $spacing-4;
-  }
+  margin: $spacing-4 0 0 0;
 
   &__table {
     display: flex;

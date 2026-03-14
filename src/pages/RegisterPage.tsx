@@ -18,8 +18,13 @@ const RegisterPage: React.FC = () => {
     username: '',
     email: '',
     password: '',
-    full_name: '',
+    last_name: '',
+    first_name: '',
+    middle_name: '',
     timezone: 'Europe/Moscow',
+    telegram: '',
+    phone: '',
+    contacts_visible: true,
   });
 
   const [workSchedule, setWorkSchedule] = useState<WorkScheduleDay[]>([]);
@@ -28,7 +33,9 @@ const RegisterPage: React.FC = () => {
   const [touched, setTouched] = useState<Record<string, boolean>>({ work_schedule: true });
   const [totalWorkingHours, setTotalWorkingHours] = useState(40);
 
-  const validateField = (field: keyof typeof formData, value: string): string => {
+  const validateField = (field: keyof typeof formData, value: string | boolean): string => {
+    if (typeof value === 'boolean') return '';
+    
     switch (field) {
       case 'username':
         if (!value.trim()) return 'Имя пользователя обязательно';
@@ -41,12 +48,23 @@ const RegisterPage: React.FC = () => {
         if (!value) return 'Пароль обязателен';
         if (value.length < 8) return 'Пароль должен содержать минимум 8 символов';
         return '';
-      case 'full_name':
-        if (!value.trim()) return 'Полное имя обязательно';
+      case 'last_name':
+        if (!value.trim()) return 'Фамилия обязательна';
         return '';
+      case 'first_name':
+        if (!value.trim()) return 'Имя обязательно';
+        return '';
+      case 'middle_name':
+        return ''; // Необязательное поле
       case 'timezone':
         if (!value.trim()) return 'Часовой пояс обязателен';
         if (!/^[A-Za-z_]+\/[A-Za-z_]+$/.test(value)) return 'Неверный формат часового пояса';
+        return '';
+      case 'telegram':
+        if (value && !/^@?[a-zA-Z0-9_]{5,32}$/.test(value)) return 'Неверный формат Telegram (например: @username)';
+        return '';
+      case 'phone':
+        if (value && !/^\+?[0-9\s\-()]{10,}$/.test(value)) return 'Неверный формат телефона';
         return '';
       default:
         return '';
@@ -107,8 +125,8 @@ const RegisterPage: React.FC = () => {
 
   const handleInputChange =
     (field: keyof typeof formData) => (e: React.ChangeEvent<HTMLInputElement>) => {
-      const value = e.target.value;
-      setFormData({ ...formData, [field]: e.target.value });
+      const value = e.target.type === 'checkbox' ? e.target.checked : e.target.value;
+      setFormData({ ...formData, [field]: value });
       if (touched[field]) {
         const msg = validateField(field, value);
         setErrors((prev) => ({ ...prev, [field]: msg }));
@@ -138,61 +156,122 @@ const RegisterPage: React.FC = () => {
         </div>
 
         <form onSubmit={handleSubmit}>
-          <Input
-            label="Имя пользователя"
-            type="text"
-            value={formData.username}
-            onChange={handleInputChange('username')}
-            onBlur={handleInputBlur('username')}
-            error={errors.username}
-            required
-          />
+          <div className="register-page__section">
+            <h2 className="register-page__section-title">Учетные данные</h2>
+            <Input
+              label="Имя пользователя"
+              type="text"
+              value={formData.username}
+              onChange={handleInputChange('username')}
+              onBlur={handleInputBlur('username')}
+              error={errors.username}
+              required
+            />
 
-          <Input
-            label="Email"
-            type="email"
-            value={formData.email}
-            onChange={handleInputChange('email')}
-            onBlur={handleInputBlur('email')}
-            error={errors.email}
-            required
-          />
+            <Input
+              label="Email"
+              type="email"
+              value={formData.email}
+              onChange={handleInputChange('email')}
+              onBlur={handleInputBlur('email')}
+              error={errors.email}
+              required
+            />
 
-          <Input
-            label="Пароль"
-            type="password"
-            value={formData.password}
-            onChange={handleInputChange('password')}
-            onBlur={handleInputBlur('password')}
-            error={errors.password}
-            required
-          />
+            <Input
+              label="Пароль"
+              type="password"
+              value={formData.password}
+              onChange={handleInputChange('password')}
+              onBlur={handleInputBlur('password')}
+              error={errors.password}
+              required
+            />
+          </div>
 
-          <Input
-            label="Полное имя"
-            type="text"
-            value={formData.full_name}
-            onChange={handleInputChange('full_name')}
-            onBlur={handleInputBlur('full_name')}
-            error={errors.full_name}
-            required
-          />
+          <div className="register-page__section">
+            <h2 className="register-page__section-title">Личная информация</h2>
+            <Input
+              label="Фамилия"
+              type="text"
+              value={formData.last_name}
+              onChange={handleInputChange('last_name')}
+              onBlur={handleInputBlur('last_name')}
+              error={errors.last_name}
+              required
+            />
 
-          <Input
-            label="Часовой пояс"
-            type="text"
-            value={formData.timezone}
-            onChange={handleInputChange('timezone')}
-            onBlur={handleInputBlur('timezone')}
-            error={errors.timezone}
-            required
-          />
+            <Input
+              label="Имя"
+              type="text"
+              value={formData.first_name}
+              onChange={handleInputChange('first_name')}
+              onBlur={handleInputBlur('first_name')}
+              error={errors.first_name}
+              required
+            />
 
-          <WorkScheduleForm
-            onChange={setWorkSchedule}
-            onWorkingDaysChange={setWorkingDaysCount}
-            onTotalHoursChange={setTotalWorkingHours}
-          />
+            <Input
+              label="Отчество"
+              type="text"
+              value={formData.middle_name}
+              onChange={handleInputChange('middle_name')}
+              onBlur={handleInputBlur('middle_name')}
+              error={errors.middle_name}
+            />
+          </div>
+
+          <div className="register-page__section">
+            <h2 className="register-page__section-title">Контакты</h2>
+            <Input
+              label="Telegram"
+              type="text"
+              placeholder="@username"
+              value={formData.telegram}
+              onChange={handleInputChange('telegram')}
+              onBlur={handleInputBlur('telegram')}
+              error={errors.telegram}
+            />
+
+            <Input
+              label="Номер телефона"
+              type="tel"
+              placeholder="+7 (XXX) XXX-XX-XX"
+              value={formData.phone}
+              onChange={handleInputChange('phone')}
+              onBlur={handleInputBlur('phone')}
+              error={errors.phone}
+            />
+
+            <div className="register-page__checkbox">
+              <label>
+                <input
+                  type="checkbox"
+                  checked={formData.contacts_visible}
+                  onChange={handleInputChange('contacts_visible')}
+                />
+                <span>Сделать контакты видимыми для других пользователей</span>
+              </label>
+            </div>
+          </div>
+
+          <div className="register-page__section">
+            <h2 className="register-page__section-title">Рабочее расписание</h2>
+            <Input
+              label="Часовой пояс"
+              type="text"
+              value={formData.timezone}
+              onChange={handleInputChange('timezone')}
+              onBlur={handleInputBlur('timezone')}
+              error={errors.timezone}
+              required
+            />
+            <WorkScheduleForm
+              onChange={setWorkSchedule}
+              onWorkingDaysChange={setWorkingDaysCount}
+              onTotalHoursChange={setTotalWorkingHours}
+            />
+          </div>
 
           {(errors.work_schedule ||
             (touched.work_schedule && (workingDaysCount > 6 || totalWorkingHours > 40))) && (

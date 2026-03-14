@@ -2,16 +2,26 @@ export interface User {
   id: string;
   username: string;
   email: string;
-  full_name: string;
+  last_name: string;
+  first_name: string;
+  middle_name?: string;
   timezone: string;
+  telegram?: string;
+  phone?: string;
+  contacts_visible: boolean;
 }
 
 export interface RegisterData {
   username: string;
   email: string;
   password: string;
-  full_name: string;
+  last_name: string;
+  first_name: string;
+  middle_name?: string;
   timezone: string;
+  telegram?: string;
+  phone?: string;
+  contacts_visible: boolean;
   work_schedule: WorkScheduleDay[];
 }
 

@@ -80,7 +80,6 @@ export const WorkScheduleForm: React.FC<WorkScheduleFormProps> = ({
   
   return (
     <div className="work-schedule">
-      <h3 className="work-schedule__title">Рабочее расписание</h3>
       <div className="work-schedule__table">
         {DAYS_OF_WEEK.map((day, index) => (
           <div key={day.day} className="work-schedule__row">
