@@ -1,3 +1,10 @@
+export type ExperienceLevel = 'junior' | 'middle' | 'senior';
+
+export interface StackItem {
+  name: string;
+  experience_level: ExperienceLevel;
+}
+
 export interface User {
   id: string;
   username: string;
@@ -9,6 +16,8 @@ export interface User {
   telegram?: string;
   phone?: string;
   contacts_visible: boolean;
+  stack?: StackItem[];
+  experience_level?: ExperienceLevel;
 }
 
 export interface RegisterData {
@@ -22,6 +31,8 @@ export interface RegisterData {
   telegram?: string;
   phone?: string;
   contacts_visible: boolean;
+  stack: StackItem[];
+  experience_level: ExperienceLevel;
   work_schedule: WorkScheduleDay[];
 }
 

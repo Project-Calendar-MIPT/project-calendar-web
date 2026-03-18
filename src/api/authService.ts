@@ -34,6 +34,8 @@ export const authService = {
       telegram: data.telegram,
       phone: data.phone,
       contacts_visible: data.contacts_visible,
+      stack: data.stack,
+      experience_level: data.experience_level,
     };
 
     const token = 'fake-jwt-token-' + fakeUser.id;
@@ -48,7 +50,7 @@ export const authService = {
 
     // Валидация пользователя по email и паролю
     const user = validateUserCredentials(data.email, data.password);
-    
+
     if (!user) {
       // Проверяем, существует ли пользователь с таким email
       const existingUser = getUserByEmail(data.email);

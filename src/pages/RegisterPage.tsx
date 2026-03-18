@@ -3,10 +3,11 @@ import { useNavigate, Link } from 'react-router-dom';
 import { Input } from '../components/ui/Input';
 import { Button } from '../components/ui/Button';
 import { Card } from '../components/ui/Card';
+import { Select } from '../components/ui/Select';
 import { WorkScheduleForm } from '../components/ui/WorkScheduleForm';
 import { authService } from '../api/authService';
 import { useFloatingColumns } from '../hooks/useFloatingColumns';
-import type { RegisterData, WorkScheduleDay } from '../types';
+import type { ExperienceLevel, RegisterData, StackItem, WorkScheduleDay } from '../types';
 import './RegisterPage.scss';
 
 const ALLOWED_EMAIL_DOMAINS = ['example.com', 'gmail.com', 'yandex.ru', 'mail.ru', 'outlook.com'];
@@ -22,6 +23,39 @@ const EMAIL_FORMAT_REGEX = /^[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}$/;
 const PASSWORD_DIGIT_REGEX = /\d/;
 const PASSWORD_SPECIAL_CHAR_REGEX = /[!"#$%&'()*+,\-./:;<=>?@[\\\]^_`{|}~]/;
 const PASSWORD_ALLOWED_CHARACTERS_REGEX = /^[A-Za-z0-9!"#$%&'()*+,\-./:;<=>?@[\\\]^_`{|}~]+$/;
+const EXPERIENCE_LEVELS: ExperienceLevel[] = ['junior', 'middle', 'senior'];
+const EXPERIENCE_OPTIONS = [
+  { value: 'junior', label: 'Junior' },
+  { value: 'middle', label: 'Middle' },
+  { value: 'senior', label: 'Senior' },
+];
+const EXPERIENCE_LABELS: Record<ExperienceLevel, string> = {
+  junior: 'Junior',
+  middle: 'Middle',
+  senior: 'Senior',
+};
+const TECHNOLOGY_OPTIONS = [
+  'JavaScript',
+  'TypeScript',
+  'Python',
+  'Java',
+  'C#',
+  'C++',
+  'Go',
+  'PHP',
+  'Kotlin',
+  'Swift',
+  'Rust',
+  'SQL',
+  'React',
+  'Node.js',
+  '.NET',
+  'Docker',
+];
+
+type StackSelectionItem = StackItem & {
+  custom_level: boolean;
+};
 
 type PasswordRules = {
   hasMinLength: boolean;
@@ -82,6 +116,8 @@ const RegisterPage: React.FC = () => {
     telegram: '',
     phone: '',
     contacts_visible: true,
+    stack: [] as StackSelectionItem[],
+    experience_level: '' as ExperienceLevel | '',
   });
 
   const [workSchedule, setWorkSchedule] = useState<WorkScheduleDay[]>([]);
@@ -90,11 +126,15 @@ const RegisterPage: React.FC = () => {
   const [touched, setTouched] = useState<Record<string, boolean>>({ work_schedule: true });
   const [totalWorkingHours, setTotalWorkingHours] = useState(40);
   const [showPassword, setShowPassword] = useState(false);
+  const [customTechnology, setCustomTechnology] = useState('');
   const passwordRules = getPasswordRules(formData.password);
   const passwordStrength = getPasswordStrength(passwordRules);
 
-  const validateField = (field: keyof typeof formData, value: string | boolean): string => {
-    if (typeof value === 'boolean') return '';
+  const validateField = (
+    field: keyof typeof formData,
+    value: string | boolean | StackSelectionItem[],
+  ): string => {
+    if (typeof value === 'boolean' || Array.isArray(value)) return '';
 
     switch (field) {
       case 'username':
@@ -145,9 +185,26 @@ const RegisterPage: React.FC = () => {
       case 'phone':
         if (value && !/^\+?[0-9\s\-()]{10,}$/.test(value)) return 'Неверный формат телефона';
         return '';
+      case 'experience_level':
+        if (!value) return 'Укажите уровень опыта';
+        if (!EXPERIENCE_LEVELS.includes(value as ExperienceLevel)) {
+          return 'Выберите уровень опыта из списка';
+        }
+        return '';
       default:
         return '';
     }
+  };
+
+  const validateStack = (stack: StackSelectionItem[]): string => {
+    if (stack.length === 0) return 'Выберите хотя бы одну технологию';
+
+    const hasInvalidLevel = stack.some(
+      (item) => !EXPERIENCE_LEVELS.includes(item.experience_level),
+    );
+    if (hasInvalidLevel) return 'Укажите уровень для каждой технологии';
+
+    return '';
   };
 
   const validateForm = (
@@ -160,6 +217,11 @@ const RegisterPage: React.FC = () => {
       const msg = validateField(field, data[field]);
       if (msg) newErrors[field] = msg;
     });
+
+    const stackError = validateStack(data.stack);
+    if (stackError) {
+      newErrors.stack = stackError;
+    }
 
     if (schedule.length !== 7) {
       newErrors.work_schedule = 'Заполните расписание на все 7 дней';
@@ -201,6 +263,11 @@ const RegisterPage: React.FC = () => {
     try {
       const registerData: RegisterData = {
         ...normalizedFormData,
+        stack: normalizedFormData.stack.map((item) => ({
+          name: item.name,
+          experience_level: item.experience_level,
+        })),
+        experience_level: normalizedFormData.experience_level as ExperienceLevel,
         work_schedule: workSchedule,
       };
 
@@ -228,6 +295,96 @@ const RegisterPage: React.FC = () => {
     const value = formData[field];
     const msg = validateField(field, value);
     setErrors((prev) => ({ ...prev, [field]: msg }));
+  };
+
+  const updateStack = (nextStack: StackSelectionItem[]) => {
+    setFormData((prev) => ({ ...prev, stack: nextStack }));
+    setTouched((prev) => ({ ...prev, stack: true }));
+    setErrors((prev) => ({ ...prev, stack: validateStack(nextStack) }));
+  };
+
+  const toggleTechnology = (technology: string) => {
+    const isSelected = formData.stack.some((item) => item.name === technology);
+    const nextStack = isSelected
+      ? formData.stack.filter((item) => item.name !== technology)
+      : [
+          ...formData.stack,
+          {
+            name: technology,
+            experience_level: (formData.experience_level || 'junior') as ExperienceLevel,
+            custom_level: false,
+          },
+        ];
+    updateStack(nextStack);
+  };
+
+  const addCustomTechnology = () => {
+    const normalized = customTechnology.trim();
+    if (!normalized) return;
+
+    const exists = formData.stack.some(
+      (item) => item.name.toLowerCase() === normalized.toLowerCase(),
+    );
+    if (!exists) {
+      updateStack([
+        ...formData.stack,
+        {
+          name: normalized,
+          experience_level: (formData.experience_level || 'junior') as ExperienceLevel,
+          custom_level: false,
+        },
+      ]);
+    }
+    setCustomTechnology('');
+  };
+
+  const removeTechnology = (technology: string) => {
+    updateStack(formData.stack.filter((item) => item.name !== technology));
+  };
+
+  const handleExperienceChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
+    const value = e.target.value as ExperienceLevel | '';
+    setFormData((prev) => ({
+      ...prev,
+      experience_level: value,
+      stack: prev.stack.map((item) =>
+        item.custom_level || !value
+          ? item
+          : {
+              ...item,
+              experience_level: value as ExperienceLevel,
+            },
+      ),
+    }));
+    setTouched((prev) => ({ ...prev, experience_level: true }));
+    setErrors((prev) => ({ ...prev, experience_level: validateField('experience_level', value) }));
+  };
+
+  const handleTechnologyLevelChange = (technology: string, level: ExperienceLevel) => {
+    const nextStack = formData.stack.map((item) =>
+      item.name === technology
+        ? {
+            ...item,
+            experience_level: level,
+            custom_level: true,
+          }
+        : item,
+    );
+    updateStack(nextStack);
+  };
+
+  const resetTechnologyLevel = (technology: string) => {
+    const defaultLevel = (formData.experience_level || 'junior') as ExperienceLevel;
+    const nextStack = formData.stack.map((item) =>
+      item.name === technology
+        ? {
+            ...item,
+            experience_level: defaultLevel,
+            custom_level: false,
+          }
+        : item,
+    );
+    updateStack(nextStack);
   };
 
   const columns = useFloatingColumns(15);
@@ -412,6 +569,126 @@ const RegisterPage: React.FC = () => {
                 />
                 <span>Сделать контакты видимыми для других пользователей</span>
               </label>
+            </div>
+          </div>
+
+          <div className="register-page__section">
+            <h2 className="register-page__section-title">Профессиональный профиль</h2>
+
+            <Select
+              label="Общий уровень опыта"
+              options={EXPERIENCE_OPTIONS}
+              value={formData.experience_level}
+              onChange={handleExperienceChange}
+              onBlur={() => {
+                setTouched((prev) => ({ ...prev, experience_level: true }));
+                setErrors((prev) => ({
+                  ...prev,
+                  experience_level: validateField('experience_level', formData.experience_level),
+                }));
+              }}
+              error={errors.experience_level}
+              placeholderLabel="Выберите уровень по умолчанию"
+              required
+            />
+            <p className="register-page__experience-hint">
+              Этот уровень автоматически применяется ко всему стеку. Для отдельных технологий его
+              можно изменить вручную.
+            </p>
+
+            <div className="register-page__stack-block">
+              <div className="register-page__stack-label">
+                Стек <span>*</span>
+              </div>
+
+              <div className="register-page__stack-options">
+                {TECHNOLOGY_OPTIONS.map((technology) => {
+                  const isSelected = formData.stack.some((item) => item.name === technology);
+                  return (
+                    <button
+                      key={technology}
+                      type="button"
+                      className={`register-page__stack-option ${isSelected ? 'register-page__stack-option--active' : ''}`}
+                      onClick={() => toggleTechnology(technology)}
+                    >
+                      {technology}
+                    </button>
+                  );
+                })}
+              </div>
+
+              <div className="register-page__stack-custom-row">
+                <Input
+                  label="Добавить технологию вручную"
+                  type="text"
+                  value={customTechnology}
+                  onChange={(e) => setCustomTechnology(e.target.value)}
+                  onKeyDown={(e) => {
+                    if (e.key === 'Enter') {
+                      e.preventDefault();
+                      addCustomTechnology();
+                    }
+                  }}
+                  placeholder="Например: Go"
+                />
+                <button
+                  type="button"
+                  className="register-page__stack-add"
+                  onClick={addCustomTechnology}
+                >
+                  Добавить
+                </button>
+              </div>
+
+              {formData.stack.length > 0 && (
+                <div className="register-page__stack-selected">
+                  {formData.stack.map((technology) => (
+                    <div key={technology.name} className="register-page__stack-item">
+                      <div className="register-page__stack-item-header">
+                        <span className="register-page__stack-chip">{technology.name}</span>
+                        <button
+                          type="button"
+                          className="register-page__stack-remove"
+                          onClick={() => removeTechnology(technology.name)}
+                          title="Удалить технологию"
+                        >
+                          x
+                        </button>
+                      </div>
+
+                      <div className="register-page__stack-level-row">
+                        <Select
+                          label="Уровень"
+                          options={EXPERIENCE_OPTIONS}
+                          includePlaceholder={false}
+                          value={technology.experience_level}
+                          onChange={(e) =>
+                            handleTechnologyLevelChange(
+                              technology.name,
+                              e.target.value as ExperienceLevel,
+                            )
+                          }
+                        />
+                        <button
+                          type="button"
+                          className="register-page__stack-level-reset"
+                          onClick={() => resetTechnologyLevel(technology.name)}
+                        >
+                          По умолчанию (
+                          {
+                            EXPERIENCE_LABELS[
+                              (formData.experience_level || 'junior') as ExperienceLevel
+                            ]
+                          }
+                          )
+                        </button>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
+
+              {errors.stack && <span className="register-page__field-error">{errors.stack}</span>}
             </div>
           </div>
 
