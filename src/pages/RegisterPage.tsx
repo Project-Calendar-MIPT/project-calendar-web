@@ -9,6 +9,63 @@ import { useFloatingColumns } from '../hooks/useFloatingColumns';
 import type { RegisterData, WorkScheduleDay } from '../types';
 import './RegisterPage.scss';
 
+const ALLOWED_EMAIL_DOMAINS = ['example.com', 'gmail.com', 'yandex.ru', 'mail.ru', 'outlook.com'];
+
+const EMAIL_ALLOWED_DOMAINS_REGEX = new RegExp(
+  `^[A-Za-z0-9._%+-]+@(?:${ALLOWED_EMAIL_DOMAINS.map((domain) => domain.replace('.', '\\.')).join('|')})$`,
+  'i',
+);
+const USERNAME_ALLOWED_REGEX = /^[A-Za-z0-9._-]+$/;
+const EMAIL_ALLOWED_CHARACTERS_REGEX = /^[A-Za-z0-9._%+\-@]*$/;
+const EMAIL_FORMAT_REGEX = /^[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}$/;
+
+const PASSWORD_DIGIT_REGEX = /\d/;
+const PASSWORD_SPECIAL_CHAR_REGEX = /[!"#$%&'()*+,\-./:;<=>?@[\\\]^_`{|}~]/;
+const PASSWORD_ALLOWED_CHARACTERS_REGEX = /^[A-Za-z0-9!"#$%&'()*+,\-./:;<=>?@[\\\]^_`{|}~]+$/;
+
+type PasswordRules = {
+  hasMinLength: boolean;
+  hasDigit: boolean;
+  hasSpecialChar: boolean;
+};
+
+const getPasswordRules = (password: string): PasswordRules => ({
+  hasMinLength: password.length >= 8,
+  hasDigit: PASSWORD_DIGIT_REGEX.test(password),
+  hasSpecialChar: PASSWORD_SPECIAL_CHAR_REGEX.test(password),
+});
+
+const capitalizeWord = (word: string): string => {
+  if (!word) return word;
+  return `${word.charAt(0).toLocaleUpperCase('ru-RU')}${word.slice(1).toLocaleLowerCase('ru-RU')}`;
+};
+
+const normalizeFioValue = (value: string): string => {
+  const normalizedSpaces = value.trim().replace(/\s+/g, ' ');
+  if (!normalizedSpaces) return '';
+
+  return normalizedSpaces
+    .split(' ')
+    .map((part) => part.split('-').map(capitalizeWord).join('-'))
+    .join(' ');
+};
+
+const getPasswordStrength = (
+  rules: PasswordRules,
+): { score: number; label: string; tone: string } => {
+  const score = Number(rules.hasMinLength) + Number(rules.hasDigit) + Number(rules.hasSpecialChar);
+
+  if (score <= 1) {
+    return { score, label: 'Слабый', tone: 'weak' };
+  }
+
+  if (score === 2) {
+    return { score, label: 'Средний', tone: 'medium' };
+  }
+
+  return { score, label: 'Сильный', tone: 'strong' };
+};
+
 const RegisterPage: React.FC = () => {
   const navigate = useNavigate();
   const [loading, setLoading] = useState(false);
@@ -32,21 +89,42 @@ const RegisterPage: React.FC = () => {
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [touched, setTouched] = useState<Record<string, boolean>>({ work_schedule: true });
   const [totalWorkingHours, setTotalWorkingHours] = useState(40);
+  const [showPassword, setShowPassword] = useState(false);
+  const passwordRules = getPasswordRules(formData.password);
+  const passwordStrength = getPasswordStrength(passwordRules);
 
   const validateField = (field: keyof typeof formData, value: string | boolean): string => {
     if (typeof value === 'boolean') return '';
-    
+
     switch (field) {
       case 'username':
         if (!value.trim()) return 'Имя пользователя обязательно';
+        if (!USERNAME_ALLOWED_REGEX.test(value)) {
+          return 'Допустимы только латинские буквы, цифры и символы . _ -';
+        }
         return '';
       case 'email':
         if (!value.trim()) return 'Email обязателен';
-        if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value)) return 'Неверный формат email';
+        if (!EMAIL_ALLOWED_CHARACTERS_REGEX.test(value)) {
+          return 'Допустимы только латинские буквы, цифры и символы @ . _ % + -';
+        }
+        if (!EMAIL_FORMAT_REGEX.test(value)) {
+          return 'Неверный формат email. Пример: user@example.com';
+        }
+        if (!EMAIL_ALLOWED_DOMAINS_REGEX.test(value)) {
+          return `Разрешены только домены: ${ALLOWED_EMAIL_DOMAINS.join(', ')}`;
+        }
         return '';
       case 'password':
         if (!value) return 'Пароль обязателен';
+        if (!PASSWORD_ALLOWED_CHARACTERS_REGEX.test(value)) {
+          return 'Допустимы только латинские буквы, цифры и спецсимволы клавиатуры';
+        }
         if (value.length < 8) return 'Пароль должен содержать минимум 8 символов';
+        if (!PASSWORD_DIGIT_REGEX.test(value)) return 'Пароль должен содержать минимум одну цифру';
+        if (!PASSWORD_SPECIAL_CHAR_REGEX.test(value)) {
+          return 'Пароль должен содержать минимум один спецсимвол';
+        }
         return '';
       case 'last_name':
         if (!value.trim()) return 'Фамилия обязательна';
@@ -61,7 +139,8 @@ const RegisterPage: React.FC = () => {
         if (!/^[A-Za-z_]+\/[A-Za-z_]+$/.test(value)) return 'Неверный формат часового пояса';
         return '';
       case 'telegram':
-        if (value && !/^@?[a-zA-Z0-9_]{5,32}$/.test(value)) return 'Неверный формат Telegram (например: @username)';
+        if (value && !/^@?[a-zA-Z0-9_]{5,32}$/.test(value))
+          return 'Неверный формат Telegram (например: @username)';
         return '';
       case 'phone':
         if (value && !/^\+?[0-9\s\-()]{10,}$/.test(value)) return 'Неверный формат телефона';
@@ -71,15 +150,18 @@ const RegisterPage: React.FC = () => {
     }
   };
 
-  const validateForm = (): boolean => {
+  const validateForm = (
+    data: typeof formData = formData,
+    schedule: WorkScheduleDay[] = workSchedule,
+  ): boolean => {
     const newErrors: Record<string, string> = {};
 
-    (Object.keys(formData) as (keyof typeof formData)[]).forEach((field) => {
-      const msg = validateField(field, formData[field]);
+    (Object.keys(data) as (keyof typeof data)[]).forEach((field) => {
+      const msg = validateField(field, data[field]);
       if (msg) newErrors[field] = msg;
     });
 
-    if (workSchedule.length !== 7) {
+    if (schedule.length !== 7) {
       newErrors.work_schedule = 'Заполните расписание на все 7 дней';
     } else if (workingDaysCount > 6) {
       newErrors.work_schedule = 'Нельзя выбирать рабочими больше 6 дней в неделю';
@@ -102,7 +184,15 @@ const RegisterPage: React.FC = () => {
     e.preventDefault();
     setError('');
 
-    if (!validateForm()) {
+    const normalizedFormData = {
+      ...formData,
+      last_name: normalizeFioValue(formData.last_name),
+      first_name: normalizeFioValue(formData.first_name),
+      middle_name: normalizeFioValue(formData.middle_name),
+    };
+    setFormData(normalizedFormData);
+
+    if (!validateForm(normalizedFormData)) {
       return;
     }
 
@@ -110,7 +200,7 @@ const RegisterPage: React.FC = () => {
 
     try {
       const registerData: RegisterData = {
-        ...formData,
+        ...normalizedFormData,
         work_schedule: workSchedule,
       };
 
@@ -141,6 +231,33 @@ const RegisterPage: React.FC = () => {
   };
 
   const columns = useFloatingColumns(15);
+
+  const passwordToggleIcon = showPassword ? (
+    // Slashed eye when password is visible.
+    <svg viewBox="0 0 24 24" width="20" height="20" aria-hidden="true">
+      <path
+        d="M3 4l18 16M10.58 10.58A2 2 0 0012 14a2 2 0 001.42-.58M9.88 5.1A10.94 10.94 0 0112 5c6 0 9.5 7 9.5 7a16.35 16.35 0 01-4.16 4.95M6.61 7.24A16.28 16.28 0 002.5 12S6 19 12 19a10.94 10.94 0 004.12-.8"
+        fill="none"
+        stroke="currentColor"
+        strokeWidth="2"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
+    </svg>
+  ) : (
+    // Open eye when password is hidden.
+    <svg viewBox="0 0 24 24" width="20" height="20" aria-hidden="true">
+      <path
+        d="M2.5 12S6 5 12 5s9.5 7 9.5 7S18 19 12 19 2.5 12 2.5 12z"
+        fill="none"
+        stroke="currentColor"
+        strokeWidth="2"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
+      <circle cx="12" cy="12" r="3" fill="none" stroke="currentColor" strokeWidth="2" />
+    </svg>
+  );
 
   return (
     <div className="register-page">
@@ -180,13 +297,56 @@ const RegisterPage: React.FC = () => {
 
             <Input
               label="Пароль"
-              type="password"
+              type={showPassword ? 'text' : 'password'}
               value={formData.password}
               onChange={handleInputChange('password')}
               onBlur={handleInputBlur('password')}
               error={errors.password}
+              rightAdornment={
+                <button
+                  type="button"
+                  className="register-page__password-icon-button"
+                  onClick={() => setShowPassword((prev) => !prev)}
+                  aria-label={showPassword ? 'Скрыть пароль' : 'Показать пароль'}
+                  aria-pressed={showPassword}
+                >
+                  {passwordToggleIcon}
+                </button>
+              }
               required
             />
+
+            {formData.password && (
+              <div className="register-page__password-strength" aria-live="polite">
+                <div className="register-page__password-strength-header">
+                  <span>Надежность пароля: {passwordStrength.label}</span>
+                  <span>{passwordStrength.score}/3</span>
+                </div>
+                <div className="register-page__password-strength-track" aria-hidden="true">
+                  <div
+                    className={`register-page__password-strength-fill register-page__password-strength-fill--${passwordStrength.tone}`}
+                    style={{ width: `${(passwordStrength.score / 3) * 100}%` }}
+                  />
+                </div>
+                <ul className="register-page__password-checklist">
+                  <li
+                    className={`register-page__password-checkitem ${passwordRules.hasMinLength ? 'register-page__password-checkitem--ok' : ''}`}
+                  >
+                    Минимум 8 символов
+                  </li>
+                  <li
+                    className={`register-page__password-checkitem ${passwordRules.hasDigit ? 'register-page__password-checkitem--ok' : ''}`}
+                  >
+                    Минимум одна цифра
+                  </li>
+                  <li
+                    className={`register-page__password-checkitem ${passwordRules.hasSpecialChar ? 'register-page__password-checkitem--ok' : ''}`}
+                  >
+                    Минимум один спецсимвол
+                  </li>
+                </ul>
+              </div>
+            )}
           </div>
 
           <div className="register-page__section">

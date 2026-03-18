@@ -56,6 +56,99 @@
     margin-top: $spacing-4;
   }
 
+  &__password-strength {
+    margin-top: -$spacing-2;
+    margin-bottom: $spacing-4;
+    padding: $spacing-3;
+    border: 1px solid var(--color-border);
+    border-radius: $radius-md;
+    background-color: var(--color-card-bg);
+  }
+
+  &__password-icon-button {
+    border: none;
+    background: none;
+    padding: 0;
+    color: $primary;
+    line-height: 1;
+    cursor: pointer;
+
+    &:hover {
+      color: $primary-dark;
+    }
+
+    &:focus-visible {
+      outline: 2px solid $primary;
+      outline-offset: 2px;
+      border-radius: $radius-sm;
+    }
+  }
+
+  &__password-strength-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    font-size: $font-size-sm;
+    color: $text-secondary;
+    margin-bottom: $spacing-2;
+  }
+
+  &__password-strength-track {
+    height: 8px;
+    border-radius: $radius-full;
+    background-color: var(--color-border);
+    overflow: hidden;
+    margin-bottom: $spacing-3;
+  }
+
+  &__password-strength-fill {
+    height: 100%;
+    transition:
+      width $transition-base,
+      background-color $transition-base;
+
+    &--weak {
+      background-color: $danger;
+    }
+
+    &--medium {
+      background-color: $warning;
+    }
+
+    &--strong {
+      background-color: $success;
+    }
+  }
+
+  &__password-checklist {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    display: grid;
+    gap: $spacing-1;
+  }
+
+  &__password-checkitem {
+    font-size: $font-size-sm;
+    color: $text-secondary;
+
+    &::before {
+      content: '\2715';
+      margin-right: $spacing-2;
+      color: $danger;
+      font-weight: $font-weight-bold;
+    }
+
+    &--ok {
+      color: $text-primary;
+
+      &::before {
+        content: '\2713';
+        color: $success;
+      }
+    }
+  }
+
   &__error {
     background-color: $danger-light;
     color: $danger;
