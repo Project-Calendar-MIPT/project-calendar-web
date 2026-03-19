@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useMemo, useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { Input } from '../components/ui/Input';
 import { Button } from '../components/ui/Button';
@@ -387,7 +387,44 @@ const RegisterPage: React.FC = () => {
     updateStack(nextStack);
   };
 
-  const columns = useFloatingColumns(15);
+  const columns = useFloatingColumns(24);
+
+  // Keep floating columns visually as fast as on the login page,
+  // even when registration page becomes taller than viewport.
+  const heightRatio =
+    typeof window !== 'undefined' && window.innerHeight > 0
+      ? Math.max(1, document.documentElement.scrollHeight / window.innerHeight)
+      : 1;
+
+  const adjustedColumns = useMemo(
+    () =>
+      columns.map((column) => {
+        const rawDuration =
+          typeof column.style.animationDuration === 'string'
+            ? parseFloat(column.style.animationDuration)
+            : 16;
+        const rawDelay =
+          typeof column.style.animationDelay === 'string'
+            ? parseFloat(column.style.animationDelay)
+            : -Math.random() * rawDuration;
+        const nextDuration = Number.isFinite(rawDuration)
+          ? `${rawDuration * heightRatio}s`
+          : column.style.animationDuration;
+        const nextDelay = Number.isFinite(rawDelay)
+          ? `${rawDelay * heightRatio}s`
+          : column.style.animationDelay;
+
+        return {
+          ...column,
+          style: {
+            ...column.style,
+            animationDuration: nextDuration,
+            animationDelay: nextDelay,
+          },
+        };
+      }),
+    [columns, heightRatio],
+  );
 
   const passwordToggleIcon = showPassword ? (
     // Slashed eye when password is visible.
@@ -419,7 +456,7 @@ const RegisterPage: React.FC = () => {
   return (
     <div className="register-page">
       <div className="register-page__background" aria-hidden="true">
-        {columns.map((column) => (
+        {adjustedColumns.map((column) => (
           <div key={column.id} className="register-page__column" style={column.style} />
         ))}
       </div>
