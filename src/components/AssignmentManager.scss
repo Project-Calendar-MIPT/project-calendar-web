@@ -78,4 +78,66 @@
     border-radius: $radius-sm;
     font-size: $font-size-sm;
   }
+
+  &__hint {
+    font-size: 13px;
+    color: var(--color-text-secondary);
+    margin-top: -6px;
+  }
+
+  &__candidate-actions {
+    display: flex;
+    align-items: center;
+    gap: $spacing-2;
+  }
+}
+
+.candidate-profile {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.candidate-profile__row {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.candidate-profile__row--top {
+  align-items: flex-start;
+}
+
+.candidate-profile__label {
+  min-width: 130px;
+  font-weight: 600;
+  color: var(--color-text-secondary);
+}
+
+.candidate-profile__tasks {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.candidate-profile__task {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  padding: 10px 12px;
+  border: 1px solid var(--color-border);
+  border-radius: 10px;
+  background: var(--color-surface);
+}
+
+.candidate-profile__empty {
+  color: var(--color-text-secondary);
+}
+
+.candidate-profile__warning {
+  padding: 10px 12px;
+  border-radius: 10px;
+  background: #fff7ed;
+  color: #c2410c;
+  font-size: 14px;
 }
