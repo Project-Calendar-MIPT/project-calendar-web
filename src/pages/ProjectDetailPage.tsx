@@ -7,6 +7,7 @@ import { TaskForm } from '../components/TaskForm';
 import { TaskTree } from '../components/TaskTree';
 import { AssignmentManager } from '../components/AssignmentManager';
 import { taskService } from '../api/taskService';
+import { assignmentService } from '../minimal_test/api/assignmentService';
 import type { Task } from '../types';
 import './ProjectDetailPage.scss';
 
@@ -44,11 +45,20 @@ const ProjectDetailPage: React.FC = () => {
   const handleCreateTask = async (formData: any) => {
     try {
       const parentId = selectedTask ? selectedTask.id : id;
+      const { assignee_id, ...taskData } = formData;
 
-      await taskService.createTask({
-        ...formData,
+      const createdTask = await taskService.createTask({
+        ...taskData,
         parent_task_id: parentId,
       });
+
+      if (assignee_id && (taskData.start_date || taskData.end_date)) {
+        await assignmentService.assignUser(createdTask.id, {
+          user_id: assignee_id,
+          role: 'executor',
+          allocated_hours: taskData.estimated_hours || 0,
+        });
+      }
 
       await loadProject();
 
@@ -147,6 +157,7 @@ const ProjectDetailPage: React.FC = () => {
           onCancel={() => setIsModalOpen(false)}
           projectStartDate={project.start_date}
           projectEndDate={project.end_date}
+          projectId={project.id}
         />
       </Modal>
     </div>
