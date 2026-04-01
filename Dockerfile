@@ -9,7 +9,7 @@ FROM node:22-alpine AS builder
 WORKDIR /app
 COPY --from=deps /app/node_modules ./node_modules
 COPY . .
-RUN npm run build
+RUN npm run build:docker --loglevel silent
 
 FROM nginx:1.27-alpine AS runtime
 
