@@ -1,57 +1,62 @@
-// import { apiClient } from './client'; // использую мок
+import { apiClient } from '../../api/client';
 import type { Assignment, AssignmentData } from '../../types';
-import { MOCK_ASSIGNMENTS, MOCK_TASKS } from '../../mock';
-import { taskService } from '../../api/taskService';
-
-// Создаем копию для изменений
-let mockAssignments: Assignment[] = [...MOCK_ASSIGNMENTS];
-
-const genId = () => 'assign-' + Math.random().toString(36).slice(2);
 
 export const assignmentService = {
   async getAssignments(taskId: string): Promise<Assignment[]> {
-    await new Promise((r) => setTimeout(r, 100));
-    return mockAssignments.filter((a) => a.task_id === taskId);
+    const response = await apiClient.get<any[]>(`/tasks/${taskId}/assignments`);
+    return (response.data || []).map((a: any) => ({
+      id: a.id ?? '',
+      task_id: taskId,
+      user_id: a.user_id ?? '',
+      role: a.role ?? 'executor',
+      allocated_hours: a.assigned_hours ? Number(a.assigned_hours) : 0,
+      created_at: a.assigned_at,
+      updated_at: a.assigned_at,
+    }));
   },
 
   async assignUser(taskId: string, data: AssignmentData): Promise<Assignment> {
-    await new Promise((r) => setTimeout(r, 200));
-    
-    const newAssignment: Assignment = {
-      id: genId(),
-      task_id: taskId,
-      user_id: data.user_id,
-      role: data.role,
-      allocated_hours: data.allocated_hours ?? 0,
-      created_at: new Date().toISOString(),
-      updated_at: new Date().toISOString(),
-    };
-    mockAssignments.push(newAssignment);
-
-    // Автоматически меняем статус задачи на "in_progress" при назначении
     try {
-      const task = await taskService.getTask(taskId);
-      if (task.status === 'pending') {
-        await taskService.updateTask(taskId, { status: 'in_progress' });
+      const response = await apiClient.post<any>(`/tasks/${taskId}/assignments`, {
+        user_id: data.user_id,
+        role: data.role,
+        assigned_hours: data.allocated_hours ?? 0,
+      });
+      const a = response.data;
+      return {
+        id: a.id ?? '',
+        task_id: taskId,
+        user_id: data.user_id,
+        role: data.role,
+        allocated_hours: data.allocated_hours ?? 0,
+        created_at: a.assigned_at,
+        updated_at: a.assigned_at,
+      };
+    } catch (err: any) {
+      // 409 means already assigned — treat as success
+      if (err.response?.status === 409) {
+        return {
+          id: '',
+          task_id: taskId,
+          user_id: data.user_id,
+          role: data.role,
+          allocated_hours: data.allocated_hours ?? 0,
+        };
       }
-    } catch (err) {
-      console.error('Error updating task status:', err);
+      throw err;
     }
-
-    return newAssignment;
   },
 
   async removeAssignment(assignmentId: string): Promise<void> {
-    await new Promise((r) => setTimeout(r, 200));
-    mockAssignments = mockAssignments.filter((a) => a.id !== assignmentId);
+    await apiClient.delete(`/assignments/${assignmentId}`);
   },
 
-  // Экспортируем для синхронизации с taskService
+  // Keep for compatibility with code that still calls these
   getMockAssignments(): Assignment[] {
-    return mockAssignments;
+    return [];
   },
 
-  setMockAssignments(assignments: Assignment[]): void {
-    mockAssignments = assignments;
+  setMockAssignments(_assignments: Assignment[]): void {
+    // no-op
   },
 };

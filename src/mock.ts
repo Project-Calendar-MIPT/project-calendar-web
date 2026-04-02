@@ -1,7 +1,7 @@
 // Mock Data based on project-calendar-core/migrations/002_test_data.sql
 import type { User, Task, Assignment } from './types';
 
-export const USE_MOCK = true;
+export const USE_MOCK = false;
 
 // ============================================================================
 // MOCK USERS - из 002_test_data.sql

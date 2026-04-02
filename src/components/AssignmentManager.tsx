@@ -31,7 +31,7 @@ export const AssignmentManager: React.FC<AssignmentManagerProps> = ({
   onAssignmentChange,
 }) => {
   const [assignments, setAssignments] = useState<Assignment[]>([]);
-  const [projectTasks, setProjectTasks] = useState<Task[]>([]);
+  const [, setProjectTasks] = useState<Task[]>([]);
   const [assignableTasks, setAssignableTasks] = useState<Task[]>([]);
   const [projectMembers, setProjectMembers] = useState<string[]>([]);
   const [displayMembers, setDisplayMembers] = useState<MemberItem[]>([]);
@@ -275,7 +275,7 @@ export const AssignmentManager: React.FC<AssignmentManagerProps> = ({
               .filter((u) => projectMembers.includes(u.id))
               .map((u) => ({
                 value: u.id,
-                label: u.full_name,
+                label: [u.last_name, u.first_name].filter(Boolean).join(' ') || u.username,
               }))}
             value={formData.user_id}
             onChange={(e) => setFormData({ ...formData, user_id: e.target.value })}

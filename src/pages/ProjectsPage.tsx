@@ -61,26 +61,6 @@ const ProjectsPage: React.FC = () => {
     navigate(`/projects/${projectId}`);
   };
 
-  const getPriorityColor = (priority: string): string => {
-    const colors: Record<string, string> = {
-      critical: '#ef4444',
-      high: '#f59e0b',
-      medium: '#3b82f6',
-      low: '#10b981',
-    };
-    return colors[priority] || '#6b7280';
-  };
-
-  const getStatusLabel = (status: string): string => {
-    const labels: Record<string, string> = {
-      pending: 'Новая',
-      in_progress: 'В процессе',
-      completed: 'Завершена',
-      cancelled: 'Отменена',
-    };
-    return labels[status] || status;
-  };
-
   if (loading) {
     return (
       <div className="projects-page">

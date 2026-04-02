@@ -5,3 +5,4 @@ dist
 npm-debug.log*
 Dockerfile
 setup-react.sh
+*.md
