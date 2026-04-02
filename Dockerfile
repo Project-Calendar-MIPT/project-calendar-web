@@ -13,30 +13,7 @@ RUN npm run build:docker --loglevel silent
 
 FROM nginx:1.27-alpine AS runtime
 
-RUN printf '%s\n' \
-	'server {' \
-	'  listen 80;' \
-	'  server_name _;' \
-	'  root /usr/share/nginx/html;' \
-	'  index index.html;' \
-	'' \
-	'  location /api/ {' \
-	'    proxy_pass http://backend:8080/api/;' \
-	'    proxy_set_header Host $host;' \
-	'    proxy_set_header X-Real-IP $remote_addr;' \
-	'  }' \
-	'' \
-	'  location / {' \
-	'    try_files $uri $uri/ /index.html;' \
-	'  }' \
-	'' \
-	'  location /health {' \
-	'    access_log off;' \
-	'    return 200 "ok";' \
-	'    add_header Content-Type text/plain;' \
-	'  }' \
-	'}' > /etc/nginx/conf.d/default.conf
-
+COPY nginx.conf /etc/nginx/conf.d/default.conf
 COPY --from=builder /app/dist /usr/share/nginx/html
 
 EXPOSE 80
