@@ -12,7 +12,7 @@ import { ThemeProvider } from './context/ThemeContext';
 const App: React.FC = () => {
   return (
     <ThemeProvider>
-    <BrowserRouter>
+    <BrowserRouter basename={import.meta.env.BASE_URL}>
       <Routes>
         <Route path="/register" element={<RegisterPage />} />
         <Route path="/login" element={<LoginPage />} />
