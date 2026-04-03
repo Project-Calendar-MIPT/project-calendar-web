@@ -29,7 +29,8 @@ apiClient.interceptors.response.use(
   (error) => {
     if (error.response?.status === 401) {
       localStorage.removeItem('auth_token');
-      window.location.href = '/login';
+      const base = import.meta.env.BASE_URL || '/';
+      window.location.href = base.replace(/\/$/, '') + '/login';
     }
     return Promise.reject(error);
   }

@@ -47,8 +47,8 @@ export const assignmentService = {
     }
   },
 
-  async removeAssignment(assignmentId: string): Promise<void> {
-    await apiClient.delete(`/assignments/${assignmentId}`);
+  async removeAssignment(taskId: string, userId: string): Promise<void> {
+    await apiClient.delete('/assignments', { params: { task_id: taskId, user_id: userId } });
   },
 
   // Keep for compatibility with code that still calls these

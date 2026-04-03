@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useCallback } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { Button } from './ui/Button';
 import { Input } from './ui/Input';
 import { Select } from './ui/Select';
@@ -56,6 +57,8 @@ export const AssignmentManager: React.FC<AssignmentManagerProps> = ({
   const [inviteRole, setInviteRole] = useState('executor');
   const [inviteError, setInviteError] = useState('');
   const [inviteLoading, setInviteLoading] = useState(false);
+
+  const navigate = useNavigate();
 
   const rolePriority: Record<string, number> = {
     owner: 5,
@@ -212,7 +215,7 @@ export const AssignmentManager: React.FC<AssignmentManagerProps> = ({
     try {
       const userAssignments = assignments.filter((a) => a.user_id === userId && a.role !== 'owner');
       for (const assignment of userAssignments) {
-        await assignmentService.removeAssignment(assignment.id);
+        await assignmentService.removeAssignment(assignment.task_id, assignment.user_id);
       }
       await loadAssignments();
       onAssignmentChange?.();
@@ -250,7 +253,12 @@ export const AssignmentManager: React.FC<AssignmentManagerProps> = ({
           {displayMembers.map((member) => (
             <div key={member.user_id} className="assignment-manager__item">
               <div className="assignment-manager__info">
-                <span className="assignment-manager__user">{getUserName(member.user_id)}</span>
+                <span
+                  className="assignment-manager__user assignment-manager__user--link"
+                  onClick={() => navigate(`/users/${member.user_id}`)}
+                >
+                  {getUserName(member.user_id)}
+                </span>
                 <span className="assignment-manager__role">{getRoleLabel(member.role)}</span>
               </div>
               {member.role !== 'owner' && (
