@@ -39,6 +39,14 @@
   &__user {
     font-weight: $font-weight-medium;
     color: var(--color-text-primary);
+
+    &--link {
+      cursor: pointer;
+      &:hover {
+        color: $primary;
+        text-decoration: underline;
+      }
+    }
   }
 
   &__role {

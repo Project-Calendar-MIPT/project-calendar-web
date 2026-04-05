@@ -2,12 +2,8 @@ import React, { useEffect, useState } from 'react';
 import { Card } from '../components/ui/Card';
 import { Loader } from '../components/ui/Loader';
 import type { User, Task, WorkScheduleDay } from '../types';
-import { apiClient } from '../api/client';
 import { authService } from '../api/authService';
 import { taskService } from '../api/taskService';
-import { assignmentService } from '../minimal_test/api/assignmentService';
-import { getTasksByUserId, getProjectsByUserId } from '../mock';
-import { USE_MOCK } from '../mock';
 import './ProfilePage.scss';
 
 const DAY_NAMES: Record<number, string> = {
@@ -154,31 +150,12 @@ export const ProfilePage: React.FC = () => {
         setLoading(true);
         setError(null);
 
-        if (USE_MOCK) {
-          const { user, workSchedule, tasks } = await fakeLoadProfileData();
-          if (!isMounted) return;
+        const { user, workSchedule, tasks } = await fakeLoadProfileData();
+        if (!isMounted) return;
 
-          setUser(user);
-          setWorkSchedule(workSchedule);
-          setTasks(tasks);
-        } else {
-          const meResp = await apiClient.get<User>('/auth/me');
-          if (!isMounted) return;
-          const currentUser = meResp.data;
-          setUser(currentUser);
-
-          const [scheduleResp, tasksResp] = await Promise.all([
-            apiClient.get<WorkScheduleDay[]>(`/users/${currentUser.id}/work-schedule`),
-            apiClient.get<Task[]>('/tasks', {
-              params: { assigned_to: 'me' },
-            }),
-          ]);
-
-          if (!isMounted) return;
-
-          setWorkSchedule(scheduleResp.data || []);
-          setTasks(tasksResp.data || []);
-        }
+        setUser(user);
+        setWorkSchedule(workSchedule);
+        setTasks(tasks);
       } catch (e) {
         console.error(e);
         if (isMounted) {

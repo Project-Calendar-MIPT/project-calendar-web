@@ -5,34 +5,10 @@ import { Loader } from './ui/Loader';
 import type { User } from '../types';
 
 const MOCK_USERS: User[] = [
-  {
-    id: '1',
-    username: 'Иван',
-    email: 'woroncov@example.com',
-    full_name: 'Иванов Иван',
-    timezone: 'Europe/Moscow',
-  },
-  {
-    id: '2',
-    username: 'Петр',
-    email: 'eagle@example.com',
-    full_name: 'Петров Петр',
-    timezone: 'Europe/Moscow',
-  },
-  {
-    id: '3',
-    username: 'Матвей',
-    email: 'whitewolf@example.com',
-    full_name: 'Матвеев Матвей',
-    timezone: 'Europe/Moscow',
-  },
-  {
-    id: '4',
-    username: 'Алексей',
-    email: 'striker@example.com',
-    full_name: 'Алексеев Алексей',
-    timezone: 'Europe/Moscow',
-  },
+  { id: '1', username: 'Иван', email: 'woroncov@example.com', first_name: 'Иван', last_name: 'Иванов', timezone: 'Europe/Moscow', contacts_visible: true },
+  { id: '2', username: 'Петр', email: 'eagle@example.com', first_name: 'Петр', last_name: 'Петров', timezone: 'Europe/Moscow', contacts_visible: true },
+  { id: '3', username: 'Матвей', email: 'whitewolf@example.com', first_name: 'Матвей', last_name: 'Матвеев', timezone: 'Europe/Moscow', contacts_visible: true },
+  { id: '4', username: 'Алексей', email: 'striker@example.com', first_name: 'Алексей', last_name: 'Алексеев', timezone: 'Europe/Moscow', contacts_visible: true },
 ];
 
 const SEARCH_DEBOUNCE_MS = 300;
@@ -69,7 +45,8 @@ export const UserSearch: React.FC<UserSearchProps> = ({ onSelect, excludeIds = [
           (u) =>
             u.username.toLowerCase().includes(lowerQuery) ||
             u.email.toLowerCase().includes(lowerQuery) ||
-            u.full_name.toLowerCase().includes(lowerQuery),
+            (u.first_name && u.first_name.toLowerCase().includes(lowerQuery)) ||
+            (u.last_name && u.last_name.toLowerCase().includes(lowerQuery)),
         );
         const filtered = results.filter((u) => !excludeIds.includes(u.id));
 
@@ -114,7 +91,7 @@ export const UserSearch: React.FC<UserSearchProps> = ({ onSelect, excludeIds = [
           {users.map((user) => (
             <Card key={user.id} hoverable onClick={() => handleSelect(user)}>
               <div className="font-semibold">
-                {user.full_name || user.username || 'Неизвестный пользователь'}
+                {[user.last_name, user.first_name].filter(Boolean).join(' ') || user.username || 'Неизвестный пользователь'}
               </div>
               <div className="text-sm text-gray-600">{user.email || 'Нет email'}</div>
             </Card>

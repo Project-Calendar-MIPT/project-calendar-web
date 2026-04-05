@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { taskService } from '../api/taskService';
+import { apiClient } from '../api/client';
 import type { Task } from '../types';
 import { TaskDetailModal } from './TaskDetailModal';
 import './TaskTree.scss';
@@ -28,38 +29,21 @@ const TaskNode: React.FC<TaskNodeProps> = ({
     let cancelled = false;
     const loadExecutor = async () => {
       try {
-        const [assignments, users] = await Promise.all([
-          taskService.getTaskAssignments(task.id),
-          taskService.getTaskUsers(task.id),
-        ]);
-
+        const assignments = await taskService.getTaskAssignments(task.id);
         if (cancelled) return;
 
-        const executorAssignment = assignments.find((a) => a.role === 'executor');
-
+        const executorAssignment = (assignments as any[]).find((a) => a.role === 'executor');
         if (!executorAssignment) {
           setExecutorName('Не назначен');
           return;
         }
 
-        const executorUser = (users as any[]).find((u) => u.id === executorAssignment.user_id);
-
-        if (!executorUser) {
-          setExecutorName('Не назначен');
-          return;
-        }
-
-        setExecutorName(
-          executorUser.full_name ||
-            executorUser.username ||
-            executorUser.email ||
-            'Не назначен'
-        );
-      } catch (err) {
-        console.error('Ошибка при загрузке исполнителя задачи:', err);
-        if (!cancelled) {
-          setExecutorName('Не назначен');
-        }
+        const resp = await apiClient.get<any>(`/users/${executorAssignment.user_id}`);
+        if (cancelled) return;
+        const u = resp.data;
+        setExecutorName(u.display_name || u.email || 'Не назначен');
+      } catch {
+        if (!cancelled) setExecutorName('Не назначен');
       }
     };
 
