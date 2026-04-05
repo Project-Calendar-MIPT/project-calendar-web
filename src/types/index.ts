@@ -4,6 +4,7 @@ export interface User {
   email: string;
   full_name: string;
   timezone: string;
+  skills?: string[];
 }
 
 export interface RegisterData {
@@ -37,6 +38,7 @@ export interface Task {
 
   complexity?: 'low' | 'medium' | 'high';
   novelty?: 'low' | 'medium' | 'high';
+  required_skills?: string[];
 
   start_date: string;
   end_date: string;

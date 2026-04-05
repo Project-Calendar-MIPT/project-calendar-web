@@ -1,11 +1,7 @@
-// Mock Data based on project-calendar-core/migrations/002_test_data.sql
 import type { User, Task, Assignment } from './types';
 
 export const USE_MOCK = true;
 
-// ============================================================================
-// MOCK USERS - из 002_test_data.sql
-// ============================================================================
 export const MOCK_USERS: User[] = [
   {
     id: 'user-impelix',
@@ -13,6 +9,7 @@ export const MOCK_USERS: User[] = [
     email: 'impelix@pumpelix.love',
     full_name: 'Дмитрий Силантьев',
     timezone: 'Europe/Moscow',
+    skills: ['react', 'typescript', 'ui', 'frontend', 'calendar'],
   },
   {
     id: 'user-genorto',
@@ -20,6 +17,7 @@ export const MOCK_USERS: User[] = [
     email: 'wildberries-manger@dubai.com',
     full_name: 'Илья Набоков',
     timezone: 'Europe/Moscow',
+    skills: ['react', 'typescript', 'modal', 'frontend', 'ux'],
   },
   {
     id: 'user-kezorka',
@@ -27,6 +25,7 @@ export const MOCK_USERS: User[] = [
     email: 'kezorka@polyana.opushka',
     full_name: 'Егор Коробкин',
     timezone: 'Europe/Moscow',
+    skills: ['testing', 'mocks', 'qa', 'frontend'],
   },
   {
     id: 'user-titlha',
@@ -34,6 +33,7 @@ export const MOCK_USERS: User[] = [
     email: 'titlha@brdlha.mephi',
     full_name: 'Алексей Маклюков',
     timezone: 'Europe/Moscow',
+    skills: ['api', 'integration', 'typescript', 'backend'],
   },
   {
     id: 'user-noway',
@@ -41,6 +41,7 @@ export const MOCK_USERS: User[] = [
     email: 'baby@cute.love',
     full_name: 'Федор Ноувей',
     timezone: 'Europe/Moscow',
+    skills: ['backend', 'users', 'auth', 'api', 'node'],
   },
   {
     id: 'user-solovieva',
@@ -48,6 +49,7 @@ export const MOCK_USERS: User[] = [
     email: 'maria.solovieva@example.com',
     full_name: 'Робин Пресс',
     timezone: 'Europe/Moscow',
+    skills: ['calendar', 'react', 'frontend', 'ux'],
   },
   {
     id: 'user_kantserov',
@@ -55,6 +57,7 @@ export const MOCK_USERS: User[] = [
     email: 'roman.kantserov@example.com',
     full_name: 'Роман Канцеров',
     timezone: 'Europe/Moscow',
+    skills: ['ui', 'design-system', 'frontend', 'components'],
   },
   {
     id: 'user-smirnova',
@@ -62,6 +65,7 @@ export const MOCK_USERS: User[] = [
     email: 'alexandra.smirnova@example.com',
     full_name: 'Александра Смирнова',
     timezone: 'Europe/Moscow',
+    skills: ['qa', 'manual-testing', 'e2e'],
   },
   {
     id: 'user-kuznetsov',
@@ -69,6 +73,7 @@ export const MOCK_USERS: User[] = [
     email: 'dmitry.kuznetsov@example.com',
     full_name: 'Дмитрий Кузнецов',
     timezone: 'Europe/Moscow',
+    skills: ['security', 'review', 'backend'],
   },
   {
     id: 'user-volkova',
@@ -76,6 +81,7 @@ export const MOCK_USERS: User[] = [
     email: 'elena.volkova@example.com',
     full_name: 'Елена Волкова',
     timezone: 'Europe/Moscow',
+    skills: ['documentation', 'ux', 'frontend'],
   },
   {
     id: 'user-sidorov',
@@ -83,6 +89,7 @@ export const MOCK_USERS: User[] = [
     email: 'project.manager@example.com',
     full_name: 'Егор Яковлев',
     timezone: 'Europe/Moscow',
+    skills: ['management', 'planning', 'coordination'],
   },
   {
     id: 'user-admin',
@@ -90,6 +97,7 @@ export const MOCK_USERS: User[] = [
     email: 'admin@example.com',
     full_name: 'Администратор',
     timezone: 'Europe/Moscow',
+    skills: ['security', 'infra', 'admin'],
   },
   {
     id: 'user-sokolov',
@@ -97,6 +105,7 @@ export const MOCK_USERS: User[] = [
     email: 'alex.sokolov@example.com',
     full_name: 'Алексей Соколов',
     timezone: 'Europe/Moscow',
+    skills: ['tasks', 'backend', 'service', 'api'],
   },
   {
     id: 'user-morozova',
@@ -104,6 +113,7 @@ export const MOCK_USERS: User[] = [
     email: 'natalia.morozova@example.com',
     full_name: 'Наталья Морозова',
     timezone: 'Europe/Moscow',
+    skills: ['permissions', 'roles', 'backend', 'security'],
   },
   {
     id: 'user-lebedev',
@@ -111,6 +121,7 @@ export const MOCK_USERS: User[] = [
     email: 'pavel.lebedev@example.com',
     full_name: 'Павел Лебедев',
     timezone: 'Europe/Moscow',
+    skills: ['database', 'sql', 'backend'],
   },
   {
     id: 'user-novikova',
@@ -118,17 +129,13 @@ export const MOCK_USERS: User[] = [
     email: 'olga.novikova@example.com',
     full_name: 'Ольга Новикова',
     timezone: 'Europe/Moscow',
+    skills: ['schedule', 'planning', 'backend'],
   },
 ];
 
-// Пароль для всех пользователей: "helloworld"
 export const MOCK_PASSWORD = 'helloworld';
 
-// ============================================================================
-// MOCK TASKS (Projects and Tasks) - из 002_test_data.sql
-// ============================================================================
 export const MOCK_TASKS: Task[] = [
-  // ПРОЕКТЫ (parent_task_id = null)
   {
     id: 'proj-mvp',
     parent_task_id: null,
@@ -139,6 +146,7 @@ export const MOCK_TASKS: Task[] = [
     start_date: '2025-11-20',
     end_date: '2026-01-15',
     estimated_hours: 160,
+    required_skills: ['management', 'frontend', 'backend'],
   },
   {
     id: 'proj-frontend',
@@ -150,6 +158,7 @@ export const MOCK_TASKS: Task[] = [
     start_date: '2025-11-20',
     end_date: '2026-01-10',
     estimated_hours: 120,
+    required_skills: ['frontend', 'react', 'typescript'],
   },
   {
     id: 'proj-backend',
@@ -161,6 +170,7 @@ export const MOCK_TASKS: Task[] = [
     start_date: '2025-11-20',
     end_date: '2026-01-05',
     estimated_hours: 140,
+    required_skills: ['backend', 'api', 'service'],
   },
   {
     id: 'proj-devops',
@@ -172,6 +182,7 @@ export const MOCK_TASKS: Task[] = [
     start_date: '2025-11-25',
     end_date: '2025-12-15',
     estimated_hours: 40,
+    required_skills: ['infra', 'security'],
   },
   {
     id: 'proj-testing',
@@ -183,6 +194,7 @@ export const MOCK_TASKS: Task[] = [
     start_date: '2025-12-01',
     end_date: '2026-01-05',
     estimated_hours: 50,
+    required_skills: ['qa', 'testing'],
   },
   {
     id: 'proj-docs',
@@ -194,6 +206,7 @@ export const MOCK_TASKS: Task[] = [
     start_date: '2025-11-30',
     end_date: '2026-01-10',
     estimated_hours: 20,
+    required_skills: ['documentation'],
   },
   {
     id: 'proj-bugs',
@@ -205,6 +218,7 @@ export const MOCK_TASKS: Task[] = [
     start_date: '2025-12-05',
     end_date: '2026-01-15',
     estimated_hours: 30,
+    required_skills: ['frontend', 'backend'],
   },
   {
     id: 'proj-security',
@@ -216,9 +230,9 @@ export const MOCK_TASKS: Task[] = [
     start_date: '2025-12-10',
     end_date: '2026-01-05',
     estimated_hours: 24,
+    required_skills: ['security'],
   },
 
-  // ЗАДАЧИ Frontend (parent_task_id = proj-frontend)
   {
     id: 'task-usersearch',
     parent_task_id: 'proj-frontend',
@@ -229,6 +243,7 @@ export const MOCK_TASKS: Task[] = [
     start_date: '2025-11-25',
     end_date: '2025-11-27',
     estimated_hours: 8,
+    required_skills: ['react', 'typescript', 'frontend'],
   },
   {
     id: 'task-taskmodal',
@@ -240,6 +255,7 @@ export const MOCK_TASKS: Task[] = [
     start_date: '2025-11-26',
     end_date: '2025-11-28',
     estimated_hours: 6,
+    required_skills: ['react', 'modal', 'frontend'],
   },
   {
     id: 'task-testenv',
@@ -251,6 +267,7 @@ export const MOCK_TASKS: Task[] = [
     start_date: '2025-11-29',
     end_date: '2025-11-30',
     estimated_hours: 4,
+    required_skills: ['testing', 'mocks'],
   },
   {
     id: 'task-calendar',
@@ -262,6 +279,7 @@ export const MOCK_TASKS: Task[] = [
     start_date: '2025-11-28',
     end_date: '2025-12-05',
     estimated_hours: 16,
+    required_skills: ['calendar', 'react', 'frontend'],
   },
   {
     id: 'task-uikit',
@@ -273,6 +291,7 @@ export const MOCK_TASKS: Task[] = [
     start_date: '2025-11-25',
     end_date: '2025-12-02',
     estimated_hours: 12,
+    required_skills: ['ui', 'components', 'frontend'],
   },
   {
     id: 'task-apiintegration',
@@ -284,9 +303,9 @@ export const MOCK_TASKS: Task[] = [
     start_date: '2025-12-01',
     end_date: '2025-12-10',
     estimated_hours: 20,
+    required_skills: ['api', 'integration', 'typescript'],
   },
 
-  // ЗАДАЧИ Backend (parent_task_id = proj-backend)
   {
     id: 'task-userservice',
     parent_task_id: 'proj-backend',
@@ -297,6 +316,7 @@ export const MOCK_TASKS: Task[] = [
     start_date: '2025-11-25',
     end_date: '2025-12-05',
     estimated_hours: 20,
+    required_skills: ['backend', 'users', 'service'],
   },
   {
     id: 'task-taskservice',
@@ -308,6 +328,7 @@ export const MOCK_TASKS: Task[] = [
     start_date: '2025-11-25',
     end_date: '2025-12-08',
     estimated_hours: 24,
+    required_skills: ['backend', 'tasks', 'service'],
   },
   {
     id: 'task-permissionservice',
@@ -319,6 +340,7 @@ export const MOCK_TASKS: Task[] = [
     start_date: '2025-11-26',
     end_date: '2025-12-10',
     estimated_hours: 28,
+    required_skills: ['permissions', 'roles', 'security'],
   },
   {
     id: 'task-scheduleservice',
@@ -330,6 +352,7 @@ export const MOCK_TASKS: Task[] = [
     start_date: '2025-12-01',
     end_date: '2025-12-15',
     estimated_hours: 30,
+    required_skills: ['schedule', 'planning', 'backend'],
   },
   {
     id: 'task-database',
@@ -341,6 +364,7 @@ export const MOCK_TASKS: Task[] = [
     start_date: '2025-11-20',
     end_date: '2025-11-24',
     estimated_hours: 16,
+    required_skills: ['database', 'sql'],
   },
   {
     id: 'task-auth',
@@ -352,43 +376,23 @@ export const MOCK_TASKS: Task[] = [
     start_date: '2025-11-24',
     end_date: '2025-12-01',
     estimated_hours: 12,
+    required_skills: ['auth', 'backend', 'security'],
   },
 ];
 
-// ============================================================================
-// MOCK ASSIGNMENTS - назначения пользователей на задачи
-// ============================================================================
 export const MOCK_ASSIGNMENTS: Assignment[] = [
-  // UserSearch - Импеликс owner
   { id: 'assign-1', task_id: 'task-usersearch', user_id: 'user-impelix', role: 'owner', allocated_hours: 8 },
-  
-  // TaskDetailModal - Генорто owner, Импеликс executor
   { id: 'assign-2', task_id: 'task-taskmodal', user_id: 'user-genorto', role: 'owner', allocated_hours: 6 },
   { id: 'assign-3', task_id: 'task-taskmodal', user_id: 'user-impelix', role: 'executor', allocated_hours: 4 },
-  
-  // Тестовое окружение - Кезорка owner
   { id: 'assign-4', task_id: 'task-testenv', user_id: 'user-kezorka', role: 'owner', allocated_hours: 4 },
-  
-  // Calendar - Соловьева owner
   { id: 'assign-5', task_id: 'task-calendar', user_id: 'user-solovieva', role: 'owner', allocated_hours: 16 },
-  
-  // UI Kit - Петров owner
   { id: 'assign-6', task_id: 'task-uikit', user_id: 'user_kantserov', role: 'owner', allocated_hours: 12 },
-  
-  // API интеграция - Титлха owner, Ноувей executor
   { id: 'assign-7', task_id: 'task-apiintegration', user_id: 'user-titlha', role: 'owner', allocated_hours: 20 },
   { id: 'assign-8', task_id: 'task-apiintegration', user_id: 'user-noway', role: 'executor', allocated_hours: 10 },
-  
-  // User Service - Ноувей owner
   { id: 'assign-9', task_id: 'task-userservice', user_id: 'user-noway', role: 'owner', allocated_hours: 20 },
-  
-  // Task Service - Соколов owner
   { id: 'assign-10', task_id: 'task-taskservice', user_id: 'user-sokolov', role: 'owner', allocated_hours: 24 },
-  
-  // Permission Service - Морозова owner
   { id: 'assign-11', task_id: 'task-permissionservice', user_id: 'user-morozova', role: 'owner', allocated_hours: 28 },
-  
-  // Проекты - Сидоров (PM) owner всех проектов
+
   { id: 'assign-proj-1', task_id: 'proj-mvp', user_id: 'user-sidorov', role: 'owner', allocated_hours: 0 },
   { id: 'assign-proj-2', task_id: 'proj-frontend', user_id: 'user-sidorov', role: 'owner', allocated_hours: 0 },
   { id: 'assign-proj-3', task_id: 'proj-backend', user_id: 'user-sidorov', role: 'owner', allocated_hours: 0 },
@@ -397,16 +401,14 @@ export const MOCK_ASSIGNMENTS: Assignment[] = [
   { id: 'assign-proj-6', task_id: 'proj-docs', user_id: 'user-sidorov', role: 'owner', allocated_hours: 0 },
   { id: 'assign-proj-7', task_id: 'proj-bugs', user_id: 'user-sidorov', role: 'owner', allocated_hours: 0 },
   { id: 'assign-proj-8', task_id: 'proj-security', user_id: 'user-admin', role: 'owner', allocated_hours: 0 },
-  
-  // Frontend участники
+
   { id: 'assign-fe-1', task_id: 'proj-frontend', user_id: 'user-impelix', role: 'executor', allocated_hours: 0 },
   { id: 'assign-fe-2', task_id: 'proj-frontend', user_id: 'user-genorto', role: 'executor', allocated_hours: 0 },
   { id: 'assign-fe-3', task_id: 'proj-frontend', user_id: 'user-kezorka', role: 'executor', allocated_hours: 0 },
   { id: 'assign-fe-4', task_id: 'proj-frontend', user_id: 'user-solovieva', role: 'executor', allocated_hours: 0 },
   { id: 'assign-fe-5', task_id: 'proj-frontend', user_id: 'user_kantserov', role: 'executor', allocated_hours: 0 },
   { id: 'assign-fe-6', task_id: 'proj-frontend', user_id: 'user-titlha', role: 'executor', allocated_hours: 0 },
-  
-  // Backend участники
+
   { id: 'assign-be-1', task_id: 'proj-backend', user_id: 'user-noway', role: 'executor', allocated_hours: 0 },
   { id: 'assign-be-2', task_id: 'proj-backend', user_id: 'user-sokolov', role: 'executor', allocated_hours: 0 },
   { id: 'assign-be-3', task_id: 'proj-backend', user_id: 'user-morozova', role: 'executor', allocated_hours: 0 },
@@ -415,12 +417,8 @@ export const MOCK_ASSIGNMENTS: Assignment[] = [
   { id: 'assign-be-6', task_id: 'proj-backend', user_id: 'user-impelix', role: 'executor', allocated_hours: 0 },
 ];
 
-// ============================================================================
-// HELPER FUNCTIONS
-// ============================================================================
-
 export function getUserByEmail(email: string): User | undefined {
-  return MOCK_USERS.find(u => u.email === email);
+  return MOCK_USERS.find((u) => u.email === email);
 }
 
 export function validateUserCredentials(email: string, password: string): User | null {
@@ -431,29 +429,29 @@ export function validateUserCredentials(email: string, password: string): User |
 }
 
 export function getTasksByUserId(userId: string): Task[] {
-  const userAssignments = MOCK_ASSIGNMENTS.filter(a => a.user_id === userId);
-  const taskIds = userAssignments.map(a => a.task_id);
-  return MOCK_TASKS.filter(t => taskIds.includes(t.id));
+  const userAssignments = MOCK_ASSIGNMENTS.filter((a) => a.user_id === userId);
+  const taskIds = userAssignments.map((a) => a.task_id);
+  return MOCK_TASKS.filter((t) => taskIds.includes(t.id));
 }
 
 export function getProjectsByUserId(userId: string): Task[] {
-  return getTasksByUserId(userId).filter(t => t.parent_task_id === null);
+  return getTasksByUserId(userId).filter((t) => t.parent_task_id === null);
 }
 
 export function getTasksByParentId(parentId: string | null): Task[] {
-  return MOCK_TASKS.filter(t => t.parent_task_id === parentId);
+  return MOCK_TASKS.filter((t) => t.parent_task_id === parentId);
 }
 
 export function getAssignmentsByTaskId(taskId: string): Assignment[] {
-  return MOCK_ASSIGNMENTS.filter(a => a.task_id === taskId);
+  return MOCK_ASSIGNMENTS.filter((a) => a.task_id === taskId);
 }
 
 export function getUsersByTaskId(taskId: string): User[] {
   const assignments = getAssignmentsByTaskId(taskId);
-  const userIds = assignments.map(a => a.user_id);
-  return MOCK_USERS.filter(u => userIds.includes(u.id));
+  const userIds = assignments.map((a) => a.user_id);
+  return MOCK_USERS.filter((u) => userIds.includes(u.id));
 }
 
 export function getTaskById(taskId: string): Task | undefined {
-  return MOCK_TASKS.find(t => t.id === taskId);
+  return MOCK_TASKS.find((t) => t.id === taskId);
 }

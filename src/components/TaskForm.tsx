@@ -3,6 +3,7 @@ import { Input } from './ui/Input';
 import { Select } from './ui/Select';
 import { Button } from './ui/Button';
 import { Modal } from './ui/Modal';
+import { UserSearch } from './UserSearch';
 import type { Task, User } from '../types';
 import { MOCK_USERS } from '../mock';
 import { taskService } from '../api/taskService';
@@ -23,6 +24,10 @@ type CandidateProfile = {
   user: User;
   activeTasks: Task[];
   overlappingTasks: Task[];
+  matchedSkills: string[];
+  relevanceScore: number;
+  workloadLabel: string;
+  isAvailable: boolean;
 };
 
 const PRIORITY_OPTIONS = [
@@ -93,6 +98,33 @@ const hasDateOverlap = (
   return first.start <= second.end && second.start <= first.end;
 };
 
+const normalizeSkill = (value: string) => value.trim().toLowerCase();
+
+const extractSkillsFromText = (text: string): string[] => {
+  const normalized = text.toLowerCase();
+  const map: Record<string, string[]> = {
+    react: ['react', 'компонент', 'frontend', 'ui'],
+    typescript: ['typescript', 'ts'],
+    frontend: ['frontend', 'ui', 'modal', 'calendar'],
+    backend: ['backend', 'api', 'service'],
+    calendar: ['calendar', 'календар'],
+    modal: ['modal', 'модаль'],
+    testing: ['test', 'тест', 'qa'],
+    api: ['api', 'интеграц'],
+    auth: ['auth', 'jwt', 'аутентиф'],
+    database: ['database', 'sql', 'бд'],
+    security: ['security', 'безопас'],
+    permissions: ['permission', 'role', 'разрешен'],
+    schedule: ['schedule', 'расписан'],
+    documentation: ['documentation', 'readme', 'документ'],
+    ui: ['button', 'input', 'select', 'ui kit'],
+  };
+
+  return Object.entries(map)
+    .filter(([, keywords]) => keywords.some((keyword) => normalized.includes(keyword)))
+    .map(([skill]) => skill);
+};
+
 export const TaskForm: React.FC<TaskFormProps> = ({
   onSubmit,
   onCancel,
@@ -120,8 +152,8 @@ export const TaskForm: React.FC<TaskFormProps> = ({
   const [lastChangedField, setLastChangedField] =
     useState<'start' | 'end' | 'duration' | null>(null);
 
-  const [availableUsers, setAvailableUsers] = useState<User[]>([]);
   const [candidateProfiles, setCandidateProfiles] = useState<Record<string, CandidateProfile>>({});
+  const [sortedCandidates, setSortedCandidates] = useState<User[]>([]);
   const [loadingCandidates, setLoadingCandidates] = useState(false);
   const [profileUserId, setProfileUserId] = useState<string | null>(null);
 
@@ -131,6 +163,11 @@ export const TaskForm: React.FC<TaskFormProps> = ({
     if (!profileUserId) return null;
     return candidateProfiles[profileUserId] || null;
   }, [candidateProfiles, profileUserId]);
+
+  const desiredSkills = useMemo(
+    () => extractSkillsFromText(`${formData.title} ${formData.description}`),
+    [formData.title, formData.description]
+  );
 
   const isWithinProjectBounds = (date: string) => {
     if (!date) return true;
@@ -164,9 +201,7 @@ export const TaskForm: React.FC<TaskFormProps> = ({
 
       try {
         const assignments = await taskService.getTaskAssignments(task.id);
-        const executor = assignments.find(
-          (assignment: any) => assignment.role === 'executor'
-        );
+        const executor = assignments.find((assignment: any) => assignment.role === 'executor');
 
         if (!cancelled && executor?.user_id) {
           setFormData((prev) => ({ ...prev, assignee_id: executor.user_id }));
@@ -189,8 +224,8 @@ export const TaskForm: React.FC<TaskFormProps> = ({
     const loadCandidates = async () => {
       if (isProject || !hasDates) {
         if (!cancelled) {
-          setAvailableUsers([]);
           setCandidateProfiles({});
+          setSortedCandidates([]);
         }
         return;
       }
@@ -214,55 +249,74 @@ export const TaskForm: React.FC<TaskFormProps> = ({
             ? MOCK_USERS.filter((user) => projectMemberIds.includes(user.id))
             : MOCK_USERS;
 
-        const nextProfiles: Record<string, CandidateProfile> = {};
-        const nextAvailableUsers: User[] = [];
+        const profiles: Record<string, CandidateProfile> = {};
+        const sorted = [...baseUsers]
+          .map((user) => {
+            const userAssignments = allAssignments.filter((assignment) => assignment.user_id === user.id);
 
-        for (const user of baseUsers) {
-          const userAssignments = allAssignments.filter((assignment) => assignment.user_id === user.id);
+            const activeTasks = userAssignments
+              .map((assignment) => allTasks.find((item) => item.id === assignment.task_id))
+              .filter((item): item is Task => Boolean(item))
+              .filter(
+                (item) =>
+                  item.id !== task?.id &&
+                  item.parent_task_id !== null &&
+                  item.status !== 'completed' &&
+                  item.status !== 'cancelled'
+              );
 
-          const activeTasks = userAssignments
-            .map((assignment) => allTasks.find((item) => item.id === assignment.task_id))
-            .filter((item): item is Task => Boolean(item))
-            .filter(
-              (item) =>
-                item.id !== task?.id &&
-                item.parent_task_id !== null &&
-                item.status !== 'completed' &&
-                item.status !== 'cancelled'
+            const overlappingTasks = activeTasks.filter((item) =>
+              hasDateOverlap(
+                formData.start_date,
+                formData.end_date,
+                item.start_date,
+                item.end_date
+              )
             );
 
-          const overlappingTasks = activeTasks.filter((item) =>
-            hasDateOverlap(
-              formData.start_date,
-              formData.end_date,
-              item.start_date,
-              item.end_date
-            )
-          );
+            const userSkills = (user.skills || []).map(normalizeSkill);
+            const matchedSkills = desiredSkills.filter((skill) => userSkills.includes(skill));
+            const relevanceScore = matchedSkills.length;
+            const isAvailable = overlappingTasks.length === 0;
 
-          nextProfiles[user.id] = {
-            user,
-            activeTasks,
-            overlappingTasks,
-          };
+            const profile: CandidateProfile = {
+              user,
+              activeTasks,
+              overlappingTasks,
+              matchedSkills,
+              relevanceScore,
+              workloadLabel: `${activeTasks.length} активн. задач`,
+              isAvailable,
+            };
 
-          if (overlappingTasks.length === 0) {
-            nextAvailableUsers.push(user);
-          }
-        }
+            profiles[user.id] = profile;
+            return profile;
+          })
+          .sort((a, b) => {
+            if (a.isAvailable !== b.isAvailable) {
+              return Number(b.isAvailable) - Number(a.isAvailable);
+            }
+            if (a.relevanceScore !== b.relevanceScore) {
+              return b.relevanceScore - a.relevanceScore;
+            }
+            if (a.activeTasks.length !== b.activeTasks.length) {
+              return a.activeTasks.length - b.activeTasks.length;
+            }
+            return a.user.full_name.localeCompare(b.user.full_name);
+          })
+          .map((profile) => profile.user);
 
         if (!cancelled) {
-          setCandidateProfiles(nextProfiles);
-          setAvailableUsers(nextAvailableUsers);
+          setCandidateProfiles(profiles);
+          setSortedCandidates(sorted);
 
           setFormData((prev) => {
             if (!prev.assignee_id) return prev;
-            const stillAvailable = nextAvailableUsers.some((user) => user.id === prev.assignee_id);
-            return stillAvailable ? prev : { ...prev, assignee_id: '' };
+            return profiles[prev.assignee_id]?.isAvailable ? prev : { ...prev, assignee_id: '' };
           });
         }
       } catch (err) {
-        console.error('Ошибка при подборе доступных сотрудников:', err);
+        console.error('Ошибка при подборе кандидатов:', err);
       } finally {
         if (!cancelled) {
           setLoadingCandidates(false);
@@ -275,7 +329,7 @@ export const TaskForm: React.FC<TaskFormProps> = ({
     return () => {
       cancelled = true;
     };
-  }, [formData.start_date, formData.end_date, hasDates, isProject, projectId, task?.id]);
+  }, [formData.start_date, formData.end_date, desiredSkills.join('|'), hasDates, isProject, projectId, task?.id]);
 
   const validateField = (field: string, value: any): string => {
     switch (field) {
@@ -345,11 +399,6 @@ export const TaskForm: React.FC<TaskFormProps> = ({
         const error = validateField(field, value);
         setErrors((prev) => ({ ...prev, [field]: error }));
       }
-
-      if (touched.assignee_id) {
-        const error = validateField('assignee_id', formData.assignee_id);
-        setErrors((prev) => ({ ...prev, assignee_id: error }));
-      }
     };
 
   const handleDurationChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -380,16 +429,6 @@ export const TaskForm: React.FC<TaskFormProps> = ({
     if (touched.estimated_hours) {
       const error = validateField('estimated_hours', safe);
       setErrors((prev) => ({ ...prev, estimated_hours: error }));
-    }
-  };
-
-  const handleAssigneeChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
-    const value = e.target.value;
-    setFormData((prev) => ({ ...prev, assignee_id: value }));
-
-    if (touched.assignee_id) {
-      const error = validateField('assignee_id', value);
-      setErrors((prev) => ({ ...prev, assignee_id: error }));
     }
   };
 
@@ -471,36 +510,51 @@ export const TaskForm: React.FC<TaskFormProps> = ({
 
         {!isProject && hasDates && (
           <div className="task-form__assignee-block">
-            <Select
-              label="Исполнитель"
-              options={availableUsers.map((user) => ({
-                value: user.id,
-                label: user.full_name,
-              }))}
-              value={formData.assignee_id}
-              onChange={handleAssigneeChange}
-              error={errors.assignee_id}
-              required
+            <div className="task-form__skills-note">
+              Подходящие навыки: {desiredSkills.length > 0 ? desiredSkills.join(', ') : 'не определены'}
+            </div>
+
+            <UserSearch
+              users={sortedCandidates}
+              candidateMeta={Object.fromEntries(
+                Object.entries(candidateProfiles).map(([id, profile]) => [
+                  id,
+                  {
+                    activeTasksCount: profile.activeTasks.length,
+                    overlappingTasksCount: profile.overlappingTasks.length,
+                    workloadLabel: profile.workloadLabel,
+                    matchedSkills: profile.matchedSkills,
+                    relevanceScore: profile.relevanceScore,
+                    isAvailable: profile.isAvailable,
+                  },
+                ])
+              )}
+              onSelect={(user) => {
+                setFormData((prev) => ({ ...prev, assignee_id: user.id }));
+                if (touched.assignee_id) {
+                  setErrors((prev) => ({ ...prev, assignee_id: '' }));
+                }
+              }}
+              onPreview={(user) => setProfileUserId(user.id)}
             />
 
             <div className="task-form__availability-note">
               {loadingCandidates
-                ? 'Подбираем доступных сотрудников...'
-                : availableUsers.length > 0
-                  ? `Доступно сотрудников: ${availableUsers.length}`
-                  : 'Нет свободных сотрудников на выбранный период'}
+                ? 'Подбираем кандидатов...'
+                : sortedCandidates.length > 0
+                  ? `Кандидатов найдено: ${sortedCandidates.length}`
+                  : 'Нет кандидатов по текущим условиям'}
             </div>
 
-            <div className="task-form__candidate-actions">
-              <Button
-                type="button"
-                variant="outline"
-                onClick={() => setProfileUserId(formData.assignee_id)}
-                disabled={!formData.assignee_id}
-              >
-                Профиль кандидата
-              </Button>
-            </div>
+            {formData.assignee_id && (
+              <div className="task-form__selected-user">
+                Выбран: {MOCK_USERS.find((u) => u.id === formData.assignee_id)?.full_name || '—'}
+              </div>
+            )}
+
+            {errors.assignee_id && (
+              <div className="task-form__field-error">{errors.assignee_id}</div>
+            )}
           </div>
         )}
 
@@ -590,20 +644,28 @@ export const TaskForm: React.FC<TaskFormProps> = ({
               <span>{selectedProfile.user.full_name}</span>
             </div>
             <div className="candidate-profile__row">
-              <span className="candidate-profile__label">Логин:</span>
-              <span>{selectedProfile.user.username}</span>
+              <span className="candidate-profile__label">Ник:</span>
+              <span>@{selectedProfile.user.username}</span>
             </div>
             <div className="candidate-profile__row">
               <span className="candidate-profile__label">Email:</span>
               <span>{selectedProfile.user.email}</span>
             </div>
             <div className="candidate-profile__row">
-              <span className="candidate-profile__label">Часовой пояс:</span>
-              <span>{selectedProfile.user.timezone}</span>
+              <span className="candidate-profile__label">Навыки:</span>
+              <span>{(selectedProfile.user.skills || []).join(', ') || 'Не указаны'}</span>
             </div>
             <div className="candidate-profile__row">
-              <span className="candidate-profile__label">Стек:</span>
-              <span>Не указан в текущих данных</span>
+              <span className="candidate-profile__label">Загруженность:</span>
+              <span>{selectedProfile.workloadLabel}</span>
+            </div>
+            <div className="candidate-profile__row">
+              <span className="candidate-profile__label">Совпадение навыков:</span>
+              <span>
+                {selectedProfile.matchedSkills.length > 0
+                  ? selectedProfile.matchedSkills.join(', ')
+                  : 'Нет явных совпадений'}
+              </span>
             </div>
             <div className="candidate-profile__row candidate-profile__row--top">
               <span className="candidate-profile__label">Активные задачи:</span>

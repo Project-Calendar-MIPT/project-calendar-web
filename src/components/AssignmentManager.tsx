@@ -1,8 +1,9 @@
-import React, { useState, useEffect, useMemo } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 import { Button } from './ui/Button';
 import { Input } from './ui/Input';
 import { Select } from './ui/Select';
 import { Modal } from './ui/Modal';
+import { UserSearch } from './UserSearch';
 import { assignmentService } from '../minimal_test/api/assignmentService';
 import { taskService } from '../api/taskService';
 import { MOCK_USERS } from '../mock';
@@ -30,6 +31,10 @@ type CandidateProfile = {
   user: User;
   activeTasks: Task[];
   overlappingTasks: Task[];
+  matchedSkills: string[];
+  relevanceScore: number;
+  workloadLabel: string;
+  isAvailable: boolean;
 };
 
 const normalizeRange = (start?: string, end?: string) => {
@@ -65,6 +70,41 @@ const hasDateOverlap = (
   return first.start <= second.end && second.start <= first.end;
 };
 
+const normalizeSkill = (value: string) => value.trim().toLowerCase();
+
+const extractSkillsFromText = (text: string): string[] => {
+  const normalized = text.toLowerCase();
+  const map: Record<string, string[]> = {
+    react: ['react', 'компонент', 'frontend', 'ui'],
+    typescript: ['typescript', 'ts'],
+    frontend: ['frontend', 'ui', 'modal', 'calendar'],
+    backend: ['backend', 'api', 'service'],
+    calendar: ['calendar', 'календар'],
+    modal: ['modal', 'модаль'],
+    testing: ['test', 'тест', 'qa'],
+    api: ['api', 'интеграц'],
+    auth: ['auth', 'jwt', 'аутентиф'],
+    database: ['database', 'sql', 'бд'],
+    security: ['security', 'безопас'],
+    permissions: ['permission', 'role', 'разрешен'],
+    schedule: ['schedule', 'расписан'],
+    documentation: ['documentation', 'readme', 'документ'],
+    ui: ['button', 'input', 'select', 'ui kit'],
+  };
+
+  return Object.entries(map)
+    .filter(([, keywords]) => keywords.some((keyword) => normalized.includes(keyword)))
+    .map(([skill]) => skill);
+};
+
+const getTaskRequiredSkills = (task?: Task | null): string[] => {
+  if (!task) return [];
+  if (task.required_skills && task.required_skills.length > 0) {
+    return task.required_skills.map(normalizeSkill);
+  }
+  return extractSkillsFromText(`${task.title} ${task.description || ''}`);
+};
+
 export const AssignmentManager: React.FC<AssignmentManagerProps> = ({
   projectId,
   onAssignmentChange,
@@ -82,15 +122,10 @@ export const AssignmentManager: React.FC<AssignmentManagerProps> = ({
     role: 'executor',
     allocated_hours: 0,
   });
-  const [availableUsers, setAvailableUsers] = useState<User[]>([]);
   const [candidateProfiles, setCandidateProfiles] = useState<Record<string, CandidateProfile>>({});
+  const [sortedCandidates, setSortedCandidates] = useState<User[]>([]);
   const [error, setError] = useState('');
   const [profileUserId, setProfileUserId] = useState<string | null>(null);
-
-  const selectedProfile = useMemo(() => {
-    if (!profileUserId) return null;
-    return candidateProfiles[profileUserId] || null;
-  }, [candidateProfiles, profileUserId]);
 
   const rolePriority: Record<string, number> = {
     owner: 5,
@@ -99,6 +134,16 @@ export const AssignmentManager: React.FC<AssignmentManagerProps> = ({
     executor: 2,
     spectator: 1,
   };
+
+  const selectedTask = useMemo(
+    () => projectTasks.find((task) => task.id === formData.task_id) || null,
+    [projectTasks, formData.task_id]
+  );
+
+  const selectedProfile = useMemo(() => {
+    if (!profileUserId) return null;
+    return candidateProfiles[profileUserId] || null;
+  }, [candidateProfiles, profileUserId]);
 
   const collectAllProjectTasks = (tasks: Task[], rootProjectId: string): Task[] => {
     const result: Task[] = [];
@@ -188,11 +233,9 @@ export const AssignmentManager: React.FC<AssignmentManagerProps> = ({
   }, [loadAssignments]);
 
   useEffect(() => {
-    const selectedTask = projectTasks.find((task) => task.id === formData.task_id);
-
     if (!selectedTask) {
-      setAvailableUsers([]);
       setCandidateProfiles({});
+      setSortedCandidates([]);
       setFormData((prev) => ({ ...prev, user_id: '' }));
       return;
     }
@@ -202,67 +245,74 @@ export const AssignmentManager: React.FC<AssignmentManagerProps> = ({
         ? MOCK_USERS.filter((user) => projectMembers.includes(user.id))
         : MOCK_USERS;
 
-    if (!selectedTask.start_date && !selectedTask.end_date) {
-      const profiles: Record<string, CandidateProfile> = {};
-      baseUsers.forEach((user) => {
-        profiles[user.id] = {
-          user,
-          activeTasks: [],
-          overlappingTasks: [],
-        };
-      });
-      setAvailableUsers(baseUsers);
-      setCandidateProfiles(profiles);
-      return;
-    }
-
+    const requiredSkills = getTaskRequiredSkills(selectedTask);
     const allAssignments = assignmentService.getMockAssignments();
+
     const profiles: Record<string, CandidateProfile> = {};
-    const freeUsers: User[] = [];
+    const sorted = [...baseUsers]
+      .map((user) => {
+        const userAssignments = allAssignments.filter((assignment) => assignment.user_id === user.id);
 
-    for (const user of baseUsers) {
-      const userAssignments = allAssignments.filter((assignment) => assignment.user_id === user.id);
+        const activeTasks = userAssignments
+          .map((assignment) => allTasks.find((task) => task.id === assignment.task_id))
+          .filter((task): task is Task => Boolean(task))
+          .filter(
+            (task) =>
+              task.id !== selectedTask.id &&
+              task.parent_task_id !== null &&
+              task.status !== 'completed' &&
+              task.status !== 'cancelled'
+          );
 
-      const activeTasks = userAssignments
-        .map((assignment) => allTasks.find((task) => task.id === assignment.task_id))
-        .filter((task): task is Task => Boolean(task))
-        .filter(
-          (task) =>
-            task.id !== selectedTask.id &&
-            task.parent_task_id !== null &&
-            task.status !== 'completed' &&
-            task.status !== 'cancelled'
+        const overlappingTasks = activeTasks.filter((task) =>
+          hasDateOverlap(
+            selectedTask.start_date,
+            selectedTask.end_date,
+            task.start_date,
+            task.end_date
+          )
         );
 
-      const overlappingTasks = activeTasks.filter((task) =>
-        hasDateOverlap(
-          selectedTask.start_date,
-          selectedTask.end_date,
-          task.start_date,
-          task.end_date
-        )
-      );
+        const userSkills = (user.skills || []).map(normalizeSkill);
+        const matchedSkills = requiredSkills.filter((skill) => userSkills.includes(skill));
+        const relevanceScore = matchedSkills.length;
+        const isAvailable = overlappingTasks.length === 0;
 
-      profiles[user.id] = {
-        user,
-        activeTasks,
-        overlappingTasks,
-      };
+        const profile: CandidateProfile = {
+          user,
+          activeTasks,
+          overlappingTasks,
+          matchedSkills,
+          relevanceScore,
+          workloadLabel: `${activeTasks.length} активн. задач`,
+          isAvailable,
+        };
 
-      if (overlappingTasks.length === 0) {
-        freeUsers.push(user);
-      }
-    }
+        profiles[user.id] = profile;
+        return profile;
+      })
+      .sort((a, b) => {
+        if (a.isAvailable !== b.isAvailable) {
+          return Number(b.isAvailable) - Number(a.isAvailable);
+        }
+        if (a.relevanceScore !== b.relevanceScore) {
+          return b.relevanceScore - a.relevanceScore;
+        }
+        if (a.activeTasks.length !== b.activeTasks.length) {
+          return a.activeTasks.length - b.activeTasks.length;
+        }
+        return a.user.full_name.localeCompare(b.user.full_name);
+      })
+      .map((profile) => profile.user);
 
     setCandidateProfiles(profiles);
-    setAvailableUsers(freeUsers);
+    setSortedCandidates(sorted);
 
     setFormData((prev) => {
       if (!prev.user_id) return prev;
-      const stillAvailable = freeUsers.some((user) => user.id === prev.user_id);
-      return stillAvailable ? prev : { ...prev, user_id: '' };
+      return profiles[prev.user_id]?.isAvailable ? prev : { ...prev, user_id: '' };
     });
-  }, [formData.task_id, projectMembers, projectTasks, allTasks]);
+  }, [selectedTask, projectMembers, allTasks]);
 
   const handleAssignUser = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -275,6 +325,12 @@ export const AssignmentManager: React.FC<AssignmentManagerProps> = ({
 
     if (!formData.user_id) {
       setError('Выберите пользователя');
+      return;
+    }
+
+    const selectedCandidate = candidateProfiles[formData.user_id];
+    if (selectedCandidate && !selectedCandidate.isAvailable) {
+      setError('Этот сотрудник занят в выбранные даты');
       return;
     }
 
@@ -295,8 +351,8 @@ export const AssignmentManager: React.FC<AssignmentManagerProps> = ({
         role: 'executor',
         allocated_hours: 0,
       });
-      setAvailableUsers([]);
       setCandidateProfiles({});
+      setSortedCandidates([]);
     } catch (err: any) {
       setError(err.message || 'Ошибка при назначении');
     }
@@ -335,12 +391,7 @@ export const AssignmentManager: React.FC<AssignmentManagerProps> = ({
     return labels[role] || role;
   };
 
-  const buildTaskLabel = (task: Task): string => {
-    return task.title;
-  };
-
-  const selectedTask = projectTasks.find((task) => task.id === formData.task_id);
-  const selectedTaskHasDates = Boolean(selectedTask?.start_date || selectedTask?.end_date);
+  const buildTaskLabel = (task: Task): string => task.title;
 
   return (
     <>
@@ -401,35 +452,41 @@ export const AssignmentManager: React.FC<AssignmentManagerProps> = ({
               required
             />
 
-            <Select
-              label="Пользователь"
-              options={availableUsers.map((u) => ({
-                value: u.id,
-                label: u.full_name,
-              }))}
-              value={formData.user_id}
-              onChange={(e) => setFormData({ ...formData, user_id: e.target.value })}
-              required
-            />
+            {selectedTask && (
+              <>
+                <div className="assignment-manager__skills">
+                  Требуемые навыки:{' '}
+                  {getTaskRequiredSkills(selectedTask).length > 0
+                    ? getTaskRequiredSkills(selectedTask).join(', ')
+                    : 'не определены'}
+                </div>
 
-            {selectedTaskHasDates && (
-              <div className="assignment-manager__hint">
-                {availableUsers.length > 0
-                  ? `Доступно сотрудников: ${availableUsers.length}`
-                  : 'Нет свободных сотрудников на даты выбранной задачи'}
-              </div>
+                <UserSearch
+                  users={sortedCandidates}
+                  candidateMeta={Object.fromEntries(
+                    Object.entries(candidateProfiles).map(([id, profile]) => [
+                      id,
+                      {
+                        activeTasksCount: profile.activeTasks.length,
+                        overlappingTasksCount: profile.overlappingTasks.length,
+                        workloadLabel: profile.workloadLabel,
+                        matchedSkills: profile.matchedSkills,
+                        relevanceScore: profile.relevanceScore,
+                        isAvailable: profile.isAvailable,
+                      },
+                    ])
+                  )}
+                  onSelect={(user) => setFormData((prev) => ({ ...prev, user_id: user.id }))}
+                  onPreview={(user) => setProfileUserId(user.id)}
+                />
+
+                {formData.user_id && (
+                  <div className="assignment-manager__selected-user">
+                    Выбран: {getUserName(formData.user_id)}
+                  </div>
+                )}
+              </>
             )}
-
-            <div className="assignment-manager__candidate-actions">
-              <Button
-                type="button"
-                variant="outline"
-                disabled={!formData.user_id}
-                onClick={() => setProfileUserId(formData.user_id)}
-              >
-                Профиль кандидата
-              </Button>
-            </div>
 
             <Select
               label="Роль"
@@ -477,20 +534,28 @@ export const AssignmentManager: React.FC<AssignmentManagerProps> = ({
               <span>{selectedProfile.user.full_name}</span>
             </div>
             <div className="candidate-profile__row">
-              <span className="candidate-profile__label">Логин:</span>
-              <span>{selectedProfile.user.username}</span>
+              <span className="candidate-profile__label">Ник:</span>
+              <span>@{selectedProfile.user.username}</span>
             </div>
             <div className="candidate-profile__row">
               <span className="candidate-profile__label">Email:</span>
               <span>{selectedProfile.user.email}</span>
             </div>
             <div className="candidate-profile__row">
-              <span className="candidate-profile__label">Часовой пояс:</span>
-              <span>{selectedProfile.user.timezone}</span>
+              <span className="candidate-profile__label">Навыки:</span>
+              <span>{(selectedProfile.user.skills || []).join(', ') || 'Не указаны'}</span>
             </div>
             <div className="candidate-profile__row">
-              <span className="candidate-profile__label">Стек:</span>
-              <span>Не указан в текущих данных</span>
+              <span className="candidate-profile__label">Загруженность:</span>
+              <span>{selectedProfile.workloadLabel}</span>
+            </div>
+            <div className="candidate-profile__row">
+              <span className="candidate-profile__label">Совпадение навыков:</span>
+              <span>
+                {selectedProfile.matchedSkills.length > 0
+                  ? selectedProfile.matchedSkills.join(', ')
+                  : 'Нет явных совпадений'}
+              </span>
             </div>
             <div className="candidate-profile__row candidate-profile__row--top">
               <span className="candidate-profile__label">Активные задачи:</span>
@@ -509,9 +574,10 @@ export const AssignmentManager: React.FC<AssignmentManagerProps> = ({
                 )}
               </div>
             </div>
+
             {selectedProfile.overlappingTasks.length > 0 && (
               <div className="candidate-profile__warning">
-                На даты выбранной задачи у сотрудника есть пересечения.
+                На даты выбранной задачи есть пересечения по занятости.
               </div>
             )}
           </div>
