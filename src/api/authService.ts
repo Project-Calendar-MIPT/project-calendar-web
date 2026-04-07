@@ -35,15 +35,13 @@ export const authService = {
 
     const payload = {
       email: data.email,
-      last_name: data.last_name,
-      first_name: data.first_name,
-      middle_name: data.middle_name,
-      timezone: data.timezone,
-      telegram: data.telegram,
-      phone: data.phone,
-      contacts_visible: data.contacts_visible,
-      stack: data.stack,
-      experience_level: data.experience_level,
+      password: data.password,
+      display_name: data.username,
+      name: data.first_name,
+      surname: data.last_name,
+      telegram: data.telegram || undefined,
+      phone: data.phone || undefined,
+      work_schedule: workingDays,
     };
 
     const response = await apiClient.post('/auth/register', payload);
@@ -59,20 +57,14 @@ export const authService = {
   },
 
   async login(data: LoginData): Promise<AuthResponse> {
-    await new Promise((r) => setTimeout(r, 500));
+    const response = await apiClient.post('/auth/login', {
+      email: data.email,
+      password: data.password,
+    });
+    const body = response.data;
 
-    // Валидация пользователя по email и паролю
-    const user = validateUserCredentials(data.email, data.password);
-
-    if (!user) {
-      // Проверяем, существует ли пользователь с таким email
-      const existingUser = getUserByEmail(data.email);
-      if (existingUser) {
-        throw new Error('Неверный пароль');
-      } else {
-        throw new Error('Пользователя с такими данными не существует');
-      }
-    }
+    const token: string = body.token;
+    const user = mapBackendUser(body.user);
 
     localStorage.setItem('auth_token', token);
     localStorage.setItem('current_user', JSON.stringify(user));

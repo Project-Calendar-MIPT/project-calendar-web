@@ -7,15 +7,10 @@ import { authService } from '../api/authService';
 import { useFloatingColumns } from '../hooks/useFloatingColumns';
 import './LoginPage.scss';
 
-const EMAIL_ALLOWED_CHARACTERS_REGEX = /^[A-Za-z0-9._%+\-@]*$/;
-const EMAIL_FORMAT_REGEX = /^[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}$/;
-const PASSWORD_ALLOWED_CHARACTERS_REGEX = /^[A-Za-z0-9!"#$%&'()*+,\-./:;<=>?@[\\\]^_`{|}~]+$/;
-
 const LoginPage: React.FC = () => {
   const navigate = useNavigate();
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
-  const [showPassword, setShowPassword] = useState(false);
 
   const [formData, setFormData] = useState({
     email: '',
@@ -29,19 +24,16 @@ const LoginPage: React.FC = () => {
 
     if (!formData.email.trim()) {
       newErrors.email = 'Email обязателен';
-    } else if (!EMAIL_ALLOWED_CHARACTERS_REGEX.test(formData.email)) {
-      newErrors.email = 'Допустимы только латинские буквы, цифры и символы @ . _ % + -';
     } else {
       // Проверка формата email: должен быть @ и хотя бы одна точка после @
-      if (!EMAIL_FORMAT_REGEX.test(formData.email)) {
+      const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+      if (!emailRegex.test(formData.email)) {
         newErrors.email = 'Неверный формат email. Пример: user@example.com';
       }
     }
 
     if (!formData.password) {
       newErrors.password = 'Пароль обязателен';
-    } else if (!PASSWORD_ALLOWED_CHARACTERS_REGEX.test(formData.password)) {
-      newErrors.password = 'Допустимы только латинские буквы, цифры и спецсимволы клавиатуры';
     }
 
     setErrors(newErrors);
@@ -82,33 +74,6 @@ const LoginPage: React.FC = () => {
 
   const columns = useFloatingColumns(15);
 
-  const passwordToggleIcon = showPassword ? (
-    // Slashed eye when password is visible.
-    <svg viewBox="0 0 24 24" width="20" height="20" aria-hidden="true">
-      <path
-        d="M3 4l18 16M10.58 10.58A2 2 0 0012 14a2 2 0 001.42-.58M9.88 5.1A10.94 10.94 0 0112 5c6 0 9.5 7 9.5 7a16.35 16.35 0 01-4.16 4.95M6.61 7.24A16.28 16.28 0 002.5 12S6 19 12 19a10.94 10.94 0 004.12-.8"
-        fill="none"
-        stroke="currentColor"
-        strokeWidth="2"
-        strokeLinecap="round"
-        strokeLinejoin="round"
-      />
-    </svg>
-  ) : (
-    // Open eye when password is hidden.
-    <svg viewBox="0 0 24 24" width="20" height="20" aria-hidden="true">
-      <path
-        d="M2.5 12S6 5 12 5s9.5 7 9.5 7S18 19 12 19 2.5 12 2.5 12z"
-        fill="none"
-        stroke="currentColor"
-        strokeWidth="2"
-        strokeLinecap="round"
-        strokeLinejoin="round"
-      />
-      <circle cx="12" cy="12" r="3" fill="none" stroke="currentColor" strokeWidth="2" />
-    </svg>
-  );
-
   return (
     <div className="login-page">
       <div className="login-page__background" aria-hidden="true">
@@ -134,21 +99,10 @@ const LoginPage: React.FC = () => {
 
           <Input
             label="Пароль"
-            type={showPassword ? 'text' : 'password'}
+            type="password"
             value={formData.password}
             onChange={handleInputChange('password')}
             error={errors.password}
-            rightAdornment={
-              <button
-                type="button"
-                className="login-page__password-icon-button"
-                onClick={() => setShowPassword((prev) => !prev)}
-                aria-label={showPassword ? 'Скрыть пароль' : 'Показать пароль'}
-                aria-pressed={showPassword}
-              >
-                {passwordToggleIcon}
-              </button>
-            }
             required
           />
 
