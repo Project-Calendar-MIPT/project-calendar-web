@@ -64,6 +64,29 @@ const formatUrgencyLabel = (urgency: 'overdue' | null): string => {
   }
 };
 
+const EXPERIENCE_LABELS: Record<string, string> = {
+  junior: 'Junior',
+  middle: 'Middle',
+  senior: 'Senior',
+};
+
+const formatStackLabel = (stack: User['stack']): string => {
+  if (!stack || stack.length === 0) return '—';
+
+  return stack
+    .map((item: any) => {
+      if (typeof item === 'string') {
+        return item;
+      }
+
+      const level = item?.experience_level
+        ? EXPERIENCE_LABELS[item.experience_level] || item.experience_level
+        : '—';
+      return `${item?.name || '—'} (${level})`;
+    })
+    .join(', ');
+};
+
 const DEFAULT_WORK_SCHEDULE: WorkScheduleDay[] = [
   { day_of_week: 1, is_working_day: true, start_time: '09:00', end_time: '18:00' },
   { day_of_week: 2, is_working_day: true, start_time: '09:00', end_time: '18:00' },
@@ -80,14 +103,22 @@ async function fakeLoadProfileData(): Promise<{
   tasks: Task[];
 }> {
   const user = await authService.getCurrentUser();
-  // getTasks already returns only tasks the current user is assigned to
-  const tasks = await taskService.getTasks();
+  const allTasks = await taskService.getTasks();
+  const userAssignments = assignmentService
+    .getMockAssignments()
+    .filter((a) => a.user_id === user.id);
+  const userTaskIds = userAssignments.map((a) => a.task_id);
+  const tasks = allTasks.filter((t) => userTaskIds.includes(t.id));
 
-  return {
-    user,
-    workSchedule: DEFAULT_WORK_SCHEDULE,
-    tasks,
-  };
+  return new Promise((resolve) => {
+    setTimeout(() => {
+      resolve({
+        user,
+        workSchedule: DEFAULT_WORK_SCHEDULE,
+        tasks,
+      });
+    }, 300);
+  });
 }
 
 type ProfileTabId = 'info' | 'schedule' | 'stats' | 'projects' | 'tasks';
@@ -191,6 +222,10 @@ export const ProfilePage: React.FC = () => {
   const fullName = user
     ? [user.last_name, user.first_name, user.middle_name].filter(Boolean).join(' ')
     : '';
+  const experienceLabel = user?.experience_level
+    ? EXPERIENCE_LABELS[user.experience_level] || user.experience_level
+    : '—';
+  const stackLabel = formatStackLabel(user?.stack);
 
   return (
     <div className="profile-page">
@@ -261,7 +296,9 @@ export const ProfilePage: React.FC = () => {
                 </div>
                 <div className="profile-info__row">
                   <span className="profile-info__label">Видимость контактов</span>
-                  <span className="profile-info__value">{user.contacts_visible ? 'Видимы' : 'Скрыты'}</span>
+                  <span className="profile-info__value">
+                    {user.contacts_visible ? 'Видимы' : 'Скрыты'}
+                  </span>
                 </div>
                 <div className="profile-info__row">
                   <span className="profile-info__label">Email</span>
@@ -270,6 +307,14 @@ export const ProfilePage: React.FC = () => {
                 <div className="profile-info__row">
                   <span className="profile-info__label">Часовой пояс</span>
                   <span className="profile-info__value">{user.timezone || '—'}</span>
+                </div>
+                <div className="profile-info__row">
+                  <span className="profile-info__label">Уровень опыта</span>
+                  <span className="profile-info__value">{experienceLabel}</span>
+                </div>
+                <div className="profile-info__row">
+                  <span className="profile-info__label">Стек</span>
+                  <span className="profile-info__value">{stackLabel}</span>
                 </div>
               </div>
             </Card>
@@ -393,8 +438,7 @@ export const ProfilePage: React.FC = () => {
                       <li
                         key={t.id}
                         className={
-                          'task-list__item' +
-                          (urgency ? ` task-list__item--${urgency}` : '')
+                          'task-list__item' + (urgency ? ` task-list__item--${urgency}` : '')
                         }
                       >
                         <div className="task-list__main">

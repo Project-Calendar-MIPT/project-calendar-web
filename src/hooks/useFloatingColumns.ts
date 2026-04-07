@@ -23,13 +23,16 @@ export const useFloatingColumns = (count: number = 15): FloatingColumn[] => {
       const width = 30 + depth * 30; // 30-60px
       const height = 60 + depth * 80; // 60-140px
       const duration = 20 - depth * 6; // 14-20s
-      const leftOffset = Math.random() * 3;
+      // Небольшой симметричный jitter в рамках своей колонки,
+      // чтобы избежать скопления слева/справа.
+      const leftJitter = (Math.random() - 0.5) * spacing * 0.6;
+      const left = Math.min(100, Math.max(0, (i + 0.5) * spacing + leftJitter));
       const delay = -Math.random() * duration;
 
       return {
         id: `column-${i}-${Math.random().toString(36).slice(2, 11)}`,
         style: {
-          left: `${i * spacing + leftOffset}%`,
+          left: `${left}%`,
           width: `${width}px`,
           height: `${height}px`,
           opacity: 0.2 + depth * 0.6, // 0.2-0.8
