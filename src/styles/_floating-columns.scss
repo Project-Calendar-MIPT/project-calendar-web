@@ -24,13 +24,10 @@
 @mixin floating-columns-keyframes($name) {
   @keyframes #{$name} {
     0% {
-      bottom: -150px;
       transform: translateY(0);
     }
     100% {
-      // Move through full page/container height instead of fixed viewport height.
-      bottom: calc(100% + 150px);
-      transform: translateY(0);
+      transform: translateY(calc(-100vh - 500px));
     }
   }
 }
