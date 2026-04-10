@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { Card } from '../components/ui/Card';
 import { Loader } from '../components/ui/Loader';
 import type { User, Task, WorkScheduleDay } from '../types';
@@ -111,6 +112,7 @@ const PROFILE_TABS: { id: ProfileTabId; label: string }[] = [
 ];
 
 export const ProfilePage: React.FC = () => {
+  const navigate = useNavigate();
   const [user, setUser] = useState<User | null>(null);
   const [workSchedule, setWorkSchedule] = useState<WorkScheduleDay[]>([]);
   const [tasks, setTasks] = useState<Task[]>([]);
@@ -370,9 +372,13 @@ export const ProfilePage: React.FC = () => {
                       {p.description && (
                         <p className="projects-list__description">{p.description}</p>
                       )}
-                      <a className="projects-list__link" href={`/projects/${p.id}`}>
+                      <button
+                        type="button"
+                        className="projects-list__link projects-list__link--button"
+                        onClick={() => navigate(`/projects/${p.id}`)}
+                      >
                         Открыть проект
-                      </a>
+                      </button>
                     </li>
                   ))}
                 </ul>
@@ -414,6 +420,19 @@ export const ProfilePage: React.FC = () => {
                         </div>
 
                         {t.description && <p className="task-list__description">{t.description}</p>}
+
+                        <div className="task-list__footer">
+                          <span className="task-list__project-caption">
+                            {t.parent_task_id ? 'Проект задачи доступен по кнопке справа' : 'Это задача верхнего уровня'}
+                          </span>
+                          <button
+                            type="button"
+                            className="task-list__project-link"
+                            onClick={() => navigate(`/projects/${t.parent_task_id || t.id}`)}
+                          >
+                            {t.parent_task_id ? 'Перейти к проекту' : 'Открыть проект'}
+                          </button>
+                        </div>
                       </li>
                     );
                   })}

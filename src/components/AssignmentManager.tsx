@@ -22,6 +22,21 @@ const ROLE_OPTIONS = [
   { value: 'spectator', label: 'Наблюдатель' },
 ];
 
+const MEMBER_FILTER_OPTIONS = [
+  { value: 'all', label: 'Все роли' },
+  { value: 'owner', label: 'Владелец' },
+  { value: 'supervisor', label: 'Руководитель' },
+  { value: 'executor', label: 'Исполнитель' },
+  { value: 'hybrid', label: 'Гибридная' },
+  { value: 'spectator', label: 'Наблюдатель' },
+];
+
+const MEMBER_SORT_OPTIONS = [
+  { value: 'role', label: 'Сначала по роли' },
+  { value: 'name', label: 'По имени' },
+  { value: 'load', label: 'По загруженности' },
+];
+
 type MemberItem = {
   user_id: string;
   role: string;
@@ -126,6 +141,10 @@ export const AssignmentManager: React.FC<AssignmentManagerProps> = ({
   const [sortedCandidates, setSortedCandidates] = useState<User[]>([]);
   const [error, setError] = useState('');
   const [profileUserId, setProfileUserId] = useState<string | null>(null);
+
+  // добавлено для блока участников: фильтр и сортировка
+  const [memberRoleFilter, setMemberRoleFilter] = useState('all');
+  const [memberSortBy, setMemberSortBy] = useState('role');
 
   const rolePriority: Record<string, number> = {
     owner: 5,
@@ -335,6 +354,14 @@ export const AssignmentManager: React.FC<AssignmentManagerProps> = ({
     }
 
     try {
+      if (formData.role === 'owner') {
+        const existingOwner = assignments.find((a) => a.role === 'owner');
+        if (existingOwner) {
+          setError('У проекта уже есть владелец');
+          return;
+        }
+      }
+
       await assignmentService.assignUser(formData.task_id, {
         user_id: formData.user_id,
         role: formData.role as any,
@@ -393,6 +420,43 @@ export const AssignmentManager: React.FC<AssignmentManagerProps> = ({
 
   const buildTaskLabel = (task: Task): string => task.title;
 
+  const getMemberAssignmentsCount = (userId: string): number => {
+    return assignments.filter((assignment) => assignment.user_id === userId).length;
+  };
+
+  const filteredAndSortedMembers = useMemo(() => {
+    const filtered = displayMembers.filter((member) => {
+      if (memberRoleFilter === 'all') return true;
+      return member.role === memberRoleFilter;
+    });
+
+    return [...filtered].sort((a, b) => {
+      if (memberSortBy === 'name') {
+        return getUserName(a.user_id).localeCompare(getUserName(b.user_id));
+      }
+
+      if (memberSortBy === 'load') {
+        const aCount = getMemberAssignmentsCount(a.user_id);
+        const bCount = getMemberAssignmentsCount(b.user_id);
+
+        if (aCount !== bCount) {
+          return bCount - aCount;
+        }
+
+        return getUserName(a.user_id).localeCompare(getUserName(b.user_id));
+      }
+
+      const aPriority = rolePriority[a.role] || 0;
+      const bPriority = rolePriority[b.role] || 0;
+
+      if (aPriority !== bPriority) {
+        return bPriority - aPriority;
+      }
+
+      return getUserName(a.user_id).localeCompare(getUserName(b.user_id));
+    });
+  }, [displayMembers, memberRoleFilter, memberSortBy, assignments]);
+
   return (
     <>
       <div className="assignment-manager">
@@ -403,17 +467,45 @@ export const AssignmentManager: React.FC<AssignmentManagerProps> = ({
           </Button>
         </div>
 
-        {displayMembers.length > 0 ? (
+        {displayMembers.length > 0 && (
+          <div className="assignment-manager__toolbar">
+            <div className="assignment-manager__toolbar-item">
+              <Select
+                label="Фильтр по роли"
+                options={MEMBER_FILTER_OPTIONS}
+                value={memberRoleFilter}
+                onChange={(e) => setMemberRoleFilter(e.target.value)}
+              />
+            </div>
+
+            <div className="assignment-manager__toolbar-item">
+              <Select
+                label="Сортировка"
+                options={MEMBER_SORT_OPTIONS}
+                value={memberSortBy}
+                onChange={(e) => setMemberSortBy(e.target.value)}
+              />
+            </div>
+          </div>
+        )}
+
+        {filteredAndSortedMembers.length > 0 ? (
           <div className="assignment-manager__list">
-            {displayMembers.map((member) => (
+            {filteredAndSortedMembers.map((member) => (
               <div key={member.user_id} className="assignment-manager__item">
                 <div className="assignment-manager__info">
                   <span className="assignment-manager__user">
                     {getUserName(member.user_id)}
                   </span>
-                  <span className="assignment-manager__role">
-                    {getRoleLabel(member.role)}
-                  </span>
+
+                  <div className="assignment-manager__meta">
+                    <span className="assignment-manager__role">
+                      {getRoleLabel(member.role)}
+                    </span>
+                    <span className="assignment-manager__load">
+                      Задач в проекте: {getMemberAssignmentsCount(member.user_id)}
+                    </span>
+                  </div>
                 </div>
 
                 {member.role !== 'owner' && (
@@ -428,6 +520,8 @@ export const AssignmentManager: React.FC<AssignmentManagerProps> = ({
               </div>
             ))}
           </div>
+        ) : displayMembers.length > 0 ? (
+          <p className="assignment-manager__empty">По выбранному фильтру никого нет</p>
         ) : (
           <p className="assignment-manager__empty">Никого не назначено</p>
         )}

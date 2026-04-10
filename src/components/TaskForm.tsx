@@ -135,6 +135,7 @@ export const TaskForm: React.FC<TaskFormProps> = ({
   projectId,
 }) => {
   const [formData, setFormData] = useState({
+    is_public: false,
     title: task?.title || '',
     description: task?.description || '',
     start_date: task?.start_date || '',
@@ -435,6 +436,11 @@ export const TaskForm: React.FC<TaskFormProps> = ({
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
 
+    if (isProject && !formData.description?.trim()) {
+      setError('Описание проекта обязательно');
+      return;
+    }
+
     const newErrors: Record<string, string> = {};
     (Object.keys(formData) as (keyof typeof formData)[]).forEach((field) => {
       const error = validateField(field, (formData as any)[field]);
@@ -507,6 +513,28 @@ export const TaskForm: React.FC<TaskFormProps> = ({
             error={errors.end_date}
           />
         </div>
+
+        {isProject && (
+          <div className="task-form__field">
+            <label>Тип проекта</label>
+            <div className="task-form__toggle">
+              <button
+                type="button"
+                className={!formData.is_public ? 'active' : ''}
+                onClick={() => setFormData({ ...formData, is_public: false })}
+              >
+                Приватный
+              </button>
+              <button
+                type="button"
+                className={formData.is_public ? 'active' : ''}
+                onClick={() => setFormData({ ...formData, is_public: true })}
+              >
+                Публичный
+              </button>
+            </div>
+          </div>
+        )}
 
         {!isProject && hasDates && (
           <div className="task-form__assignee-block">

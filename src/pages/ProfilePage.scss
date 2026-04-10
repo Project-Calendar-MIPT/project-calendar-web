@@ -505,3 +505,41 @@
     color: #b91c1c;
   }
 }
+
+.projects-list__link--button {
+  border: none;
+  background: transparent;
+  padding: 0;
+  cursor: pointer;
+}
+
+.task-list {
+  &__footer {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 12px;
+    flex-wrap: wrap;
+    margin-top: 4px;
+  }
+
+  &__project-caption {
+    font-size: 12px;
+    color: var(--color-text-secondary);
+  }
+
+  &__project-link {
+    border: none;
+    background: transparent;
+    color: $primary;
+    padding: 0;
+    font-size: 13px;
+    font-weight: 600;
+    cursor: pointer;
+
+    &:hover {
+      text-decoration: underline;
+    }
+  }
+}
+

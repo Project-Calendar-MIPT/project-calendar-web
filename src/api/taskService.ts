@@ -98,6 +98,7 @@ export const taskService = {
       parent_task_id: data.parent_task_id ?? null,
       title: data.title || 'Без названия',
       description: data.description || '',
+      is_public: data.is_public ?? false,
       status: getAutoStatus(estimatedHours),
       priority: data.priority || 'medium',
       complexity: data.complexity,

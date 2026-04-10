@@ -40,6 +40,8 @@ export interface Task {
   novelty?: 'low' | 'medium' | 'high';
   required_skills?: string[];
 
+  is_public?: boolean;
+
   start_date: string;
   end_date: string;
   duration_days?: number;

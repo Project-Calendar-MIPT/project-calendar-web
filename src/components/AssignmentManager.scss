@@ -1,143 +1,157 @@
-@use 'sass:color';
-@use '../styles/variables' as *;
-@use '../styles/mixins' as *;
-
 .assignment-manager {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+
   &__header {
     display: flex;
     justify-content: space-between;
     align-items: center;
-    margin-bottom: $spacing-4;
+  }
 
-    h3 {
-      margin: 0;
-    }
+  &__toolbar {
+    display: flex;
+    gap: 16px;
+    flex-wrap: wrap;
+  }
+
+  &__toolbar-item {
+    min-width: 180px;
   }
 
   &__list {
     display: flex;
     flex-direction: column;
-    gap: $spacing-3;
+    gap: 10px;
   }
 
   &__item {
     display: flex;
     justify-content: space-between;
     align-items: center;
-    padding: $spacing-3;
-    background-color: var(--color-surface);
-    border: 1px solid var(--color-border);
-    border-radius: $radius-md;
+    padding: 12px 16px;
+    border-radius: 10px;
+    background: #f7f8fa;
+    border: 1px solid #e5e7eb;
   }
 
   &__info {
     display: flex;
     align-items: center;
-    gap: $spacing-3;
+    gap: 14px;
   }
 
   &__user {
-    font-weight: $font-weight-medium;
-    color: var(--color-text-primary);
+    font-weight: 500;
+    font-size: 15px;
+  }
+
+  &__meta {
+    display: flex;
+    align-items: center;
+    gap: 10px;
   }
 
   &__role {
-    background-color: $primary;
-    color: white;
-    padding: $spacing-1 $spacing-2;
-    border-radius: $radius-sm;
-    font-size: $font-size-xs;
+    padding: 3px 10px;
+    border-radius: 8px;
+    background: #4f7cff;
+    color: #fff;
+    font-size: 12px;
+    font-weight: 500;
+    white-space: nowrap;
   }
 
-  &__hours {
-    color: var(--color-text-secondary);
-    font-size: $font-size-sm;
+  &__load {
+    font-size: 13px;
+    color: #6b7280;
+    white-space: nowrap;
   }
 
   &__empty {
-    text-align: center;
-    color: var(--color-text-secondary);
-    padding: $spacing-4;
+    color: #999;
+    font-size: 14px;
   }
 
   &__form {
     display: flex;
     flex-direction: column;
-    gap: $spacing-4;
+    gap: 14px;
+  }
+
+  &__skills {
+    font-size: 13px;
+    color: #555;
+  }
+
+  &__selected-user {
+    font-size: 13px;
+    color: #333;
+    background: #eef2ff;
+    padding: 6px 10px;
+    border-radius: 6px;
+  }
+
+  &__error {
+    color: #dc2626;
+    font-size: 13px;
   }
 
   &__actions {
     display: flex;
-    gap: $spacing-3;
-  }
-
-  &__error {
-    background-color: color.scale($danger, $lightness: 80%);
-    color: $danger;
-    padding: $spacing-2;
-    border-radius: $radius-sm;
-    font-size: $font-size-sm;
-  }
-
-  &__hint {
-    font-size: 13px;
-    color: var(--color-text-secondary);
-    margin-top: -6px;
-  }
-
-  &__candidate-actions {
-    display: flex;
-    align-items: center;
-    gap: $spacing-2;
+    justify-content: flex-end;
+    gap: 10px;
+    margin-top: 10px;
   }
 }
 
 .candidate-profile {
   display: flex;
   flex-direction: column;
-  gap: 12px;
-}
+  gap: 10px;
 
-.candidate-profile__row {
-  display: flex;
-  gap: 8px;
-  flex-wrap: wrap;
-}
+  &__row {
+    display: flex;
+    gap: 8px;
+    font-size: 14px;
 
-.candidate-profile__row--top {
-  align-items: flex-start;
-}
+    &--top {
+      flex-direction: column;
+    }
+  }
 
-.candidate-profile__label {
-  min-width: 130px;
-  font-weight: 600;
-  color: var(--color-text-secondary);
-}
+  &__label {
+    font-weight: 500;
+    color: #444;
+    min-width: 140px;
+  }
 
-.candidate-profile__tasks {
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
-}
+  &__tasks {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+  }
 
-.candidate-profile__task {
-  display: flex;
-  flex-direction: column;
-  gap: 2px;
-  padding: 10px 12px;
-  border: 1px solid var(--color-border);
-  border-radius: 10px;
-  background: var(--color-surface);
-}
+  &__task {
+    display: flex;
+    flex-direction: column;
+    font-size: 13px;
+    background: #f3f4f6;
+    padding: 6px 8px;
+    border-radius: 6px;
+  }
 
-.candidate-profile__empty {
-  color: var(--color-text-secondary);
-}
+  &__empty {
+    font-size: 13px;
+    color: #888;
+  }
 
-.candidate-profile__warning {
-  padding: 10px 12px;
-  border-radius: 10px;
-  background: #fff7ed;
-  color: #c2410c;
-  font-size: 14px;
+  &__warning {
+    margin-top: 8px;
+    padding: 8px 10px;
+    border-radius: 6px;
+    background: #fff3cd;
+    color: #856404;
+    font-size: 13px;
+  }
 }

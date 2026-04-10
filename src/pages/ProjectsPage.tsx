@@ -105,9 +105,7 @@ const ProjectsPage: React.FC = () => {
       {projects.length === 0 ? (
         <EmptyState
           title="Нет проектов"
-          description="Создайте первый проект, чтобы начать организовывать задачи"
-          actionLabel="Создать проект"
-          onAction={() => setIsModalOpen(true)}
+          description="Создайте свой первый проект"
         />
       ) : (
         <div className="projects-page__grid">
