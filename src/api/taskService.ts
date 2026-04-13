@@ -61,8 +61,7 @@ export const taskService = {
   },
 
   async getTask(id: string): Promise<Task> {
-    // Backend has no single-task GET by id in the current routes,
-    // so fetch all and find, or use getTasks and filter
+    // TODO: заменить на GET /tasks/{id} когда бэкенд добавит маршрут
     const response = await apiClient.get<any[]>('/tasks');
     const all = (response.data || []).map(mapTaskFromBackend);
     const task = all.find((t) => t.id === id);

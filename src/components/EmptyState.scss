@@ -15,12 +15,12 @@
     font-size: $font-size-2xl;
     font-weight: $font-weight-semibold;
     margin-bottom: $spacing-3;
-    color: $text-primary;
+    color: var(--color-text-primary);
   }
 
   &__description {
     font-size: $font-size-base;
-    color: $text-secondary;
+    color: var(--color-text-secondary);
     margin-bottom: $spacing-6;
   }
 }

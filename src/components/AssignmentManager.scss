@@ -1,4 +1,3 @@
-@use 'sass:color';
 @use '../styles/variables' as *;
 @use '../styles/mixins' as *;
 
@@ -43,14 +42,14 @@
     &--link {
       cursor: pointer;
       &:hover {
-        color: $primary;
+        color: var(--color-primary);
         text-decoration: underline;
       }
     }
   }
 
   &__role {
-    background-color: $primary;
+    background-color: var(--color-primary);
     color: white;
     padding: $spacing-1 $spacing-2;
     border-radius: $radius-sm;
@@ -80,8 +79,8 @@
   }
 
   &__error {
-    background-color: color.scale($danger, $lightness: 80%);
-    color: $danger;
+    background-color: color-mix(in srgb, var(--color-danger) 20%, var(--color-surface));
+    color: var(--color-danger);
     padding: $spacing-2;
     border-radius: $radius-sm;
     font-size: $font-size-sm;

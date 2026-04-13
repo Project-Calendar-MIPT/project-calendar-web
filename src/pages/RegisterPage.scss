@@ -41,12 +41,12 @@
 
     h1 {
       font-size: $font-size-3xl;
-      color: $text-primary;
+      color: var(--color-text-primary);
       margin-bottom: $spacing-2;
     }
 
     p {
-      color: $text-secondary;
+      color: var(--color-text-secondary);
       font-size: $font-size-base;
     }
   }
@@ -69,16 +69,16 @@
     border: none;
     background: none;
     padding: 0;
-    color: $primary;
+    color: var(--color-primary);
     line-height: 1;
     cursor: pointer;
 
     &:hover {
-      color: $primary-dark;
+      color: var(--color-primary-dark);
     }
 
     &:focus-visible {
-      outline: 2px solid $primary;
+      outline: 2px solid var(--color-primary);
       outline-offset: 2px;
       border-radius: $radius-sm;
     }
@@ -89,7 +89,7 @@
     justify-content: space-between;
     align-items: center;
     font-size: $font-size-sm;
-    color: $text-secondary;
+    color: var(--color-text-secondary);
     margin-bottom: $spacing-2;
   }
 
@@ -108,15 +108,15 @@
       background-color $transition-base;
 
     &--weak {
-      background-color: $danger;
+      background-color: var(--color-danger);
     }
 
     &--medium {
-      background-color: $warning;
+      background-color: var(--color-warning);
     }
 
     &--strong {
-      background-color: $success;
+      background-color: var(--color-success);
     }
   }
 
@@ -130,28 +130,28 @@
 
   &__password-checkitem {
     font-size: $font-size-sm;
-    color: $text-secondary;
+    color: var(--color-text-secondary);
 
     &::before {
       content: '\2715';
       margin-right: $spacing-2;
-      color: $danger;
+      color: var(--color-danger);
       font-weight: $font-weight-bold;
     }
 
     &--ok {
-      color: $text-primary;
+      color: var(--color-text-primary);
 
       &::before {
         content: '\2713';
-        color: $success;
+        color: var(--color-success);
       }
     }
   }
 
   &__error {
-    background-color: $danger-light;
-    color: $danger;
+    background-color: var(--color-danger-light);
+    color: var(--color-danger);
     padding: $spacing-3;
     border-radius: $radius-md;
     margin-bottom: $spacing-4;
@@ -161,10 +161,10 @@
   &__footer {
     text-align: center;
     margin-top: $spacing-4;
-    color: $text-secondary;
+    color: var(--color-text-secondary);
 
     a {
-      color: $primary;
+      color: var(--color-primary);
       font-weight: $font-weight-medium;
 
       &:hover {
@@ -206,7 +206,7 @@
 
   &__experience-hint {
     font-size: $font-size-sm;
-    color: $text-secondary;
+    color: var(--color-text-secondary);
     margin-top: -$spacing-2;
     margin-bottom: $spacing-3;
   }
@@ -218,7 +218,7 @@
     margin-bottom: $spacing-2;
 
     span {
-      color: $danger;
+      color: var(--color-danger);
       margin-left: $spacing-1;
     }
   }
@@ -241,13 +241,13 @@
     transition: all $transition-base;
 
     &:hover {
-      border-color: $primary;
+      border-color: var(--color-primary);
     }
 
     &--active {
-      border-color: $primary;
-      background: $primary-50;
-      color: $primary-dark;
+      border-color: var(--color-primary);
+      background: var(--color-primary-50);
+      color: var(--color-primary-dark);
     }
   }
 
@@ -260,8 +260,8 @@
 
   &__stack-add {
     height: 44px;
-    border: 1px solid $primary;
-    background: $primary;
+    border: 1px solid var(--color-primary);
+    background: var(--color-primary);
     color: #fff;
     border-radius: $radius-md;
     padding: 0 $spacing-4;
@@ -270,8 +270,8 @@
     font-weight: $font-weight-medium;
 
     &:hover {
-      background: $primary-dark;
-      border-color: $primary-dark;
+      background: var(--color-primary-dark);
+      border-color: var(--color-primary-dark);
     }
   }
 
@@ -312,7 +312,7 @@
   &__stack-remove {
     border: none;
     background: transparent;
-    color: $danger;
+    color: var(--color-danger);
     font-size: $font-size-base;
     font-weight: $font-weight-bold;
     cursor: pointer;
@@ -347,14 +347,14 @@
     white-space: nowrap;
 
     &:hover {
-      border-color: $primary;
+      border-color: var(--color-primary);
     }
   }
 
   &__field-error {
     display: block;
     font-size: $font-size-sm;
-    color: $danger;
+    color: var(--color-danger);
     margin-top: $spacing-1;
   }
 }

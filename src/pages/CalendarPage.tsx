@@ -10,7 +10,6 @@ import { Card } from '../components/ui/Card';
 
 import { taskService } from '../api/taskService';
 import type { CalendarEvent, Task } from '../types';
-import { USE_MOCK } from '../mock';
 import './CalendarPage.scss';
 
 export default function CalendarPage() {
@@ -27,39 +26,27 @@ export default function CalendarPage() {
   const [editProjectBounds, setEditProjectBounds] = useState<{ start?: string; end?: string }>({});
 
   const loadEvents = useCallback(async (start: Date, end: Date) => {
-    if (USE_MOCK) {
-      try {
-        setLoading(true);
-        setError(null);
-
-        const allTasks = await taskService.getTasks();
-
-        const filtered = allTasks.filter((t) => {
-          const startDate = new Date(t.start_date);
-          const endDate = new Date(t.end_date);
-          return startDate >= start && endDate <= end;
-        });
-
-        const mapped: CalendarEvent[] = filtered.map((t) => ({
-          id: t.id,
-          title: t.title,
-          start: new Date(t.start_date),
-          end: new Date(t.end_date),
-          resource: t,
-        }));
-
-        setEvents(mapped);
-      } catch (e) {
-        setError('Не удалось загрузить события календаря');
-      } finally {
-        setLoading(false);
-      }
-      return;
-    }
-
     try {
       setLoading(true);
       setError(null);
+
+      const allTasks = await taskService.getTasks();
+
+      const filtered = allTasks.filter((t) => {
+        const startDate = new Date(t.start_date);
+        const endDate = new Date(t.end_date);
+        return startDate >= start && endDate <= end;
+      });
+
+      const mapped: CalendarEvent[] = filtered.map((t) => ({
+        id: t.id,
+        title: t.title,
+        start: new Date(t.start_date),
+        end: new Date(t.end_date),
+        resource: t,
+      }));
+
+      setEvents(mapped);
     } catch (e) {
       setError('Не удалось загрузить события календаря');
     } finally {

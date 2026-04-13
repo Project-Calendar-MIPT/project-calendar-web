@@ -19,7 +19,7 @@
 }
 
 @mixin card-shadow {
-  box-shadow: $shadow-md;
+  box-shadow: var(--shadow-md);
 }
 
 @mixin flex-center {

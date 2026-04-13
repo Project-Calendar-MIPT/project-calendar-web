@@ -32,40 +32,40 @@
   }
 
   &--primary {
-    background-color: $primary;
+    background-color: var(--color-primary);
     color: white;
 
     &:hover:not(:disabled) {
-      background-color: $primary-dark;
+      background-color: var(--color-primary-dark);
     }
 
     &:active:not(:disabled) {
-      background-color: $primary-dark;
+      background-color: var(--color-primary-dark);
       transform: scale(0.98);
     }
   }
 
   &--secondary {
-    background-color: $secondary;
+    background-color: var(--color-secondary);
     color: white;
 
     &:hover:not(:disabled) {
-      background-color: $secondary-dark;
+      background-color: var(--color-secondary-dark);
     }
   }
 
   &--danger {
-    background-color: $danger;
+    background-color: var(--color-danger);
     color: white;
 
     &:hover:not(:disabled) {
-      background-color: $danger-dark;
+      background-color: var(--color-danger-dark);
     }
   }
 
   &--ghost {
     background-color: transparent;
-    color: $primary;
+    color: var(--color-primary);
 
     &:hover:not(:disabled) {
       background-color: var(--color-ghost-hover);
@@ -74,11 +74,11 @@
 
   &--outline {
     background-color: transparent;
-    border: 2px solid $primary;
-    color: $primary;
+    border: 2px solid var(--color-primary);
+    color: var(--color-primary);
 
     &:hover:not(:disabled) {
-      background-color: $primary;
+      background-color: var(--color-primary);
       color: white;
     }
   }

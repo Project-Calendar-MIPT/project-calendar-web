@@ -17,7 +17,7 @@
 .modal {
   background-color: var(--color-surface-elevated);
   border-radius: $radius-lg;
-  box-shadow: $shadow-xl;
+  box-shadow: var(--shadow-xl);
   color: var(--color-text-primary);
   // max-height and overflow moved to __content so native date-picker popup
   // is not clipped by the stacking context created by overflow: auto

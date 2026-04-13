@@ -7,6 +7,7 @@
   --color-bg: #ffffff;
   --color-surface: #{$grey-50};
   --color-surface-elevated: #ffffff;
+  --color-card-bg: #ffffff;
 
   // Borders
   --color-border: #{$grey-200};
@@ -43,12 +44,33 @@
   --color-badge-yellow: #92400e;
   --color-badge-blue: #1d4ed8;
   --color-badge-red: #b91c1c;
+
+  // Brand / semantic tokens used by component styles
+  --color-primary: #{$primary};
+  --color-primary-dark: #{$primary-dark};
+  --color-primary-50: #{$primary-50};
+  --color-primary-100: #{$primary-100};
+  --color-primary-500: #{$primary-500};
+  --color-secondary: #{$secondary};
+  --color-secondary-dark: #{$secondary-dark};
+  --color-success: #{$success};
+  --color-warning: #{$warning};
+  --color-danger: #{$danger};
+  --color-danger-dark: #{$danger-dark};
+  --color-danger-light: #{$danger-light};
+
+  // Elevation
+  --shadow-sm: #{$shadow-sm};
+  --shadow-md: #{$shadow-md};
+  --shadow-lg: #{$shadow-lg};
+  --shadow-xl: #{$shadow-xl};
 }
 
 [data-theme='dark'] {
   --color-bg: #0f172a;
   --color-surface: #1e293b;
   --color-surface-elevated: #1e293b;
+  --color-card-bg: #1e293b;
   --color-border: #334155;
   --color-border-light: #1e293b;
   --color-text-primary: #f1f5f9;
@@ -73,6 +95,24 @@
   --color-badge-yellow: #fcd34d;
   --color-badge-blue: #93c5fd;
   --color-badge-red: #fca5a5;
+
+  --color-primary: #60a5fa;
+  --color-primary-dark: #3b82f6;
+  --color-primary-50: rgba(59, 130, 246, 0.14);
+  --color-primary-100: rgba(59, 130, 246, 0.2);
+  --color-primary-500: #60a5fa;
+  --color-secondary: #a78bfa;
+  --color-secondary-dark: #8b5cf6;
+  --color-success: #6ee7b7;
+  --color-warning: #fcd34d;
+  --color-danger: #fca5a5;
+  --color-danger-dark: #ef4444;
+  --color-danger-light: rgba(239, 68, 68, 0.14);
+
+  --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.24);
+  --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.28), 0 2px 4px -1px rgba(0, 0, 0, 0.22);
+  --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.3), 0 4px 6px -2px rgba(0, 0, 0, 0.2);
+  --shadow-xl: 0 20px 25px -5px rgba(0, 0, 0, 0.32), 0 10px 10px -5px rgba(0, 0, 0, 0.24);
 }
 
 // ────────────────────────────────────────────────────────────────────────────
@@ -156,12 +196,12 @@ p {
 }
 
 a {
-  color: $primary;
+  color: var(--color-primary);
   text-decoration: none;
   transition: color $transition-base;
 
   &:hover {
-    color: $primary-dark;
+    color: var(--color-primary-dark);
   }
 }
 
@@ -274,7 +314,7 @@ em {
 }
 
 .text-secondary {
-  color: $text-secondary;
+  color: var(--color-text-secondary);
 }
 
 // ─── Date picker dark-mode fixes ────────────────────────────────────────────
@@ -331,9 +371,9 @@ input[type='time'] {
     }
 
     &.rbc-active {
-      background-color: $primary !important;
+      background-color: var(--color-primary) !important;
       color: #ffffff !important;
-      border-color: $primary-dark !important;
+      border-color: var(--color-primary-dark) !important;
       font-weight: 600;
     }
 
@@ -559,4 +599,3 @@ input[type='time'] {
 .rbc-time-content {
   background-color: var(--color-bg);
 }
-

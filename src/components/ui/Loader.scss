@@ -7,8 +7,8 @@
   justify-content: center;
 
   &__spinner {
-    border: 3px solid $grey-200;
-    border-top-color: $primary;
+    border: 3px solid var(--color-border);
+    border-top-color: var(--color-primary);
     border-radius: 50%;
     animation: spin 0.8s linear infinite;
 
@@ -30,7 +30,7 @@
 
   &__text {
     margin-top: $spacing-3;
-    color: $text-secondary;
+    color: var(--color-text-secondary);
     font-size: $font-size-sm;
   }
 }

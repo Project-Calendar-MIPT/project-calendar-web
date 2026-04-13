@@ -55,16 +55,16 @@
   gap: 8px;
   font-size: 14px;
   font-weight: 600;
-  color: #374151;
+  color: var(--color-text-primary);
 }
 
 .task-form__info-button {
   width: 22px;
   height: 22px;
-  border: 1px solid #cbd5e1;
+  border: 1px solid var(--color-border);
   border-radius: 50%;
-  background: #fff;
-  color: #475569;
+  background: var(--color-surface-elevated);
+  color: var(--color-text-secondary);
   font-size: 13px;
   font-weight: 700;
   cursor: help;
@@ -76,5 +76,5 @@
 }
 
 .task-form__info-button:hover {
-  background: #f8fafc;
+  background: var(--color-ghost-hover);
 }
