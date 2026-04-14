@@ -1,5 +1,5 @@
-import { apiClient } from '../../api/client';
-import type { Assignment, AssignmentData } from '../../types';
+import { apiClient } from './client';
+import type { Assignment, AssignmentData } from '../types';
 
 export const assignmentService = {
   async getAssignments(taskId: string): Promise<Assignment[]> {
@@ -48,7 +48,14 @@ export const assignmentService = {
   },
 
   async removeAssignment(taskId: string, userId: string): Promise<void> {
-    await apiClient.delete('/assignments', { params: { task_id: taskId, user_id: userId } });
+    const assignments = await this.getAssignments(taskId);
+    const target = assignments.find((a) => a.user_id === userId);
+
+    if (!target || !target.id) {
+      throw new Error('Assignment not found');
+    }
+
+    await apiClient.delete(`/assignments/${target.id}`);
   },
 
   // Keep for compatibility with code that still calls these
