@@ -48,14 +48,7 @@ export const assignmentService = {
   },
 
   async removeAssignment(taskId: string, userId: string): Promise<void> {
-    const assignments = await this.getAssignments(taskId);
-    const target = assignments.find((a) => a.user_id === userId);
-
-    if (!target || !target.id) {
-      throw new Error('Assignment not found');
-    }
-
-    await apiClient.delete(`/assignments/${target.id}`);
+    await apiClient.delete(`/tasks/${taskId}/assignments/${userId}`);
   },
 
   // Keep for compatibility with code that still calls these
