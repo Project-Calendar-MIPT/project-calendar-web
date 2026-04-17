@@ -37,9 +37,17 @@ const ProjectsPage: React.FC = () => {
 
   const handleCreateProject = async (formData: any) => {
     try {
+      const currentUser = await authService.getCurrentUser();
       const newProject = await taskService.createTask({
         ...formData,
         parent_task_id: null,
+      });
+
+      // Assign creator as owner of the project
+      await assignmentService.assignUser(newProject.id, {
+        user_id: currentUser.id,
+        role: 'owner',
+        allocated_hours: 0,
       });
 
       setProjects((prev) => [...prev, newProject]);
