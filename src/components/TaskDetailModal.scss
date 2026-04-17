@@ -26,7 +26,6 @@
   flex-wrap: wrap;
 }
 
-
 .task-detail-modal__confirm {
   display: flex;
   flex-direction: column;
@@ -58,7 +57,7 @@
 }
 
 .notes-modal__textarea:focus {
-  border-color: #3b82f6;
+  border-color: var(--color-primary);
 }
 
 .notes-modal__actions {

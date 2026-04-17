@@ -18,6 +18,7 @@ export interface User {
   contacts_visible: boolean;
   stack?: StackItem[];
   experience_level?: ExperienceLevel;
+  skills?: string[];
 }
 
 export interface RegisterData {
@@ -58,6 +59,9 @@ export interface Task {
 
   complexity?: 'low' | 'medium' | 'high';
   novelty?: 'low' | 'medium' | 'high';
+  required_skills?: string[];
+
+  is_public?: boolean;
 
   start_date: string;
   end_date: string;

@@ -4,7 +4,7 @@
   background-color: var(--color-surface-elevated);
   border-radius: $radius-md;
   padding: $spacing-4;
-  box-shadow: $shadow-md;
+  box-shadow: var(--shadow-md);
   transition: all $transition-base;
   border: 1px solid var(--color-border);
 
@@ -23,12 +23,12 @@
     cursor: pointer;
 
     &:hover {
-      box-shadow: $shadow-lg;
+      box-shadow: var(--shadow-lg);
       transform: translateY(-2px);
     }
   }
 
   &--selected {
-    border: 2px solid $primary;
+    border: 2px solid var(--color-primary);
   }
 }

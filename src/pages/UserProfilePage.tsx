@@ -3,7 +3,6 @@ import { useParams, useNavigate } from 'react-router-dom';
 import { apiClient } from '../api/client';
 import { Card } from '../components/ui/Card';
 import { Loader } from '../components/ui/Loader';
-import { Header } from '../components/Header';
 import './ProfilePage.scss';
 
 const DAY_NAMES: Record<number, string> = {
@@ -40,7 +39,6 @@ export const UserProfilePage: React.FC = () => {
 
   if (loading) return (
     <>
-      <Header />
       <div style={{ display: 'flex', justifyContent: 'center', padding: '60px' }}>
         <Loader />
       </div>
@@ -49,7 +47,6 @@ export const UserProfilePage: React.FC = () => {
 
   if (error || !user) return (
     <>
-      <Header />
       <div className="profile-page">
         <p style={{ color: 'var(--color-text-secondary)' }}>{error || 'Пользователь не найден'}</p>
         <button onClick={() => navigate(-1)} style={{ marginTop: '16px', cursor: 'pointer' }}>← Назад</button>
@@ -61,7 +58,6 @@ export const UserProfilePage: React.FC = () => {
 
   return (
     <>
-      <Header />
       <div className="profile-page">
         <button
           onClick={() => navigate(-1)}

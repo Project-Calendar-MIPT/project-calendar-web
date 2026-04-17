@@ -2,8 +2,8 @@ import React, { useEffect, useState } from 'react';
 import { Card } from '../components/ui/Card';
 import { Loader } from '../components/ui/Loader';
 import type { User, Task, WorkScheduleDay } from '../types';
+import { apiClient } from '../api/client';
 import { authService } from '../api/authService';
-import { taskService } from '../api/taskService';
 import './ProfilePage.scss';
 
 const DAY_NAMES: Record<number, string> = {
@@ -97,28 +97,27 @@ const DEFAULT_WORK_SCHEDULE: WorkScheduleDay[] = [
   { day_of_week: 7, is_working_day: false },
 ];
 
-async function fakeLoadProfileData(): Promise<{
+async function loadProfileData(): Promise<{
   user: User;
   workSchedule: WorkScheduleDay[];
   tasks: Task[];
 }> {
   const user = await authService.getCurrentUser();
-  const allTasks = await taskService.getTasks();
-  const userAssignments = assignmentService
-    .getMockAssignments()
-    .filter((a) => a.user_id === user.id);
-  const userTaskIds = userAssignments.map((a) => a.task_id);
-  const tasks = allTasks.filter((t) => userTaskIds.includes(t.id));
 
-  return new Promise((resolve) => {
-    setTimeout(() => {
-      resolve({
-        user,
-        workSchedule: DEFAULT_WORK_SCHEDULE,
-        tasks,
-      });
-    }, 300);
-  });
+  const [workScheduleResp, tasksResp] = await Promise.allSettled([
+    apiClient.get<WorkScheduleDay[]>(`/users/${user.id}/work-schedule`),
+    apiClient.get<Task[]>('/tasks', { params: { assigned_to: 'me' } }),
+  ]);
+
+  const workSchedule =
+    workScheduleResp.status === 'fulfilled' && workScheduleResp.value.data
+      ? workScheduleResp.value.data
+      : DEFAULT_WORK_SCHEDULE;
+
+  const tasks =
+    tasksResp.status === 'fulfilled' && tasksResp.value.data ? tasksResp.value.data : [];
+
+  return { user, workSchedule, tasks };
 }
 
 type ProfileTabId = 'info' | 'schedule' | 'stats' | 'projects' | 'tasks';
@@ -150,7 +149,7 @@ export const ProfilePage: React.FC = () => {
         setLoading(true);
         setError(null);
 
-        const { user, workSchedule, tasks } = await fakeLoadProfileData();
+        const { user, workSchedule, tasks } = await loadProfileData();
         if (!isMounted) return;
 
         setUser(user);

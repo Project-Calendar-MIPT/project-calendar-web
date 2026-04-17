@@ -1,5 +1,5 @@
-import { apiClient } from '../../api/client';
-import type { Assignment, AssignmentData } from '../../types';
+import { apiClient } from './client';
+import type { Assignment, AssignmentData } from '../types';
 
 export const assignmentService = {
   async getAssignments(taskId: string): Promise<Assignment[]> {
@@ -48,15 +48,8 @@ export const assignmentService = {
   },
 
   async removeAssignment(taskId: string, userId: string): Promise<void> {
-    await apiClient.delete('/assignments', { params: { task_id: taskId, user_id: userId } });
+    await apiClient.delete(`/tasks/${taskId}/assignments/${userId}`);
   },
 
-  // Keep for compatibility with code that still calls these
-  getMockAssignments(): Assignment[] {
-    return [];
-  },
 
-  setMockAssignments(_assignments: Assignment[]): void {
-    // no-op
-  },
 };

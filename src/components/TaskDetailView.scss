@@ -49,7 +49,7 @@
   border-radius: 14px;
   background: var(--color-surface-elevated);
   border: 1px solid var(--color-border);
-  box-shadow: 0 6px 18px rgba(17, 24, 39, 0.06);
+  box-shadow: var(--shadow-md);
 }
 
 .task-detail__section-title {
@@ -96,10 +96,10 @@
 .task-detail__info-button {
   width: 20px;
   height: 20px;
-  border: 1px solid #cbd5e1;
+  border: 1px solid var(--color-border);
   border-radius: 50%;
-  background: #fff;
-  color: #475569;
+  background: var(--color-surface-elevated);
+  color: var(--color-text-secondary);
   font-size: 12px;
   font-weight: 700;
   cursor: help;
@@ -111,5 +111,5 @@
 }
 
 .task-detail__info-button:hover {
-  background: #f8fafc;
+  background: var(--color-ghost-hover);
 }

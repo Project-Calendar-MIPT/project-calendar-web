@@ -24,26 +24,19 @@ function mapBackendUser(backendUser: any): User {
 
 export const authService = {
   async register(data: RegisterData): Promise<AuthResponse> {
-    // Map frontend fields → backend fields
-    const workingDays = (data.work_schedule ?? [])
-      .filter((d) => d.is_working_day && d.start_time && d.end_time)
-      .map((d) => ({
-        weekday: d.day_of_week - 1, // frontend 1-7 → backend 0-6
-        start_time: d.start_time!,
-        end_time: d.end_time!,
-      }));
-
     const payload = {
       email: data.email,
-      last_name: data.last_name,
-      first_name: data.first_name,
+      password: data.password, 
+      display_name: `${data.first_name} ${data.last_name}`.trim(),
+      name: data.first_name,
+      surname: data.last_name,
       middle_name: data.middle_name,
-      timezone: data.timezone,
+      // timezone: data.timezone,
       telegram: data.telegram,
       phone: data.phone,
-      contacts_visible: data.contacts_visible,
-      stack: data.stack,
-      experience_level: data.experience_level,
+      // contacts_visible: data.contacts_visible,
+      // stack: data.stack,
+      // experience_level: data.experience_level,
     };
 
     const response = await apiClient.post('/auth/register', payload);
@@ -59,20 +52,13 @@ export const authService = {
   },
 
   async login(data: LoginData): Promise<AuthResponse> {
-    await new Promise((r) => setTimeout(r, 500));
-
-    // Валидация пользователя по email и паролю
-    const user = validateUserCredentials(data.email, data.password);
-
-    if (!user) {
-      // Проверяем, существует ли пользователь с таким email
-      const existingUser = getUserByEmail(data.email);
-      if (existingUser) {
-        throw new Error('Неверный пароль');
-      } else {
-        throw new Error('Пользователя с такими данными не существует');
-      }
-    }
+    const response = await apiClient.post('/auth/login', {
+      email: data.email,
+      password: data.password,
+    });
+    const body = response.data;
+    const token: string = body.token;
+    const user = mapBackendUser(body.user);
 
     localStorage.setItem('auth_token', token);
     localStorage.setItem('current_user', JSON.stringify(user));
