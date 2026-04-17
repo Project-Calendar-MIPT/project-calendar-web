@@ -3,7 +3,6 @@ import { useParams, useNavigate } from 'react-router-dom';
 import { apiClient } from '../api/client';
 import { Card } from '../components/ui/Card';
 import { Loader } from '../components/ui/Loader';
-import { Header } from '../components/Header';
 import './ProfilePage.scss';
 
 const DAY_NAMES: Record<number, string> = {
