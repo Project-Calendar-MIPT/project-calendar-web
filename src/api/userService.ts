@@ -1,5 +1,5 @@
-import { apiClient } from '../../api/client';
-import type { User } from '../../types';
+import { apiClient } from './client';
+import type { User } from '../types';
 
 export const userService = {
   async searchUsers(query: string): Promise<User[]> {

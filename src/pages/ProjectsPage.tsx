@@ -7,7 +7,7 @@ import { Loader } from '../components/ui/Loader';
 import { EmptyState } from '../components/EmptyState';
 import { TaskForm } from '../components/TaskForm';
 import { taskService } from '../api/taskService';
-import { assignmentService } from '../minimal_test/api/assignmentService';
+import { assignmentService } from '../api/assignmentService';
 import { authService } from '../api/authService';
 import type { Task } from '../types';
 import './ProjectsPage.scss';
@@ -37,21 +37,14 @@ const ProjectsPage: React.FC = () => {
 
   const handleCreateProject = async (formData: any) => {
     try {
-      const currentUser = await authService.getCurrentUser();
       const newProject = await taskService.createTask({
         ...formData,
         parent_task_id: null,
       });
-      
-      // Назначаем создателя как owner проекта
-      await assignmentService.assignUser(newProject.id, {
-        user_id: currentUser.id,
-        role: 'owner',
-        allocated_hours: 0,
-      });
-      
-      setProjects([...projects, newProject]);
+
+      setProjects((prev) => [...prev, newProject]);
       setIsModalOpen(false);
+      setError('');
     } catch (err: any) {
       setError(err.message || 'Ошибка при создании проекта');
     }

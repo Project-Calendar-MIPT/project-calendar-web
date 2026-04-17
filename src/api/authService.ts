@@ -35,15 +35,17 @@ export const authService = {
 
     const payload = {
       email: data.email,
-      last_name: data.last_name,
-      first_name: data.first_name,
+      password: data.password, 
+      display_name: `${data.first_name} ${data.last_name}`.trim(),
+      name: data.first_name,
+      surname: data.last_name,
       middle_name: data.middle_name,
-      timezone: data.timezone,
+      // timezone: data.timezone,
       telegram: data.telegram,
       phone: data.phone,
-      contacts_visible: data.contacts_visible,
-      stack: data.stack,
-      experience_level: data.experience_level,
+      // contacts_visible: data.contacts_visible,
+      // stack: data.stack,
+      // experience_level: data.experience_level,
     };
 
     const response = await apiClient.post('/auth/register', payload);
