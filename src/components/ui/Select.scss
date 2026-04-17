@@ -13,7 +13,7 @@
   }
 
   &__required {
-    color: $danger;
+    color: var(--color-danger);
     margin-left: $spacing-1;
   }
 
@@ -30,14 +30,14 @@
 
     &:focus {
       outline: none;
-      border-color: $primary;
+      border-color: var(--color-primary);
     }
 
     &--error {
-      border-color: $danger;
+      border-color: var(--color-danger);
 
       &:focus {
-        border-color: $danger;
+        border-color: var(--color-danger);
       }
     }
 
@@ -49,7 +49,7 @@
 
   &__error {
     font-size: $font-size-sm;
-    color: $danger;
+    color: var(--color-danger);
     margin-top: $spacing-1;
   }
 }

@@ -14,8 +14,8 @@
     width: 0;
 
     &:checked ~ .checkbox__checkmark {
-      background-color: $primary;
-      border-color: $primary;
+      background-color: var(--color-primary);
+      border-color: var(--color-primary);
 
       &::after {
         display: block;
@@ -23,7 +23,7 @@
     }
 
     &:disabled ~ .checkbox__checkmark {
-      background-color: $grey-200;
+      background-color: var(--color-disabled-bg);
       cursor: not-allowed;
     }
   }
@@ -32,7 +32,7 @@
     position: relative;
     height: 20px;
     width: 20px;
-    border: 2px solid $grey-400;
+    border: 2px solid var(--color-text-disabled);
     border-radius: $radius-sm;
     transition: all $transition-base;
 
@@ -53,6 +53,6 @@
   &__label {
     margin-left: $spacing-2;
     font-size: $font-size-base;
-    color: $text-primary;
+    color: var(--color-text-primary);
   }
 }

@@ -11,8 +11,8 @@
   &__selected {
     margin-top: $spacing-6;
     padding: $spacing-4;
-    background-color: $primary-100;
-    border: 2px solid $primary-500;
+    background-color: var(--color-primary-100);
+    border: 2px solid var(--color-primary-500);
     border-radius: $radius-md;
     font-size: $font-size-sm;
     display: flex;
@@ -61,8 +61,8 @@
     }
 
     &--selected {
-      background-color: $primary-50;
-      border-color: $primary-500;
+      background-color: var(--color-primary-50);
+      border-color: var(--color-primary-500);
     }
   }
 
@@ -138,7 +138,7 @@
 
 .task-node__executor {
   font-size: 12px;
-  color: #6b7280;
+  color: var(--color-text-secondary);
   margin-top: 2px;
 }
 
@@ -151,7 +151,7 @@
 
 .task-node__executor {
   font-size: 12px;
-  color: #6b7280;
+  color: var(--color-text-secondary);
   margin-top: 2px;
 }
 
@@ -169,8 +169,8 @@
   margin-top: 2px;
 }
 
-.task-node__executor, 
+.task-node__executor,
 .task-node__classification {
   font-size: 12px;
-  color: #6b7280;
+  color: var(--color-text-secondary);
 }
