@@ -51,12 +51,5 @@ export const assignmentService = {
     await apiClient.delete(`/tasks/${taskId}/assignments/${userId}`);
   },
 
-  // Keep for compatibility with code that still calls these
-  getMockAssignments(): Assignment[] {
-    return [];
-  },
 
-  setMockAssignments(_assignments: Assignment[]): void {
-    // no-op
-  },
 };

@@ -4,9 +4,9 @@ import { Select } from './ui/Select';
 import { Button } from './ui/Button';
 import { Modal } from './ui/Modal';
 import type { Task, User } from '../types';
-import { MOCK_USERS } from '../mock';
 import { taskService } from '../api/taskService';
-import { assignmentService } from '../minimal_test/api/assignmentService';
+import { assignmentService } from '../api/assignmentService';
+import { apiClient } from '../api/client';
 import './TaskForm.scss';
 
 interface TaskFormProps {
@@ -198,27 +198,47 @@ export const TaskForm: React.FC<TaskFormProps> = ({
       try {
         setLoadingCandidates(true);
 
-        const [allTasks, allAssignments] = await Promise.all([
+        const [allTasks, projectAssignments] = await Promise.all([
           taskService.getTasks(),
-          Promise.resolve(assignmentService.getMockAssignments()),
+          projectId ? assignmentService.getAssignments(projectId) : Promise.resolve([]),
         ]);
 
-        const projectMemberIds = projectId
-          ? allAssignments
-              .filter((assignment) => assignment.task_id === projectId)
-              .map((assignment) => assignment.user_id)
-          : [];
+        const projectMemberIds = projectAssignments.map((a) => a.user_id);
 
-        const baseUsers =
-          projectMemberIds.length > 0
-            ? MOCK_USERS.filter((user) => projectMemberIds.includes(user.id))
-            : MOCK_USERS;
+        // Fetch real user objects for project members
+        const memberUsersRaw = await Promise.all(
+          projectMemberIds.map(async (uid) => {
+            try {
+              const resp = await apiClient.get<any>(`/users/${uid}`);
+              const u = resp.data;
+              return {
+                id: uid,
+                username: u.display_name ?? u.email ?? '',
+                email: u.email ?? '',
+                first_name: u.name ?? '',
+                last_name: u.surname ?? '',
+                timezone: u.timezone ?? 'Europe/Moscow',
+                contacts_visible: true,
+              } as User;
+            } catch { return null; }
+          })
+        );
+        const baseUsers = memberUsersRaw.filter(Boolean) as User[];
 
         const nextProfiles: Record<string, CandidateProfile> = {};
         const nextAvailableUsers: User[] = [];
 
+        // Collect all assignments across project tasks
+        const allAssignmentsForProject: typeof projectAssignments = [...projectAssignments];
+        for (const t of allTasks.filter((t) => projectMemberIds.length > 0 || t.parent_task_id)) {
+          try {
+            const ta = await assignmentService.getAssignments(t.id);
+            allAssignmentsForProject.push(...ta);
+          } catch { /* skip */ }
+        }
+
         for (const user of baseUsers) {
-          const userAssignments = allAssignments.filter((assignment) => assignment.user_id === user.id);
+          const userAssignments = allAssignmentsForProject.filter((assignment) => assignment.user_id === user.id);
 
           const activeTasks = userAssignments
             .map((assignment) => allTasks.find((item) => item.id === assignment.task_id))
@@ -475,7 +495,7 @@ export const TaskForm: React.FC<TaskFormProps> = ({
               label="Исполнитель"
               options={availableUsers.map((user) => ({
                 value: user.id,
-                label: user.full_name,
+                label: [user.last_name, user.first_name].filter(Boolean).join(' ') || user.username || user.email,
               }))}
               value={formData.assignee_id}
               onChange={handleAssigneeChange}
@@ -587,7 +607,7 @@ export const TaskForm: React.FC<TaskFormProps> = ({
           <div className="candidate-profile">
             <div className="candidate-profile__row">
               <span className="candidate-profile__label">ФИО:</span>
-              <span>{selectedProfile.user.full_name}</span>
+              <span>{[selectedProfile.user.last_name, selectedProfile.user.first_name].filter(Boolean).join(' ') || selectedProfile.user.username}</span>
             </div>
             <div className="candidate-profile__row">
               <span className="candidate-profile__label">Логин:</span>
