@@ -23,28 +23,41 @@ const LoginPage: React.FC = () => {
   });
 
   const [errors, setErrors] = useState<Record<string, string>>({});
+  const [touched, setTouched] = useState<Record<keyof typeof formData, boolean>>({
+    email: false,
+    password: false,
+  });
+
+  const validateField = (field: keyof typeof formData, value: string): string => {
+    if (field === 'email') {
+      if (!value.trim()) return 'Email обязателен';
+      if (!EMAIL_ALLOWED_CHARACTERS_REGEX.test(value)) {
+        return 'Допустимы только латинские буквы, цифры и символы @ . _ % + -';
+      }
+      if (!EMAIL_FORMAT_REGEX.test(value)) {
+        return 'Неверный формат email. Пример: user@example.com';
+      }
+      return '';
+    }
+
+    if (!value) return 'Пароль обязателен';
+    if (!PASSWORD_ALLOWED_CHARACTERS_REGEX.test(value)) {
+      return 'Допустимы только латинские буквы, цифры и спецсимволы клавиатуры';
+    }
+    return '';
+  };
 
   const validateForm = (): boolean => {
     const newErrors: Record<string, string> = {};
 
-    if (!formData.email.trim()) {
-      newErrors.email = 'Email обязателен';
-    } else if (!EMAIL_ALLOWED_CHARACTERS_REGEX.test(formData.email)) {
-      newErrors.email = 'Допустимы только латинские буквы, цифры и символы @ . _ % + -';
-    } else {
-      // Проверка формата email: должен быть @ и хотя бы одна точка после @
-      if (!EMAIL_FORMAT_REGEX.test(formData.email)) {
-        newErrors.email = 'Неверный формат email. Пример: user@example.com';
-      }
-    }
+    const emailError = validateField('email', formData.email);
+    if (emailError) newErrors.email = emailError;
 
-    if (!formData.password) {
-      newErrors.password = 'Пароль обязателен';
-    } else if (!PASSWORD_ALLOWED_CHARACTERS_REGEX.test(formData.password)) {
-      newErrors.password = 'Допустимы только латинские буквы, цифры и спецсимволы клавиатуры';
-    }
+    const passwordError = validateField('password', formData.password);
+    if (passwordError) newErrors.password = passwordError;
 
     setErrors(newErrors);
+    setTouched({ email: true, password: true });
     return Object.keys(newErrors).length === 0;
   };
 
@@ -70,15 +83,25 @@ const LoginPage: React.FC = () => {
 
   const handleInputChange =
     (field: keyof typeof formData) => (e: React.ChangeEvent<HTMLInputElement>) => {
-      setFormData({ ...formData, [field]: e.target.value });
-      if (errors[field]) {
-        setErrors({ ...errors, [field]: '' });
+      const value = e.target.value;
+      setFormData({ ...formData, [field]: value });
+
+      if (touched[field]) {
+        const fieldError = validateField(field, value);
+        setErrors((prev) => ({ ...prev, [field]: fieldError }));
       }
+
       // Очищаем общую ошибку при изменении поля
       if (error) {
         setError('');
       }
     };
+
+  const handleInputBlur = (field: keyof typeof formData) => () => {
+    setTouched((prev) => ({ ...prev, [field]: true }));
+    const fieldError = validateField(field, formData[field]);
+    setErrors((prev) => ({ ...prev, [field]: fieldError }));
+  };
 
   const columns = useFloatingColumns(15);
 
@@ -128,6 +151,7 @@ const LoginPage: React.FC = () => {
             type="email"
             value={formData.email}
             onChange={handleInputChange('email')}
+            onBlur={handleInputBlur('email')}
             error={errors.email}
             required
           />
@@ -137,6 +161,7 @@ const LoginPage: React.FC = () => {
             type={showPassword ? 'text' : 'password'}
             value={formData.password}
             onChange={handleInputChange('password')}
+            onBlur={handleInputBlur('password')}
             error={errors.password}
             rightAdornment={
               <button

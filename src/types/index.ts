@@ -32,7 +32,7 @@ export interface RegisterData {
   phone?: string;
   contacts_visible: boolean;
   stack: StackItem[];
-  experience_level: ExperienceLevel;
+  experience_level?: ExperienceLevel;
   work_schedule: WorkScheduleDay[];
 }
 

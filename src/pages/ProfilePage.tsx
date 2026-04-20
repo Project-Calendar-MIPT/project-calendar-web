@@ -226,6 +226,8 @@ export const ProfilePage: React.FC = () => {
     ? EXPERIENCE_LABELS[user.experience_level] || user.experience_level
     : '—';
   const stackLabel = formatStackLabel(user?.stack);
+  const hasTelegram = Boolean(user?.telegram?.trim());
+  const hasPhone = Boolean(user?.phone?.trim());
 
   return (
     <div className="profile-page">
@@ -283,23 +285,21 @@ export const ProfilePage: React.FC = () => {
                   <span className="profile-info__value">{user.middle_name || '—'}</span>
                 </div>
                 <div className="profile-info__row">
-                  <span className="profile-info__label">Username</span>
+                  <span className="profile-info__label">Логин</span>
                   <span className="profile-info__value">@{user.username || '—'}</span>
                 </div>
-                <div className="profile-info__row">
-                  <span className="profile-info__label">Telegram</span>
-                  <span className="profile-info__value">{user.telegram || '—'}</span>
-                </div>
-                <div className="profile-info__row">
-                  <span className="profile-info__label">Телефон</span>
-                  <span className="profile-info__value">{user.phone || '—'}</span>
-                </div>
-                <div className="profile-info__row">
-                  <span className="profile-info__label">Видимость контактов</span>
-                  <span className="profile-info__value">
-                    {user.contacts_visible ? 'Видимы' : 'Скрыты'}
-                  </span>
-                </div>
+                {hasTelegram && (
+                  <div className="profile-info__row">
+                    <span className="profile-info__label">Telegram</span>
+                    <span className="profile-info__value">{user.telegram}</span>
+                  </div>
+                )}
+                {hasPhone && (
+                  <div className="profile-info__row">
+                    <span className="profile-info__label">Телефон</span>
+                    <span className="profile-info__value">{user.phone}</span>
+                  </div>
+                )}
                 <div className="profile-info__row">
                   <span className="profile-info__label">Email</span>
                   <span className="profile-info__value">{user.email || '—'}</span>

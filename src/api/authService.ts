@@ -34,7 +34,7 @@ export const authService = {
       phone: data.phone,
       contacts_visible: data.contacts_visible,
       stack: data.stack,
-      experience_level: data.experience_level,
+      ...(data.experience_level ? { experience_level: data.experience_level } : {}),
     };
 
     const response = await apiClient.post('/auth/register', payload);
