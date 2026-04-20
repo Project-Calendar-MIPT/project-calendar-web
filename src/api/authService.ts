@@ -6,6 +6,10 @@ interface AuthResponse {
   user: User;
 }
 
+interface EmailSentResponse {
+  emailSent: true;
+}
+
 // Map backend user object (display_name, name, surname) → frontend User type
 function mapBackendUser(backendUser: any): User {
   return {
@@ -23,7 +27,9 @@ function mapBackendUser(backendUser: any): User {
 }
 
 export const authService = {
-  async register(data: RegisterData): Promise<AuthResponse> {
+  async register(
+    data: RegisterData,
+  ): Promise<AuthResponse | EmailSentResponse> {
     const payload = {
       email: data.email,
       password: data.password,
@@ -41,6 +47,10 @@ export const authService = {
 
     const response = await apiClient.post("/auth/register", payload);
     const body = response.data;
+
+    if (!body.token) {
+      return { emailSent: true };
+    }
 
     const token: string = body.token;
     const user = mapBackendUser({
