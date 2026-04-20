@@ -1,15 +1,15 @@
-import React, { useState, useEffect, useCallback, useMemo } from 'react';
-import { useNavigate } from 'react-router-dom';
-import { Button } from './ui/Button';
-import { Input } from './ui/Input';
-import { Select } from './ui/Select';
-import { Modal } from './ui/Modal';
-import { assignmentService } from '../api/assignmentService';
-import { userService } from '../api/userService';
-import { taskService } from '../api/taskService';
-import { apiClient } from '../api/client';
-import type { Assignment, Task, User } from '../types';
-import './AssignmentManager.scss';
+import React, { useState, useEffect, useCallback, useMemo } from "react";
+import { useNavigate } from "react-router-dom";
+import { Button } from "./ui/Button";
+import { Input } from "./ui/Input";
+import { Select } from "./ui/Select";
+import { Modal } from "./ui/Modal";
+import { assignmentService } from "../api/assignmentService";
+import { userService } from "../api/userService";
+import { taskService } from "../api/taskService";
+import { apiClient } from "../api/client";
+import type { Assignment, Task, User } from "../types";
+import "./AssignmentManager.scss";
 
 interface AssignmentManagerProps {
   projectId: string;
@@ -17,10 +17,10 @@ interface AssignmentManagerProps {
 }
 
 const ROLE_OPTIONS = [
-  { value: 'supervisor', label: 'Руководитель' },
-  { value: 'executor', label: 'Исполнитель' },
-  { value: 'hybrid', label: 'Гибридная' },
-  { value: 'spectator', label: 'Наблюдатель' },
+  { value: "supervisor", label: "Руководитель" },
+  { value: "executor", label: "Исполнитель" },
+  { value: "hybrid", label: "Гибридная" },
+  { value: "spectator", label: "Наблюдатель" },
 ];
 
 type MemberItem = {
@@ -39,8 +39,8 @@ const normalizeRange = (start?: string, end?: string) => {
     return null;
   }
 
-  const normalizedStart = start || end || '';
-  const normalizedEnd = end || start || '';
+  const normalizedStart = start || end || "";
+  const normalizedEnd = end || start || "";
 
   if (!normalizedStart || !normalizedEnd) {
     return null;
@@ -55,7 +55,7 @@ const hasDateOverlap = (
   aStart?: string,
   aEnd?: string,
   bStart?: string,
-  bEnd?: string
+  bEnd?: string,
 ): boolean => {
   const first = normalizeRange(aStart, aEnd);
   const second = normalizeRange(bStart, bEnd);
@@ -80,25 +80,27 @@ export const AssignmentManager: React.FC<AssignmentManagerProps> = ({
   const [memberUsers, setMemberUsers] = useState<User[]>([]);
   const [allTasks, setAllTasks] = useState<Task[]>([]);
   const [availableUsers, setAvailableUsers] = useState<User[]>([]);
-  const [candidateProfiles, setCandidateProfiles] = useState<Record<string, CandidateProfile>>({});
+  const [candidateProfiles, setCandidateProfiles] = useState<
+    Record<string, CandidateProfile>
+  >({});
   const [profileUserId, setProfileUserId] = useState<string | null>(null);
 
   // Assign to task modal
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [formData, setFormData] = useState({
-    task_id: '',
-    user_id: '',
-    role: 'executor',
+    task_id: "",
+    user_id: "",
+    role: "executor",
     allocated_hours: 0,
   });
-  const [error, setError] = useState('');
+  const [error, setError] = useState("");
 
   // Invite user modal
   const [isInviteOpen, setIsInviteOpen] = useState(false);
-  const [inviteQuery, setInviteQuery] = useState('');
+  const [inviteQuery, setInviteQuery] = useState("");
   const [inviteResults, setInviteResults] = useState<User[]>([]);
-  const [inviteRole, setInviteRole] = useState('executor');
-  const [inviteError, setInviteError] = useState('');
+  const [inviteRole, setInviteRole] = useState("executor");
+  const [inviteError, setInviteError] = useState("");
   const [inviteLoading, setInviteLoading] = useState(false);
 
   const navigate = useNavigate();
@@ -120,13 +122,21 @@ export const AssignmentManager: React.FC<AssignmentManagerProps> = ({
     try {
       const resp = await apiClient.get<any>(`/users/${userId}`);
       const u = resp.data;
-      return u.display_name || [u.surname, u.name].filter(Boolean).join(' ') || u.email || 'Unknown';
+      return (
+        u.display_name ||
+        [u.surname, u.name].filter(Boolean).join(" ") ||
+        u.email ||
+        "Unknown"
+      );
     } catch {
-      return 'Unknown';
+      return "Unknown";
     }
   }, []);
 
-  const collectAllProjectTasks = (tasks: Task[], rootProjectId: string): Task[] => {
+  const collectAllProjectTasks = (
+    tasks: Task[],
+    rootProjectId: string,
+  ): Task[] => {
     const result: Task[] = [];
     const visited = new Set<string>();
     const dfs = (parentId: string) => {
@@ -163,12 +173,16 @@ export const AssignmentManager: React.FC<AssignmentManagerProps> = ({
       }
       setAssignments(allAssignments);
 
-      const projectAssignments = await assignmentService.getAssignments(projectId);
+      const projectAssignments =
+        await assignmentService.getAssignments(projectId);
       const memberIds = projectAssignments.map((a) => a.user_id);
       setProjectMembers(memberIds);
 
       const availableTasks = relatedTasks.filter(
-        (t) => t.id !== projectId && t.status !== 'completed' && t.status !== 'cancelled'
+        (t) =>
+          t.id !== projectId &&
+          t.status !== "completed" &&
+          t.status !== "cancelled",
       );
       setAssignableTasks(availableTasks);
 
@@ -176,22 +190,33 @@ export const AssignmentManager: React.FC<AssignmentManagerProps> = ({
       allAssignments.forEach((assignment) => {
         const existing = uniqueMembersMap.get(assignment.user_id);
         if (!existing) {
-          uniqueMembersMap.set(assignment.user_id, { user_id: assignment.user_id, role: assignment.role });
+          uniqueMembersMap.set(assignment.user_id, {
+            user_id: assignment.user_id,
+            role: assignment.role,
+          });
           return;
         }
         const cur = rolePriority[assignment.role] || 0;
         const prev = rolePriority[existing.role] || 0;
-        if (cur > prev) uniqueMembersMap.set(assignment.user_id, { user_id: assignment.user_id, role: assignment.role });
+        if (cur > prev)
+          uniqueMembersMap.set(assignment.user_id, {
+            user_id: assignment.user_id,
+            role: assignment.role,
+          });
       });
       const members = Array.from(uniqueMembersMap.values());
       setDisplayMembers(members);
 
       // Fetch display names for all unique user IDs
-      const uniqueIds = Array.from(new Set(allAssignments.map((a) => a.user_id)));
+      const uniqueIds = Array.from(
+        new Set(allAssignments.map((a) => a.user_id)),
+      );
       const names: Record<string, string> = {};
-      await Promise.all(uniqueIds.map(async (uid) => {
-        names[uid] = await fetchUserName(uid);
-      }));
+      await Promise.all(
+        uniqueIds.map(async (uid) => {
+          names[uid] = await fetchUserName(uid);
+        }),
+      );
       setUserMap(names);
 
       // Fetch full user objects for project members (for dropdowns)
@@ -202,32 +227,38 @@ export const AssignmentManager: React.FC<AssignmentManagerProps> = ({
             const u = resp.data;
             return {
               id: uid,
-              username: u.display_name ?? u.email ?? '',
-              email: u.email ?? '',
-              first_name: u.name ?? '',
-              last_name: u.surname ?? '',
-              timezone: u.timezone ?? 'Europe/Moscow',
+              username: u.display_name ?? u.email ?? "",
+              email: u.email ?? "",
+              first_name: u.name ?? "",
+              last_name: u.surname ?? "",
+              timezone: u.timezone ?? "Europe/Moscow",
               contacts_visible: true,
             } as User;
-          } catch { return null; }
-        })
+          } catch {
+            return null;
+          }
+        }),
       ).then((arr) => arr.filter(Boolean) as User[]);
       setMemberUsers(users);
     } catch (err) {
-      console.error('Ошибка при загрузке назначений:', err);
+      console.error("Ошибка при загрузке назначений:", err);
     }
   }, [projectId, fetchUserName]);
 
-  useEffect(() => { loadAssignments(); }, [loadAssignments]);
+  useEffect(() => {
+    loadAssignments();
+  }, [loadAssignments]);
 
   // Compute available users and candidate profiles based on selected task dates
   useEffect(() => {
-    const selectedTask = projectTasks.find((task) => task.id === formData.task_id);
+    const selectedTask = projectTasks.find(
+      (task) => task.id === formData.task_id,
+    );
 
     if (!selectedTask) {
       setAvailableUsers([]);
       setCandidateProfiles({});
-      setFormData((prev) => ({ ...prev, user_id: '' }));
+      setFormData((prev) => ({ ...prev, user_id: "" }));
       return;
     }
 
@@ -256,12 +287,17 @@ export const AssignmentManager: React.FC<AssignmentManagerProps> = ({
           (t) =>
             t.id !== selectedTask.id &&
             t.parent_task_id !== null &&
-            t.status !== 'completed' &&
-            t.status !== 'cancelled'
+            t.status !== "completed" &&
+            t.status !== "cancelled",
         );
 
       const overlappingTasks = activeTasks.filter((t) =>
-        hasDateOverlap(selectedTask.start_date, selectedTask.end_date, t.start_date, t.end_date)
+        hasDateOverlap(
+          selectedTask.start_date,
+          selectedTask.end_date,
+          t.start_date,
+          t.end_date,
+        ),
       );
 
       profiles[user.id] = { user, activeTasks, overlappingTasks };
@@ -277,15 +313,28 @@ export const AssignmentManager: React.FC<AssignmentManagerProps> = ({
     setFormData((prev) => {
       if (!prev.user_id) return prev;
       const stillAvailable = freeUsers.some((u) => u.id === prev.user_id);
-      return stillAvailable ? prev : { ...prev, user_id: '' };
+      return stillAvailable ? prev : { ...prev, user_id: "" };
     });
-  }, [formData.task_id, projectMembers, projectTasks, allTasks, memberUsers, assignments]);
+  }, [
+    formData.task_id,
+    projectMembers,
+    projectTasks,
+    allTasks,
+    memberUsers,
+    assignments,
+  ]);
 
   const handleAssignUser = async (e: React.FormEvent) => {
     e.preventDefault();
-    setError('');
-    if (!formData.task_id) { setError('Выберите задачу'); return; }
-    if (!formData.user_id) { setError('Выберите пользователя'); return; }
+    setError("");
+    if (!formData.task_id) {
+      setError("Выберите задачу");
+      return;
+    }
+    if (!formData.user_id) {
+      setError("Выберите пользователя");
+      return;
+    }
     try {
       await assignmentService.assignUser(formData.task_id, {
         user_id: formData.user_id,
@@ -295,11 +344,16 @@ export const AssignmentManager: React.FC<AssignmentManagerProps> = ({
       await loadAssignments();
       onAssignmentChange?.();
       setIsModalOpen(false);
-      setFormData({ task_id: '', user_id: '', role: 'executor', allocated_hours: 0 });
+      setFormData({
+        task_id: "",
+        user_id: "",
+        role: "executor",
+        allocated_hours: 0,
+      });
       setAvailableUsers([]);
       setCandidateProfiles({});
     } catch (err: any) {
-      setError(err.message || 'Ошибка при назначении');
+      setError(err.message || "Ошибка при назначении");
     }
   };
 
@@ -312,7 +366,7 @@ export const AssignmentManager: React.FC<AssignmentManagerProps> = ({
   };
 
   const handleInviteUser = async (user: User) => {
-    setInviteError('');
+    setInviteError("");
     try {
       await assignmentService.assignUser(projectId, {
         user_id: user.id,
@@ -322,38 +376,50 @@ export const AssignmentManager: React.FC<AssignmentManagerProps> = ({
       await loadAssignments();
       onAssignmentChange?.();
       setIsInviteOpen(false);
-      setInviteQuery('');
+      setInviteQuery("");
       setInviteResults([]);
     } catch (err: any) {
-      setInviteError(err.response?.data || err.message || 'Ошибка при добавлении');
+      setInviteError(
+        err.response?.data || err.message || "Ошибка при добавлении",
+      );
     }
   };
 
   const handleRemoveMember = async (userId: string) => {
     try {
-      const userAssignments = assignments.filter((a) => a.user_id === userId && a.role !== 'owner');
+      const userAssignments = assignments.filter(
+        (a) => a.user_id === userId && a.role !== "owner",
+      );
       for (const assignment of userAssignments) {
-        await assignmentService.removeAssignment(assignment.task_id, assignment.user_id);
+        await assignmentService.removeAssignment(
+          assignment.task_id,
+          assignment.user_id,
+        );
       }
       await loadAssignments();
       onAssignmentChange?.();
     } catch (err) {
-      console.error('Ошибка при удалении участника:', err);
+      console.error("Ошибка при удалении участника:", err);
     }
   };
 
-  const getUserName = (userId: string): string => userMap[userId] || 'Unknown';
+  const getUserName = (userId: string): string => userMap[userId] || "Unknown";
 
   const getRoleLabel = (role: string): string => {
     const labels: Record<string, string> = {
-      owner: 'Владелец', supervisor: 'Руководитель', executor: 'Исполнитель',
-      hybrid: 'Гибридная', spectator: 'Наблюдатель',
+      owner: "Владелец",
+      supervisor: "Руководитель",
+      executor: "Исполнитель",
+      hybrid: "Гибридная",
+      spectator: "Наблюдатель",
     };
     return labels[role] || role;
   };
 
   const selectedTask = projectTasks.find((t) => t.id === formData.task_id);
-  const selectedTaskHasDates = Boolean(selectedTask?.start_date || selectedTask?.end_date);
+  const selectedTaskHasDates = Boolean(
+    selectedTask?.start_date || selectedTask?.end_date,
+  );
   const usersForDropdown = selectedTaskHasDates ? availableUsers : memberUsers;
 
   return (
@@ -361,11 +427,19 @@ export const AssignmentManager: React.FC<AssignmentManagerProps> = ({
       <div className="assignment-manager">
         <div className="assignment-manager__header">
           <h3>Назначения</h3>
-          <div style={{ display: 'flex', gap: '8px' }}>
-            <Button onClick={() => setIsInviteOpen(true)} variant="primary" size="sm">
+          <div style={{ display: "flex", gap: "8px" }}>
+            <Button
+              onClick={() => setIsInviteOpen(true)}
+              variant="primary"
+              size="sm"
+            >
               + Пригласить
             </Button>
-            <Button onClick={() => setIsModalOpen(true)} variant="outline" size="sm">
+            <Button
+              onClick={() => setIsModalOpen(true)}
+              variant="outline"
+              size="sm"
+            >
               Назначить на задачу
             </Button>
           </div>
@@ -382,10 +456,16 @@ export const AssignmentManager: React.FC<AssignmentManagerProps> = ({
                   >
                     {getUserName(member.user_id)}
                   </span>
-                  <span className="assignment-manager__role">{getRoleLabel(member.role)}</span>
+                  <span className="assignment-manager__role">
+                    {getRoleLabel(member.role)}
+                  </span>
                 </div>
-                {member.role !== 'owner' && (
-                  <Button onClick={() => handleRemoveMember(member.user_id)} variant="danger" size="sm">
+                {member.role !== "owner" && (
+                  <Button
+                    onClick={() => handleRemoveMember(member.user_id)}
+                    variant="danger"
+                    size="sm"
+                  >
                     Удалить
                   </Button>
                 )}
@@ -397,18 +477,35 @@ export const AssignmentManager: React.FC<AssignmentManagerProps> = ({
         )}
 
         {/* Invite user modal */}
-        <Modal isOpen={isInviteOpen} onClose={() => { setIsInviteOpen(false); setInviteQuery(''); setInviteResults([]); setInviteError(''); }} title="Пригласить пользователя" size="md">
+        <Modal
+          isOpen={isInviteOpen}
+          onClose={() => {
+            setIsInviteOpen(false);
+            setInviteQuery("");
+            setInviteResults([]);
+            setInviteError("");
+          }}
+          title="Пригласить пользователя"
+          size="md"
+        >
           <div className="assignment-manager__form">
-            <div style={{ display: 'flex', gap: '8px', alignItems: 'flex-end' }}>
+            <div
+              style={{ display: "flex", gap: "8px", alignItems: "flex-end" }}
+            >
               <Input
                 label="Имя или email"
                 value={inviteQuery}
                 onChange={(e) => setInviteQuery(e.target.value)}
-                onKeyDown={(e) => e.key === 'Enter' && handleInviteSearch()}
+                onKeyDown={(e) => e.key === "Enter" && handleInviteSearch()}
                 placeholder="Введите имя или email..."
               />
-              <Button onClick={handleInviteSearch} variant="primary" size="sm" disabled={inviteLoading}>
-                {inviteLoading ? '...' : 'Найти'}
+              <Button
+                onClick={handleInviteSearch}
+                variant="primary"
+                size="sm"
+                disabled={inviteLoading}
+              >
+                {inviteLoading ? "..." : "Найти"}
               </Button>
             </div>
 
@@ -420,14 +517,42 @@ export const AssignmentManager: React.FC<AssignmentManagerProps> = ({
             />
 
             {inviteResults.length > 0 && (
-              <div style={{ marginTop: '12px', display: 'flex', flexDirection: 'column', gap: '8px' }}>
+              <div
+                style={{
+                  marginTop: "12px",
+                  display: "flex",
+                  flexDirection: "column",
+                  gap: "8px",
+                }}
+              >
                 {inviteResults.map((user) => (
-                  <div key={user.id} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '8px 12px', background: 'var(--color-surface)', borderRadius: '6px' }}>
+                  <div
+                    key={user.id}
+                    style={{
+                      display: "flex",
+                      justifyContent: "space-between",
+                      alignItems: "center",
+                      padding: "8px 12px",
+                      background: "var(--color-surface)",
+                      borderRadius: "6px",
+                    }}
+                  >
                     <div>
-                      <div>{user.username || [user.last_name, user.first_name].filter(Boolean).join(' ')}</div>
-                      <div style={{ fontSize: '12px', opacity: 0.6 }}>{user.email}</div>
+                      <div>
+                        {user.username ||
+                          [user.last_name, user.first_name]
+                            .filter(Boolean)
+                            .join(" ")}
+                      </div>
+                      <div style={{ fontSize: "12px", opacity: 0.6 }}>
+                        {user.email}
+                      </div>
                     </div>
-                    <Button onClick={() => handleInviteUser(user)} variant="primary" size="sm">
+                    <Button
+                      onClick={() => handleInviteUser(user)}
+                      variant="primary"
+                      size="sm"
+                    >
                       Добавить
                     </Button>
                   </div>
@@ -435,22 +560,45 @@ export const AssignmentManager: React.FC<AssignmentManagerProps> = ({
               </div>
             )}
 
-            {inviteResults.length === 0 && inviteQuery.length >= 2 && !inviteLoading && (
-              <p style={{ opacity: 0.6, marginTop: '8px' }}>Пользователи не найдены</p>
-            )}
+            {inviteResults.length === 0 &&
+              inviteQuery.length >= 2 &&
+              !inviteLoading && (
+                <p style={{ opacity: 0.6, marginTop: "8px" }}>
+                  Пользователи не найдены
+                </p>
+              )}
 
-            {inviteError && <div className="assignment-manager__error">{inviteError}</div>}
+            {inviteError && (
+              <div className="assignment-manager__error">{inviteError}</div>
+            )}
           </div>
         </Modal>
 
         {/* Assign to task modal */}
-        <Modal isOpen={isModalOpen} onClose={() => setIsModalOpen(false)} title="Назначить на задачу" size="md">
-          <form onSubmit={handleAssignUser} className="assignment-manager__form">
+        <Modal
+          isOpen={isModalOpen}
+          onClose={() => setIsModalOpen(false)}
+          title="Назначить на задачу"
+          size="md"
+        >
+          <form
+            onSubmit={handleAssignUser}
+            className="assignment-manager__form"
+          >
             <Select
               label="Задача"
-              options={assignableTasks.map((t) => ({ value: t.id, label: t.title }))}
+              options={assignableTasks.map((t) => ({
+                value: t.id,
+                label: t.title,
+              }))}
               value={formData.task_id}
-              onChange={(e) => setFormData({ ...formData, task_id: e.target.value, user_id: '' })}
+              onChange={(e) =>
+                setFormData({
+                  ...formData,
+                  task_id: e.target.value,
+                  user_id: "",
+                })
+              }
               required
             />
 
@@ -458,10 +606,15 @@ export const AssignmentManager: React.FC<AssignmentManagerProps> = ({
               label="Пользователь"
               options={usersForDropdown.map((u) => ({
                 value: u.id,
-                label: u.username || [u.last_name, u.first_name].filter(Boolean).join(' ') || u.email,
+                label:
+                  u.username ||
+                  [u.last_name, u.first_name].filter(Boolean).join(" ") ||
+                  u.email,
               }))}
               value={formData.user_id}
-              onChange={(e) => setFormData({ ...formData, user_id: e.target.value })}
+              onChange={(e) =>
+                setFormData({ ...formData, user_id: e.target.value })
+              }
               required
             />
 
@@ -469,7 +622,7 @@ export const AssignmentManager: React.FC<AssignmentManagerProps> = ({
               <div className="assignment-manager__hint">
                 {availableUsers.length > 0
                   ? `Доступно сотрудников: ${availableUsers.length}`
-                  : 'Нет свободных сотрудников на даты выбранной задачи'}
+                  : "Нет свободных сотрудников на даты выбранной задачи"}
               </div>
             )}
 
@@ -488,18 +641,33 @@ export const AssignmentManager: React.FC<AssignmentManagerProps> = ({
               label="Роль"
               options={ROLE_OPTIONS}
               value={formData.role}
-              onChange={(e) => setFormData({ ...formData, role: e.target.value })}
+              onChange={(e) =>
+                setFormData({ ...formData, role: e.target.value })
+              }
             />
             <Input
               label="Часы"
               type="number"
               value={formData.allocated_hours.toString()}
-              onChange={(e) => setFormData({ ...formData, allocated_hours: parseFloat(e.target.value) || 0 })}
+              onChange={(e) =>
+                setFormData({
+                  ...formData,
+                  allocated_hours: parseFloat(e.target.value) || 0,
+                })
+              }
             />
             {error && <div className="assignment-manager__error">{error}</div>}
             <div className="assignment-manager__actions">
-              <Button type="submit" variant="primary">Назначить</Button>
-              <Button type="button" variant="outline" onClick={() => setIsModalOpen(false)}>Отмена</Button>
+              <Button type="submit" variant="primary">
+                Назначить
+              </Button>
+              <Button
+                type="button"
+                variant="outline"
+                onClick={() => setIsModalOpen(false)}
+              >
+                Отмена
+              </Button>
             </div>
           </form>
         </Modal>
@@ -516,7 +684,14 @@ export const AssignmentManager: React.FC<AssignmentManagerProps> = ({
           <div className="candidate-profile">
             <div className="candidate-profile__row">
               <span className="candidate-profile__label">ФИО:</span>
-              <span>{[selectedProfile.user.last_name, selectedProfile.user.first_name].filter(Boolean).join(' ') || selectedProfile.user.username}</span>
+              <span>
+                {[
+                  selectedProfile.user.last_name,
+                  selectedProfile.user.first_name,
+                ]
+                  .filter(Boolean)
+                  .join(" ") || selectedProfile.user.username}
+              </span>
             </div>
             <div className="candidate-profile__row">
               <span className="candidate-profile__label">Логин:</span>
@@ -537,11 +712,15 @@ export const AssignmentManager: React.FC<AssignmentManagerProps> = ({
                   selectedProfile.activeTasks.map((task) => (
                     <div key={task.id} className="candidate-profile__task">
                       <strong>{task.title}</strong>
-                      <span>{task.start_date} — {task.end_date}</span>
+                      <span>
+                        {task.start_date} — {task.end_date}
+                      </span>
                     </div>
                   ))
                 ) : (
-                  <span className="candidate-profile__empty">Нет активных задач</span>
+                  <span className="candidate-profile__empty">
+                    Нет активных задач
+                  </span>
                 )}
               </div>
             </div>

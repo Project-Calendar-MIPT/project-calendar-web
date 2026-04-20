@@ -1,7 +1,9 @@
-import React from 'react';
-import './Input.scss';
+import React from "react";
+import "./Input.scss";
 
-interface InputProps extends React.InputHTMLAttributes<HTMLInputElement | HTMLTextAreaElement> {
+interface InputProps extends React.InputHTMLAttributes<
+  HTMLInputElement | HTMLTextAreaElement
+> {
   label?: string;
   error?: string;
   isTextarea?: boolean;
@@ -14,12 +16,13 @@ export const Input: React.FC<InputProps> = ({
   required,
   isTextarea = false,
   rightAdornment,
-  className = '',
+  className = "",
   ...props
 }) => {
   const inputClass =
-    `input__field ${error ? 'input__field--error' : ''} ${rightAdornment && !isTextarea ? 'input__field--with-right-adornment' : ''} ${className}`.trim();
-  const controlClass = `input__control ${error ? 'input__control--error' : ''}`.trim();
+    `input__field ${error ? "input__field--error" : ""} ${rightAdornment && !isTextarea ? "input__field--with-right-adornment" : ""} ${className}`.trim();
+  const controlClass =
+    `input__control ${error ? "input__control--error" : ""}`.trim();
 
   return (
     <div className="input">

@@ -1,9 +1,9 @@
-import React, { useState, useEffect } from 'react';
-import { taskService } from '../api/taskService';
-import { apiClient } from '../api/client';
-import type { Task } from '../types';
-import { TaskDetailModal } from './TaskDetailModal';
-import './TaskTree.scss';
+import React, { useState, useEffect } from "react";
+import { taskService } from "../api/taskService";
+import { apiClient } from "../api/client";
+import type { Task } from "../types";
+import { TaskDetailModal } from "./TaskDetailModal";
+import "./TaskTree.scss";
 
 interface TaskNodeProps {
   task: Task;
@@ -23,7 +23,7 @@ const TaskNode: React.FC<TaskNodeProps> = ({
   const [expanded, setExpanded] = useState(false);
   const [subtasks, setSubtasks] = useState<Task[]>([]);
   const [loading, setLoading] = useState(false);
-  const [executorName, setExecutorName] = useState<string>('Не назначен');
+  const [executorName, setExecutorName] = useState<string>("Не назначен");
 
   useEffect(() => {
     let cancelled = false;
@@ -32,18 +32,22 @@ const TaskNode: React.FC<TaskNodeProps> = ({
         const assignments = await taskService.getTaskAssignments(task.id);
         if (cancelled) return;
 
-        const executorAssignment = (assignments as any[]).find((a) => a.role === 'executor');
+        const executorAssignment = (assignments as any[]).find(
+          (a) => a.role === "executor",
+        );
         if (!executorAssignment) {
-          setExecutorName('Не назначен');
+          setExecutorName("Не назначен");
           return;
         }
 
-        const resp = await apiClient.get<any>(`/users/${executorAssignment.user_id}`);
+        const resp = await apiClient.get<any>(
+          `/users/${executorAssignment.user_id}`,
+        );
         if (cancelled) return;
         const u = resp.data;
-        setExecutorName(u.display_name || u.email || 'Не назначен');
+        setExecutorName(u.display_name || u.email || "Не назначен");
       } catch {
-        if (!cancelled) setExecutorName('Не назначен');
+        if (!cancelled) setExecutorName("Не назначен");
       }
     };
 
@@ -61,7 +65,7 @@ const TaskNode: React.FC<TaskNodeProps> = ({
         const data = await taskService.getSubtasks(task.id);
         setSubtasks(data);
       } catch (err) {
-        console.error('Ошибка при загрузке подзадач:', err);
+        console.error("Ошибка при загрузке подзадач:", err);
       }
       setLoading(false);
     }
@@ -70,51 +74,53 @@ const TaskNode: React.FC<TaskNodeProps> = ({
 
   const getPriorityColor = (priority: string): string => {
     const colors: Record<string, string> = {
-      critical: '#ef4444',
-      high: '#f59e0b',
-      medium: '#3b82f6',
-      low: '#10b981',
+      critical: "#ef4444",
+      high: "#f59e0b",
+      medium: "#3b82f6",
+      low: "#10b981",
     };
-    return colors[priority] || '#6b7280';
+    return colors[priority] || "#6b7280";
   };
 
   const getPriorityLabel = (priority: string): string => {
     const labels: Record<string, string> = {
-      critical: 'Критический',
-      high: 'Высокий',
-      medium: 'Средний',
-      low: 'Низкий',
+      critical: "Критический",
+      high: "Высокий",
+      medium: "Средний",
+      low: "Низкий",
     };
     return labels[priority] || priority;
   };
 
   const getStatusLabel = (status: string): string => {
     const labels: Record<string, string> = {
-      pending: 'Новая',
-      in_progress: 'В процессе',
-      completed: 'Завершена',
-      cancelled: 'Отменена',
+      pending: "Новая",
+      in_progress: "В процессе",
+      completed: "Завершена",
+      cancelled: "Отменена",
     };
     return labels[status] || status;
   };
 
   const getClassificationLabel = (task: Task): string => {
     return Number(task.estimated_hours ?? 0) > 0
-      ? 'С назначенным временем'
-      : 'Без назначенного времени';
+      ? "С назначенным временем"
+      : "Без назначенного времени";
   };
 
   const isSelected = task.id === selectedTaskId;
 
   return (
     <div className="task-node" style={{ marginLeft: `${level * 20}px` }}>
-      <div className={`task-node__content ${isSelected ? 'task-node__content--selected' : ''}`}>
+      <div
+        className={`task-node__content ${isSelected ? "task-node__content--selected" : ""}`}
+      >
         <button
-          className={`task-node__expand ${expanded ? 'task-node__expand--open' : ''}`}
+          className={`task-node__expand ${expanded ? "task-node__expand--open" : ""}`}
           onClick={handleExpand}
           disabled={loading}
         >
-          {loading ? '⌛' : '▶'}
+          {loading ? "⌛" : "▶"}
         </button>
 
         <div
@@ -125,7 +131,9 @@ const TaskNode: React.FC<TaskNodeProps> = ({
           <div className="task-node__title-row">
             <span className="task-node__title">{task.title}</span>
 
-            <span className="task-node__status">{getStatusLabel(task.status)}</span>
+            <span className="task-node__status">
+              {getStatusLabel(task.status)}
+            </span>
 
             <span
               className="task-node__priority"
@@ -139,7 +147,9 @@ const TaskNode: React.FC<TaskNodeProps> = ({
             <span className="task-node__classification">
               {getClassificationLabel(task)}
             </span>
-            <span className="task-node__executor">Исполнитель: {executorName}</span>
+            <span className="task-node__executor">
+              Исполнитель: {executorName}
+            </span>
           </div>
         </div>
       </div>
@@ -172,7 +182,11 @@ interface TaskTreeProps {
   onAddSubtask?: (parentTask: Task) => void;
 }
 
-export const TaskTree: React.FC<TaskTreeProps> = ({ taskId, onTaskSelect, onAddSubtask }) => {
+export const TaskTree: React.FC<TaskTreeProps> = ({
+  taskId,
+  onTaskSelect,
+  onAddSubtask,
+}) => {
   const [tasks, setTasks] = useState<Task[]>([]);
   const [loading, setLoading] = useState(true);
   const [selectedTask, setSelectedTask] = useState<Task | null>(null);
@@ -188,7 +202,7 @@ export const TaskTree: React.FC<TaskTreeProps> = ({ taskId, onTaskSelect, onAddS
       const data = await taskService.getSubtasks(taskId);
       setTasks(data);
     } catch (err) {
-      console.error('Ошибка при загрузке дерева задач:', err);
+      console.error("Ошибка при загрузке дерева задач:", err);
     } finally {
       setLoading(false);
     }
@@ -228,7 +242,6 @@ export const TaskTree: React.FC<TaskTreeProps> = ({ taskId, onTaskSelect, onAddS
       {selectedTask && (
         <div className="task-tree__selected">
           <strong>Выбрана задача:</strong> {selectedTask.title}
-
           {onAddSubtask && (
             <button
               onClick={() => onAddSubtask(selectedTask)}
@@ -239,8 +252,10 @@ export const TaskTree: React.FC<TaskTreeProps> = ({ taskId, onTaskSelect, onAddS
               + Подзадача
             </button>
           )}
-
-          <button onClick={() => handleTaskClick(selectedTask)} className="task-tree__deselect">
+          <button
+            onClick={() => handleTaskClick(selectedTask)}
+            className="task-tree__deselect"
+          >
             ✕
           </button>
         </div>

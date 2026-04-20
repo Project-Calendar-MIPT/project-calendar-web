@@ -1,6 +1,6 @@
-import React from 'react';
-import { Header } from './Header';
-import './Layout.scss';
+import React from "react";
+import { Header } from "./Header";
+import "./Layout.scss";
 
 interface LayoutProps {
   children: React.ReactNode;

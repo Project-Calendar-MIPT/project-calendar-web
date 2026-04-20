@@ -1,18 +1,18 @@
-import React from 'react';
-import type { Task } from '../types';
-import './TaskDetailView.scss';
+import React from "react";
+import type { Task } from "../types";
+import "./TaskDetailView.scss";
 
 interface TaskDetailViewProps {
   task: Task;
 }
 
 const formatDate = (dateStr?: string) => {
-  if (!dateStr) return '—';
+  if (!dateStr) return "—";
   try {
-    return new Date(dateStr).toLocaleDateString('ru-RU', {
-      year: 'numeric',
-      month: 'long',
-      day: 'numeric',
+    return new Date(dateStr).toLocaleDateString("ru-RU", {
+      year: "numeric",
+      month: "long",
+      day: "numeric",
     });
   } catch {
     return dateStr;
@@ -21,50 +21,50 @@ const formatDate = (dateStr?: string) => {
 
 const getStatusLabel = (status: string): string => {
   const labels: Record<string, string> = {
-    pending: 'Новая',
-    in_progress: 'В процессе',
-    completed: 'Завершена',
-    cancelled: 'Отменена',
+    pending: "Новая",
+    in_progress: "В процессе",
+    completed: "Завершена",
+    cancelled: "Отменена",
   };
   return labels[status] || status;
 };
 
 const getPriorityLabel = (priority: string): string => {
   const labels: Record<string, string> = {
-    low: 'Низкий',
-    medium: 'Средний',
-    high: 'Высокий',
-    critical: 'Критический',
+    low: "Низкий",
+    medium: "Средний",
+    high: "Высокий",
+    critical: "Критический",
   };
   return labels[priority] || priority;
 };
 
 const getComplexityLabel = (value?: string): string => {
   const labels: Record<string, string> = {
-    low: 'Низкая',
-    medium: 'Средняя',
-    high: 'Высокая',
+    low: "Низкая",
+    medium: "Средняя",
+    high: "Высокая",
   };
-  return value ? labels[value] || value : '—';
+  return value ? labels[value] || value : "—";
 };
 
 const getNoveltyLabel = (value?: string): string => {
   const labels: Record<string, string> = {
-    low: 'Низкая',
-    medium: 'Средняя',
-    high: 'Высокая',
+    low: "Низкая",
+    medium: "Средняя",
+    high: "Высокая",
   };
-  return value ? labels[value] || value : '—';
+  return value ? labels[value] || value : "—";
 };
 
 const getPriorityColor = (priority: string): string => {
   const colors: Record<string, string> = {
-    critical: '#ef4444',
-    high: '#f59e0b',
-    medium: '#3b82f6',
-    low: '#10b981',
+    critical: "#ef4444",
+    high: "#f59e0b",
+    medium: "#3b82f6",
+    low: "#10b981",
   };
-  return colors[priority] || '#6b7280';
+  return colors[priority] || "#6b7280";
 };
 
 export const TaskDetailView: React.FC<TaskDetailViewProps> = ({ task }) => {
@@ -89,7 +89,7 @@ export const TaskDetailView: React.FC<TaskDetailViewProps> = ({ task }) => {
 
       <div className="task-detail__section">
         <div className="task-detail__section-title">Описание</div>
-        <div className="task-detail__text">{task.description || '—'}</div>
+        <div className="task-detail__text">{task.description || "—"}</div>
       </div>
 
       <div className="task-detail__section">
@@ -106,7 +106,9 @@ export const TaskDetailView: React.FC<TaskDetailViewProps> = ({ task }) => {
               i
             </button>
           </div>
-          <div className="task-detail__v">{getComplexityLabel(task.complexity)}</div>
+          <div className="task-detail__v">
+            {getComplexityLabel(task.complexity)}
+          </div>
 
           <div className="task-detail__k task-detail__k--with-info">
             <span>Новизна</span>

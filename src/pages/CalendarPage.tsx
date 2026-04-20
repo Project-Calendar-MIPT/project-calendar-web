@@ -1,16 +1,16 @@
-import { useEffect, useState, useCallback } from 'react';
-import { startOfMonth, endOfMonth } from 'date-fns';
+import { useEffect, useState, useCallback } from "react";
+import { startOfMonth, endOfMonth } from "date-fns";
 
-import { CalendarView } from '../components/CalendarView';
-import { TaskDetailModal } from '../components/TaskDetailModal';
-import { TaskForm } from '../components/TaskForm';
-import { Modal } from '../components/ui/Modal';
-import { Loader } from '../components/ui/Loader';
-import { Card } from '../components/ui/Card';
+import { CalendarView } from "../components/CalendarView";
+import { TaskDetailModal } from "../components/TaskDetailModal";
+import { TaskForm } from "../components/TaskForm";
+import { Modal } from "../components/ui/Modal";
+import { Loader } from "../components/ui/Loader";
+import { Card } from "../components/ui/Card";
 
-import { taskService } from '../api/taskService';
-import type { CalendarEvent, Task } from '../types';
-import './CalendarPage.scss';
+import { taskService } from "../api/taskService";
+import type { CalendarEvent, Task } from "../types";
+import "./CalendarPage.scss";
 
 export default function CalendarPage() {
   const [events, setEvents] = useState<CalendarEvent[]>([]);
@@ -23,7 +23,10 @@ export default function CalendarPage() {
   const [editOpen, setEditOpen] = useState(false);
   const [editTask, setEditTask] = useState<Task | null>(null);
 
-  const [editProjectBounds, setEditProjectBounds] = useState<{ start?: string; end?: string }>({});
+  const [editProjectBounds, setEditProjectBounds] = useState<{
+    start?: string;
+    end?: string;
+  }>({});
 
   const loadEvents = useCallback(async (start: Date, end: Date) => {
     try {
@@ -48,7 +51,7 @@ export default function CalendarPage() {
 
       setEvents(mapped);
     } catch (e) {
-      setError('Не удалось загрузить события календаря');
+      setError("Не удалось загрузить события календаря");
     } finally {
       setLoading(false);
     }
@@ -67,7 +70,7 @@ export default function CalendarPage() {
   const handleRangeChange = (range: unknown) => {
     if (Array.isArray(range)) {
       loadEvents(range[0], range[range.length - 1]);
-    } else if (range && typeof range === 'object') {
+    } else if (range && typeof range === "object") {
       const r = range as { start: Date; end: Date };
       loadEvents(r.start, r.end);
     }
@@ -80,7 +83,9 @@ export default function CalendarPage() {
       let guard = 0;
 
       while (current?.parent_task_id && guard < 20) {
-        const parent = await (taskService as any).getTask?.(current.parent_task_id);
+        const parent = await (taskService as any).getTask?.(
+          current.parent_task_id,
+        );
         if (!parent) break;
         current = parent;
         guard += 1;
@@ -120,8 +125,10 @@ export default function CalendarPage() {
       setError(null);
 
       const updateFn = (taskService as any).updateTask;
-      if (typeof updateFn !== 'function') {
-        setError('В taskService нет updateTask(). Если скинешь taskService.ts — добавлю.');
+      if (typeof updateFn !== "function") {
+        setError(
+          "В taskService нет updateTask(). Если скинешь taskService.ts — добавлю.",
+        );
         return;
       }
 
@@ -137,7 +144,7 @@ export default function CalendarPage() {
       setModalOpen(false);
       setSelectedTask(null);
     } catch (e) {
-      setError('Не удалось обновить задачу');
+      setError("Не удалось обновить задачу");
     } finally {
       setLoading(false);
     }
@@ -149,8 +156,10 @@ export default function CalendarPage() {
       setError(null);
 
       const deleteFn = (taskService as any).deleteTask;
-      if (typeof deleteFn !== 'function') {
-        setError('В taskService нет deleteTask(). Если скинешь taskService.ts — добавлю.');
+      if (typeof deleteFn !== "function") {
+        setError(
+          "В taskService нет deleteTask(). Если скинешь taskService.ts — добавлю.",
+        );
         return;
       }
 
@@ -162,18 +171,20 @@ export default function CalendarPage() {
       setModalOpen(false);
       setSelectedTask(null);
     } catch (e) {
-      setError('Не удалось удалить задачу');
+      setError("Не удалось удалить задачу");
     } finally {
       setLoading(false);
     }
   };
 
   return (
-    <div style={{ padding: '24px' }}>
-      <h1 style={{ marginBottom: '16px' }}>Календарь</h1>
+    <div style={{ padding: "24px" }}>
+      <h1 style={{ marginBottom: "16px" }}>Календарь</h1>
 
       {loading && (
-        <div style={{ display: 'flex', justifyContent: 'center', padding: '20px' }}>
+        <div
+          style={{ display: "flex", justifyContent: "center", padding: "20px" }}
+        >
           <Loader size="lg" />
         </div>
       )}

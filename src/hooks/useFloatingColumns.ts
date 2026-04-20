@@ -1,4 +1,4 @@
-import { useMemo, type CSSProperties } from 'react';
+import { useMemo, type CSSProperties } from "react";
 
 interface FloatingColumn {
   id: string;

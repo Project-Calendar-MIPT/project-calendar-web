@@ -1,5 +1,5 @@
-import React from 'react';
-import './Card.scss';
+import React from "react";
+import "./Card.scss";
 
 interface CardProps {
   title?: string;
@@ -14,12 +14,12 @@ export const Card: React.FC<CardProps> = ({
   title,
   children,
   onClick,
-  className = '',
+  className = "",
   hoverable = false,
   selected = false,
 }) => {
-  const cardClass = `card ${hoverable ? 'card--hoverable' : ''} ${
-    selected ? 'card--selected' : ''
+  const cardClass = `card ${hoverable ? "card--hoverable" : ""} ${
+    selected ? "card--selected" : ""
   } ${className}`.trim();
 
   return (

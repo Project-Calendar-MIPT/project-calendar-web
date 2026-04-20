@@ -1,13 +1,18 @@
-import React, { useEffect, useState } from 'react';
-import { useParams, useNavigate } from 'react-router-dom';
-import { apiClient } from '../api/client';
-import { Card } from '../components/ui/Card';
-import { Loader } from '../components/ui/Loader';
-import './ProfilePage.scss';
+import React, { useEffect, useState } from "react";
+import { useParams, useNavigate } from "react-router-dom";
+import { apiClient } from "../api/client";
+import { Card } from "../components/ui/Card";
+import { Loader } from "../components/ui/Loader";
+import "./ProfilePage.scss";
 
 const DAY_NAMES: Record<number, string> = {
-  1: 'Понедельник', 2: 'Вторник', 3: 'Среда',
-  4: 'Четверг', 5: 'Пятница', 6: 'Суббота', 7: 'Воскресенье',
+  1: "Понедельник",
+  2: "Вторник",
+  3: "Среда",
+  4: "Четверг",
+  5: "Пятница",
+  6: "Суббота",
+  7: "Воскресенье",
 };
 
 export const UserProfilePage: React.FC = () => {
@@ -16,7 +21,7 @@ export const UserProfilePage: React.FC = () => {
   const [user, setUser] = useState<any>(null);
   const [schedule, setSchedule] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
-  const [error, setError] = useState('');
+  const [error, setError] = useState("");
 
   useEffect(() => {
     if (!id) return;
@@ -24,12 +29,14 @@ export const UserProfilePage: React.FC = () => {
       try {
         const [userResp, schedResp] = await Promise.all([
           apiClient.get<any>(`/users/${id}`),
-          apiClient.get<any[]>(`/users/${id}/work-schedule`).catch(() => ({ data: [] })),
+          apiClient
+            .get<any[]>(`/users/${id}/work-schedule`)
+            .catch(() => ({ data: [] })),
         ]);
         setUser(userResp.data);
         setSchedule(schedResp.data || []);
       } catch {
-        setError('Пользователь не найден');
+        setError("Пользователь не найден");
       } finally {
         setLoading(false);
       }
@@ -37,31 +44,52 @@ export const UserProfilePage: React.FC = () => {
     load();
   }, [id]);
 
-  if (loading) return (
-    <>
-      <div style={{ display: 'flex', justifyContent: 'center', padding: '60px' }}>
-        <Loader />
-      </div>
-    </>
-  );
+  if (loading)
+    return (
+      <>
+        <div
+          style={{ display: "flex", justifyContent: "center", padding: "60px" }}
+        >
+          <Loader />
+        </div>
+      </>
+    );
 
-  if (error || !user) return (
-    <>
-      <div className="profile-page">
-        <p style={{ color: 'var(--color-text-secondary)' }}>{error || 'Пользователь не найден'}</p>
-        <button onClick={() => navigate(-1)} style={{ marginTop: '16px', cursor: 'pointer' }}>← Назад</button>
-      </div>
-    </>
-  );
+  if (error || !user)
+    return (
+      <>
+        <div className="profile-page">
+          <p style={{ color: "var(--color-text-secondary)" }}>
+            {error || "Пользователь не найден"}
+          </p>
+          <button
+            onClick={() => navigate(-1)}
+            style={{ marginTop: "16px", cursor: "pointer" }}
+          >
+            ← Назад
+          </button>
+        </div>
+      </>
+    );
 
-  const displayName = user.display_name || [user.surname, user.name].filter(Boolean).join(' ') || user.email;
+  const displayName =
+    user.display_name ||
+    [user.surname, user.name].filter(Boolean).join(" ") ||
+    user.email;
 
   return (
     <>
       <div className="profile-page">
         <button
           onClick={() => navigate(-1)}
-          style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--color-text-secondary)', marginBottom: '16px', fontSize: '14px' }}
+          style={{
+            background: "none",
+            border: "none",
+            cursor: "pointer",
+            color: "var(--color-text-secondary)",
+            marginBottom: "16px",
+            fontSize: "14px",
+          }}
         >
           ← Назад
         </button>
@@ -89,13 +117,17 @@ export const UserProfilePage: React.FC = () => {
               {user.telegram && (
                 <div className="profile-page__info-item">
                   <span className="profile-page__info-label">Telegram</span>
-                  <span className="profile-page__info-value">{user.telegram}</span>
+                  <span className="profile-page__info-value">
+                    {user.telegram}
+                  </span>
                 </div>
               )}
               {user.locale && (
                 <div className="profile-page__info-item">
                   <span className="profile-page__info-label">Локаль</span>
-                  <span className="profile-page__info-value">{user.locale}</span>
+                  <span className="profile-page__info-value">
+                    {user.locale}
+                  </span>
                 </div>
               )}
             </div>
@@ -115,7 +147,9 @@ export const UserProfilePage: React.FC = () => {
                         {day.start_time} — {day.end_time}
                       </span>
                     ) : (
-                      <span className="profile-page__schedule-off">Выходной</span>
+                      <span className="profile-page__schedule-off">
+                        Выходной
+                      </span>
                     )}
                   </div>
                 ))}

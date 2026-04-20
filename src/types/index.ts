@@ -1,4 +1,4 @@
-export type ExperienceLevel = 'junior' | 'middle' | 'senior';
+export type ExperienceLevel = "junior" | "middle" | "senior";
 
 export interface StackItem {
   name: string;
@@ -54,11 +54,11 @@ export interface Task {
   parent_task_id: string | null;
   title: string;
   description?: string;
-  status: 'pending' | 'in_progress' | 'completed' | 'cancelled';
-  priority: 'low' | 'medium' | 'high' | 'critical';
+  status: "pending" | "in_progress" | "completed" | "cancelled";
+  priority: "low" | "medium" | "high" | "critical";
 
-  complexity?: 'low' | 'medium' | 'high';
-  novelty?: 'low' | 'medium' | 'high';
+  complexity?: "low" | "medium" | "high";
+  novelty?: "low" | "medium" | "high";
   required_skills?: string[];
 
   is_public?: boolean;
@@ -75,7 +75,7 @@ export interface Assignment {
   id: string;
   task_id: string;
   user_id: string;
-  role: 'owner' | 'supervisor' | 'executor' | 'hybrid' | 'spectator';
+  role: "owner" | "supervisor" | "executor" | "hybrid" | "spectator";
   allocated_hours: number;
   created_at?: string;
   updated_at?: string;
@@ -97,6 +97,6 @@ export interface TasksQueryParams {
 
 export interface AssignmentData {
   user_id: string;
-  role: 'owner' | 'supervisor' | 'executor' | 'hybrid' | 'spectator';
+  role: "owner" | "supervisor" | "executor" | "hybrid" | "spectator";
   allocated_hours?: number;
 }

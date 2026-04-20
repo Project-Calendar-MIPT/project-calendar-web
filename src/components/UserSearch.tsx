@@ -1,9 +1,9 @@
-import React, { useEffect, useMemo, useRef, useState } from 'react';
-import { Input } from './ui/Input';
-import { Button } from './ui/Button';
-import { userService } from '../api/userService';
-import type { User } from '../types';
-import './UserSearch.scss';
+import React, { useEffect, useMemo, useRef, useState } from "react";
+import { Input } from "./ui/Input";
+import { Button } from "./ui/Button";
+import { userService } from "../api/userService";
+import type { User } from "../types";
+import "./UserSearch.scss";
 
 type CandidateMeta = {
   activeTasksCount?: number;
@@ -31,7 +31,7 @@ export const UserSearch: React.FC<UserSearchProps> = ({
   candidateMeta = {},
   onPreview,
 }) => {
-  const [query, setQuery] = useState('');
+  const [query, setQuery] = useState("");
   const [apiUsers, setApiUsers] = useState<User[]>([]);
   const [displayUsers, setDisplayUsers] = useState<User[]>([]);
   const [loading, setLoading] = useState(false);
@@ -73,8 +73,9 @@ export const UserSearch: React.FC<UserSearchProps> = ({
             (u) =>
               u.username.toLowerCase().includes(lowerQuery) ||
               u.email.toLowerCase().includes(lowerQuery) ||
-              (u.first_name && u.first_name.toLowerCase().includes(lowerQuery)) ||
-              (u.last_name && u.last_name.toLowerCase().includes(lowerQuery))
+              (u.first_name &&
+                u.first_name.toLowerCase().includes(lowerQuery)) ||
+              (u.last_name && u.last_name.toLowerCase().includes(lowerQuery)),
           );
         }
 
@@ -94,12 +95,14 @@ export const UserSearch: React.FC<UserSearchProps> = ({
           const bTasks = bMeta.activeTasksCount || 0;
           if (aTasks !== bTasks) return aTasks - bTasks;
 
-          return (a.last_name || a.username).localeCompare(b.last_name || b.username);
+          return (a.last_name || a.username).localeCompare(
+            b.last_name || b.username,
+          );
         });
 
         setDisplayUsers(sorted);
       } catch {
-        setError('Не удалось загрузить пользователей');
+        setError("Не удалось загрузить пользователей");
       } finally {
         setLoading(false);
       }
@@ -120,11 +123,13 @@ export const UserSearch: React.FC<UserSearchProps> = ({
 
     onSelect(user);
     setDisplayUsers([]);
-    setQuery('');
+    setQuery("");
   };
 
   const getUserDisplayName = (user: User): string =>
-    [user.last_name, user.first_name].filter(Boolean).join(' ') || user.username || 'Неизвестный пользователь';
+    [user.last_name, user.first_name].filter(Boolean).join(" ") ||
+    user.username ||
+    "Неизвестный пользователь";
 
   return (
     <div className="user-search">
@@ -148,20 +153,22 @@ export const UserSearch: React.FC<UserSearchProps> = ({
             return (
               <div
                 key={user.id}
-                className={`user-search__card ${!isAvailable ? 'user-search__card--disabled' : ''}`}
+                className={`user-search__card ${!isAvailable ? "user-search__card--disabled" : ""}`}
                 onClick={() => handleSelect(user)}
                 role="button"
                 tabIndex={0}
                 onKeyDown={(e) => {
-                  if ((e.key === 'Enter' || e.key === ' ') && isAvailable) {
+                  if ((e.key === "Enter" || e.key === " ") && isAvailable) {
                     handleSelect(user);
                   }
                 }}
               >
                 <div className="user-search__content">
-                  <div className="user-search__name">{getUserDisplayName(user)}</div>
+                  <div className="user-search__name">
+                    {getUserDisplayName(user)}
+                  </div>
                   <div className="user-search__meta">
-                    @{user.username} · {user.email || 'Нет email'}
+                    @{user.username} · {user.email || "Нет email"}
                   </div>
                   {meta.workloadLabel && (
                     <div className="user-search__workload">
@@ -170,7 +177,7 @@ export const UserSearch: React.FC<UserSearchProps> = ({
                   )}
                   {meta.matchedSkills && meta.matchedSkills.length > 0 && (
                     <div className="user-search__skills">
-                      Совпадение навыков: {meta.matchedSkills.join(', ')}
+                      Совпадение навыков: {meta.matchedSkills.join(", ")}
                     </div>
                   )}
                   {!isAvailable && (
