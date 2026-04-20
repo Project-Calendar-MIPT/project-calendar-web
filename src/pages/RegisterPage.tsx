@@ -15,24 +15,9 @@ import type {
 } from "../types";
 import "./RegisterPage.scss";
 
-const ALLOWED_EMAIL_DOMAINS = [
-  "example.com",
-  "gmail.com",
-  "yandex.ru",
-  "mail.ru",
-  "outlook.com",
-];
-
-const EMAIL_ALLOWED_DOMAINS_REGEX = new RegExp(
-  `^[A-Za-z0-9._%+-]+@(?:${ALLOWED_EMAIL_DOMAINS.map((domain) => domain.replace(".", "\\.")).join("|")})$`,
-  "i",
-);
 const USERNAME_ALLOWED_REGEX = /^[A-Za-z0-9._-]+$/;
 const EMAIL_ALLOWED_CHARACTERS_REGEX = /^[A-Za-z0-9._%+\-@]*$/;
 const EMAIL_FORMAT_REGEX = /^[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}$/;
-
-const PASSWORD_DIGIT_REGEX = /\d/;
-const PASSWORD_SPECIAL_CHAR_REGEX = /[!"#$%&'()*+,\-./:;<=>?@[\\\]^_`{|}~]/;
 const PASSWORD_ALLOWED_CHARACTERS_REGEX =
   /^[A-Za-z0-9!"#$%&'()*+,\-./:;<=>?@[\\\]^_`{|}~]+$/;
 const EXPERIENCE_LEVELS: ExperienceLevel[] = ["junior", "middle", "senior"];
@@ -69,18 +54,6 @@ type StackSelectionItem = StackItem & {
   custom_level: boolean;
 };
 
-type PasswordRules = {
-  hasMinLength: boolean;
-  hasDigit: boolean;
-  hasSpecialChar: boolean;
-};
-
-const getPasswordRules = (password: string): PasswordRules => ({
-  hasMinLength: password.length >= 8,
-  hasDigit: PASSWORD_DIGIT_REGEX.test(password),
-  hasSpecialChar: PASSWORD_SPECIAL_CHAR_REGEX.test(password),
-});
-
 const capitalizeWord = (word: string): string => {
   if (!word) return word;
   return `${word.charAt(0).toLocaleUpperCase("ru-RU")}${word.slice(1).toLocaleLowerCase("ru-RU")}`;
@@ -96,29 +69,11 @@ const normalizeFioValue = (value: string): string => {
     .join(" ");
 };
 
-const getPasswordStrength = (
-  rules: PasswordRules,
-): { score: number; label: string; tone: string } => {
-  const score =
-    Number(rules.hasMinLength) +
-    Number(rules.hasDigit) +
-    Number(rules.hasSpecialChar);
-
-  if (score <= 1) {
-    return { score, label: "Слабый", tone: "weak" };
-  }
-
-  if (score === 2) {
-    return { score, label: "Средний", tone: "medium" };
-  }
-
-  return { score, label: "Сильный", tone: "strong" };
-};
-
 const RegisterPage: React.FC = () => {
   const navigate = useNavigate();
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
+  const [emailSent, setEmailSent] = useState(false);
 
   const [formData, setFormData] = useState({
     username: "",
@@ -144,8 +99,6 @@ const RegisterPage: React.FC = () => {
   const [totalWorkingHours, setTotalWorkingHours] = useState(40);
   const [showPassword, setShowPassword] = useState(false);
   const [customTechnology, setCustomTechnology] = useState("");
-  const passwordRules = getPasswordRules(formData.password);
-  const passwordStrength = getPasswordStrength(passwordRules);
 
   const validateField = (
     field: keyof typeof formData,
@@ -168,21 +121,11 @@ const RegisterPage: React.FC = () => {
         if (!EMAIL_FORMAT_REGEX.test(value)) {
           return "Неверный формат email. Пример: user@example.com";
         }
-        if (!EMAIL_ALLOWED_DOMAINS_REGEX.test(value)) {
-          return `Разрешены только домены: ${ALLOWED_EMAIL_DOMAINS.join(", ")}`;
-        }
         return "";
       case "password":
         if (!value) return "Пароль обязателен";
         if (!PASSWORD_ALLOWED_CHARACTERS_REGEX.test(value)) {
           return "Допустимы только латинские буквы, цифры и спецсимволы клавиатуры";
-        }
-        if (value.length < 8)
-          return "Пароль должен содержать минимум 8 символов";
-        if (!PASSWORD_DIGIT_REGEX.test(value))
-          return "Пароль должен содержать минимум одну цифру";
-        if (!PASSWORD_SPECIAL_CHAR_REGEX.test(value)) {
-          return "Пароль должен содержать минимум один спецсимвол";
         }
         return "";
       case "last_name":
@@ -295,8 +238,12 @@ const RegisterPage: React.FC = () => {
         work_schedule: workSchedule,
       };
 
-      await authService.register(registerData);
-      navigate("/");
+      const result = await authService.register(registerData);
+      if ("emailSent" in result) {
+        setEmailSent(true);
+      } else {
+        navigate("/");
+      }
     } catch (err: any) {
       setError(err.response?.data?.message || "Ошибка при регистрации");
     } finally {
@@ -495,6 +442,35 @@ const RegisterPage: React.FC = () => {
     </svg>
   );
 
+  if (emailSent) {
+    return (
+      <div className="register-page">
+        <div className="register-page__background" aria-hidden="true">
+          {adjustedColumns.map((column) => (
+            <div
+              key={column.id}
+              className="register-page__column"
+              style={column.style}
+            />
+          ))}
+        </div>
+        <Card className="register-page__card">
+          <div className="register-page__header">
+            <h1>Проверьте почту</h1>
+            <p>
+              Мы отправили письмо с ссылкой для подтверждения на{" "}
+              <strong>{formData.email}</strong>. Перейдите по ссылке в письме,
+              чтобы активировать аккаунт.
+            </p>
+          </div>
+          <div className="register-page__footer">
+            <Link to="/login">Перейти на страницу входа</Link>
+          </div>
+        </Card>
+      </div>
+    );
+  }
+
   return (
     <div className="register-page">
       <div className="register-page__background" aria-hidden="true">
@@ -557,44 +533,6 @@ const RegisterPage: React.FC = () => {
               }
               required
             />
-
-            {formData.password && (
-              <div
-                className="register-page__password-strength"
-                aria-live="polite"
-              >
-                <div className="register-page__password-strength-header">
-                  <span>Надежность пароля: {passwordStrength.label}</span>
-                  <span>{passwordStrength.score}/3</span>
-                </div>
-                <div
-                  className="register-page__password-strength-track"
-                  aria-hidden="true"
-                >
-                  <div
-                    className={`register-page__password-strength-fill register-page__password-strength-fill--${passwordStrength.tone}`}
-                    style={{ width: `${(passwordStrength.score / 3) * 100}%` }}
-                  />
-                </div>
-                <ul className="register-page__password-checklist">
-                  <li
-                    className={`register-page__password-checkitem ${passwordRules.hasMinLength ? "register-page__password-checkitem--ok" : ""}`}
-                  >
-                    Минимум 8 символов
-                  </li>
-                  <li
-                    className={`register-page__password-checkitem ${passwordRules.hasDigit ? "register-page__password-checkitem--ok" : ""}`}
-                  >
-                    Минимум одна цифра
-                  </li>
-                  <li
-                    className={`register-page__password-checkitem ${passwordRules.hasSpecialChar ? "register-page__password-checkitem--ok" : ""}`}
-                  >
-                    Минимум один спецсимвол
-                  </li>
-                </ul>
-              </div>
-            )}
           </div>
 
           <div className="register-page__section">
