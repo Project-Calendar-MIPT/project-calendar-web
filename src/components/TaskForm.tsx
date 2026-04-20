@@ -1,13 +1,13 @@
-import React, { useEffect, useMemo, useState } from 'react';
-import { Input } from './ui/Input';
-import { Select } from './ui/Select';
-import { Button } from './ui/Button';
-import { Modal } from './ui/Modal';
-import type { Task, User } from '../types';
-import { taskService } from '../api/taskService';
-import { assignmentService } from '../api/assignmentService';
-import { apiClient } from '../api/client';
-import './TaskForm.scss';
+import React, { useEffect, useMemo, useState } from "react";
+import { Input } from "./ui/Input";
+import { Select } from "./ui/Select";
+import { Button } from "./ui/Button";
+import { Modal } from "./ui/Modal";
+import type { Task, User } from "../types";
+import { taskService } from "../api/taskService";
+import { assignmentService } from "../api/assignmentService";
+import { apiClient } from "../api/client";
+import "./TaskForm.scss";
 
 interface TaskFormProps {
   onSubmit: (data: any) => void;
@@ -26,22 +26,22 @@ type CandidateProfile = {
 };
 
 const PRIORITY_OPTIONS = [
-  { value: 'low', label: 'Низкий' },
-  { value: 'medium', label: 'Средний' },
-  { value: 'high', label: 'Высокий' },
-  { value: 'critical', label: 'Критический' },
+  { value: "low", label: "Низкий" },
+  { value: "medium", label: "Средний" },
+  { value: "high", label: "Высокий" },
+  { value: "critical", label: "Критический" },
 ];
 
 const COMPLEXITY_OPTIONS = [
-  { value: 'low', label: 'Низкая' },
-  { value: 'medium', label: 'Средняя' },
-  { value: 'high', label: 'Высокая' },
+  { value: "low", label: "Низкая" },
+  { value: "medium", label: "Средняя" },
+  { value: "high", label: "Высокая" },
 ];
 
 const NOVELTY_OPTIONS = [
-  { value: 'low', label: 'Низкая' },
-  { value: 'medium', label: 'Средняя' },
-  { value: 'high', label: 'Высокая' },
+  { value: "low", label: "Низкая" },
+  { value: "medium", label: "Средняя" },
+  { value: "high", label: "Высокая" },
 ];
 
 const calculateDaysDiff = (startDate: string, endDate: string): number => {
@@ -54,10 +54,10 @@ const calculateDaysDiff = (startDate: string, endDate: string): number => {
 };
 
 const addDaysToDate = (dateStr: string, days: number): string => {
-  if (!dateStr) return '';
+  if (!dateStr) return "";
   const date = new Date(dateStr);
   date.setDate(date.getDate() + days);
-  return date.toISOString().split('T')[0];
+  return date.toISOString().split("T")[0];
 };
 
 const normalizeRange = (start?: string, end?: string) => {
@@ -65,8 +65,8 @@ const normalizeRange = (start?: string, end?: string) => {
     return null;
   }
 
-  const normalizedStart = start || end || '';
-  const normalizedEnd = end || start || '';
+  const normalizedStart = start || end || "";
+  const normalizedEnd = end || start || "";
 
   if (!normalizedStart || !normalizedEnd) {
     return null;
@@ -81,7 +81,7 @@ const hasDateOverlap = (
   aStart?: string,
   aEnd?: string,
   bStart?: string,
-  bEnd?: string
+  bEnd?: string,
 ): boolean => {
   const first = normalizeRange(aStart, aEnd);
   const second = normalizeRange(bStart, bEnd);
@@ -103,25 +103,28 @@ export const TaskForm: React.FC<TaskFormProps> = ({
   projectId,
 }) => {
   const [formData, setFormData] = useState({
-    title: task?.title || '',
-    description: task?.description || '',
-    start_date: task?.start_date || '',
-    end_date: task?.end_date || '',
+    title: task?.title || "",
+    description: task?.description || "",
+    start_date: task?.start_date || "",
+    end_date: task?.end_date || "",
     duration_days: task?.duration_days || 0,
-    priority: task?.priority || 'medium',
+    priority: task?.priority || "medium",
     estimated_hours: task?.estimated_hours || 0,
-    complexity: task?.complexity || 'medium',
-    novelty: task?.novelty || 'medium',
-    assignee_id: '',
+    complexity: task?.complexity || "medium",
+    novelty: task?.novelty || "medium",
+    assignee_id: "",
   });
 
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [touched, setTouched] = useState<Record<string, boolean>>({});
-  const [lastChangedField, setLastChangedField] =
-    useState<'start' | 'end' | 'duration' | null>(null);
+  const [lastChangedField, setLastChangedField] = useState<
+    "start" | "end" | "duration" | null
+  >(null);
 
   const [availableUsers, setAvailableUsers] = useState<User[]>([]);
-  const [candidateProfiles, setCandidateProfiles] = useState<Record<string, CandidateProfile>>({});
+  const [candidateProfiles, setCandidateProfiles] = useState<
+    Record<string, CandidateProfile>
+  >({});
   const [loadingCandidates, setLoadingCandidates] = useState(false);
   const [profileUserId, setProfileUserId] = useState<string | null>(null);
 
@@ -140,21 +143,43 @@ export const TaskForm: React.FC<TaskFormProps> = ({
   };
 
   useEffect(() => {
-    if (lastChangedField === 'start' && formData.start_date && formData.duration_days > 0) {
-      const newEndDate = addDaysToDate(formData.start_date, formData.duration_days);
+    if (
+      lastChangedField === "start" &&
+      formData.start_date &&
+      formData.duration_days > 0
+    ) {
+      const newEndDate = addDaysToDate(
+        formData.start_date,
+        formData.duration_days,
+      );
       setFormData((prev) => ({ ...prev, end_date: newEndDate }));
-    } else if (lastChangedField === 'end' && formData.start_date && formData.end_date) {
-      const newDuration = calculateDaysDiff(formData.start_date, formData.end_date);
+    } else if (
+      lastChangedField === "end" &&
+      formData.start_date &&
+      formData.end_date
+    ) {
+      const newDuration = calculateDaysDiff(
+        formData.start_date,
+        formData.end_date,
+      );
       setFormData((prev) => ({ ...prev, duration_days: newDuration }));
     } else if (
-      lastChangedField === 'duration' &&
+      lastChangedField === "duration" &&
       formData.start_date &&
       formData.duration_days >= 0
     ) {
-      const newEndDate = addDaysToDate(formData.start_date, formData.duration_days);
+      const newEndDate = addDaysToDate(
+        formData.start_date,
+        formData.duration_days,
+      );
       setFormData((prev) => ({ ...prev, end_date: newEndDate }));
     }
-  }, [formData.start_date, formData.end_date, formData.duration_days, lastChangedField]);
+  }, [
+    formData.start_date,
+    formData.end_date,
+    formData.duration_days,
+    lastChangedField,
+  ]);
 
   useEffect(() => {
     let cancelled = false;
@@ -165,14 +190,14 @@ export const TaskForm: React.FC<TaskFormProps> = ({
       try {
         const assignments = await taskService.getTaskAssignments(task.id);
         const executor = assignments.find(
-          (assignment: any) => assignment.role === 'executor'
+          (assignment: any) => assignment.role === "executor",
         );
 
         if (!cancelled && executor?.user_id) {
           setFormData((prev) => ({ ...prev, assignee_id: executor.user_id }));
         }
       } catch (err) {
-        console.error('Ошибка при загрузке текущего исполнителя:', err);
+        console.error("Ошибка при загрузке текущего исполнителя:", err);
       }
     };
 
@@ -200,7 +225,9 @@ export const TaskForm: React.FC<TaskFormProps> = ({
 
         const [allTasks, projectAssignments] = await Promise.all([
           taskService.getTasks(),
-          projectId ? assignmentService.getAssignments(projectId) : Promise.resolve([]),
+          projectId
+            ? assignmentService.getAssignments(projectId)
+            : Promise.resolve([]),
         ]);
 
         const projectMemberIds = projectAssignments.map((a) => a.user_id);
@@ -213,15 +240,17 @@ export const TaskForm: React.FC<TaskFormProps> = ({
               const u = resp.data;
               return {
                 id: uid,
-                username: u.display_name ?? u.email ?? '',
-                email: u.email ?? '',
-                first_name: u.name ?? '',
-                last_name: u.surname ?? '',
-                timezone: u.timezone ?? 'Europe/Moscow',
+                username: u.display_name ?? u.email ?? "",
+                email: u.email ?? "",
+                first_name: u.name ?? "",
+                last_name: u.surname ?? "",
+                timezone: u.timezone ?? "Europe/Moscow",
                 contacts_visible: true,
               } as User;
-            } catch { return null; }
-          })
+            } catch {
+              return null;
+            }
+          }),
         );
         const baseUsers = memberUsersRaw.filter(Boolean) as User[];
 
@@ -229,26 +258,36 @@ export const TaskForm: React.FC<TaskFormProps> = ({
         const nextAvailableUsers: User[] = [];
 
         // Collect all assignments across project tasks
-        const allAssignmentsForProject: typeof projectAssignments = [...projectAssignments];
-        for (const t of allTasks.filter((t) => projectMemberIds.length > 0 || t.parent_task_id)) {
+        const allAssignmentsForProject: typeof projectAssignments = [
+          ...projectAssignments,
+        ];
+        for (const t of allTasks.filter(
+          (t) => projectMemberIds.length > 0 || t.parent_task_id,
+        )) {
           try {
             const ta = await assignmentService.getAssignments(t.id);
             allAssignmentsForProject.push(...ta);
-          } catch { /* skip */ }
+          } catch {
+            /* skip */
+          }
         }
 
         for (const user of baseUsers) {
-          const userAssignments = allAssignmentsForProject.filter((assignment) => assignment.user_id === user.id);
+          const userAssignments = allAssignmentsForProject.filter(
+            (assignment) => assignment.user_id === user.id,
+          );
 
           const activeTasks = userAssignments
-            .map((assignment) => allTasks.find((item) => item.id === assignment.task_id))
+            .map((assignment) =>
+              allTasks.find((item) => item.id === assignment.task_id),
+            )
             .filter((item): item is Task => Boolean(item))
             .filter(
               (item) =>
                 item.id !== task?.id &&
                 item.parent_task_id !== null &&
-                item.status !== 'completed' &&
-                item.status !== 'cancelled'
+                item.status !== "completed" &&
+                item.status !== "cancelled",
             );
 
           const overlappingTasks = activeTasks.filter((item) =>
@@ -256,8 +295,8 @@ export const TaskForm: React.FC<TaskFormProps> = ({
               formData.start_date,
               formData.end_date,
               item.start_date,
-              item.end_date
-            )
+              item.end_date,
+            ),
           );
 
           nextProfiles[user.id] = {
@@ -277,12 +316,14 @@ export const TaskForm: React.FC<TaskFormProps> = ({
 
           setFormData((prev) => {
             if (!prev.assignee_id) return prev;
-            const stillAvailable = nextAvailableUsers.some((user) => user.id === prev.assignee_id);
-            return stillAvailable ? prev : { ...prev, assignee_id: '' };
+            const stillAvailable = nextAvailableUsers.some(
+              (user) => user.id === prev.assignee_id,
+            );
+            return stillAvailable ? prev : { ...prev, assignee_id: "" };
           });
         }
       } catch (err) {
-        console.error('Ошибка при подборе доступных сотрудников:', err);
+        console.error("Ошибка при подборе доступных сотрудников:", err);
       } finally {
         if (!cancelled) {
           setLoadingCandidates(false);
@@ -295,57 +336,73 @@ export const TaskForm: React.FC<TaskFormProps> = ({
     return () => {
       cancelled = true;
     };
-  }, [formData.start_date, formData.end_date, hasDates, isProject, projectId, task?.id]);
+  }, [
+    formData.start_date,
+    formData.end_date,
+    hasDates,
+    isProject,
+    projectId,
+    task?.id,
+  ]);
 
   const validateField = (field: string, value: any): string => {
     switch (field) {
-      case 'title':
-        if (!value.trim()) return 'Название обязательно';
-        return '';
+      case "title":
+        if (!value.trim()) return "Название обязательно";
+        return "";
 
-      case 'description':
-        if (!value.trim()) return 'Описание обязательно';
-        return '';
+      case "description":
+        if (!value.trim()) return "Описание обязательно";
+        return "";
 
-      case 'start_date':
+      case "start_date":
         if (value && formData.end_date && value > formData.end_date) {
-          return 'Дата начала не может быть позже даты окончания';
+          return "Дата начала не может быть позже даты окончания";
         }
-        if ((projectStartDate || projectEndDate) && value && !isWithinProjectBounds(value)) {
-          return 'Дата начала выходит за пределы дат проекта';
+        if (
+          (projectStartDate || projectEndDate) &&
+          value &&
+          !isWithinProjectBounds(value)
+        ) {
+          return "Дата начала выходит за пределы дат проекта";
         }
-        return '';
+        return "";
 
-      case 'end_date':
+      case "end_date":
         if (value && formData.start_date && value < formData.start_date) {
-          return 'Дата окончания не может быть раньше даты начала';
+          return "Дата окончания не может быть раньше даты начала";
         }
-        if ((projectStartDate || projectEndDate) && value && !isWithinProjectBounds(value)) {
-          return 'Дата окончания выходит за пределы дат проекта';
+        if (
+          (projectStartDate || projectEndDate) &&
+          value &&
+          !isWithinProjectBounds(value)
+        ) {
+          return "Дата окончания выходит за пределы дат проекта";
         }
-        return '';
+        return "";
 
-      case 'estimated_hours':
-        if (value < 0) return 'Количество часов не может быть отрицательным';
-        return '';
+      case "estimated_hours":
+        if (value < 0) return "Количество часов не может быть отрицательным";
+        return "";
 
-      case 'duration_days':
-        if (value < 0) return 'Длительность не может быть отрицательной';
-        return '';
+      case "duration_days":
+        if (value < 0) return "Длительность не может быть отрицательной";
+        return "";
 
-      case 'assignee_id':
+      case "assignee_id":
         if (!isProject && hasDates && !value) {
-          return 'При наличии дат нужно выбрать исполнителя';
+          return "При наличии дат нужно выбрать исполнителя";
         }
-        return '';
+        return "";
 
       default:
-        return '';
+        return "";
     }
   };
 
   const handleInputChange =
-    (field: string) => (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
+    (field: string) =>
+    (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
       const value = e.target.value;
       setFormData({ ...formData, [field]: value });
 
@@ -356,10 +413,11 @@ export const TaskForm: React.FC<TaskFormProps> = ({
     };
 
   const handleDateChange =
-    (field: 'start_date' | 'end_date') => (e: React.ChangeEvent<HTMLInputElement>) => {
+    (field: "start_date" | "end_date") =>
+    (e: React.ChangeEvent<HTMLInputElement>) => {
       const value = e.target.value;
       setFormData({ ...formData, [field]: value });
-      setLastChangedField(field === 'start_date' ? 'start' : 'end');
+      setLastChangedField(field === "start_date" ? "start" : "end");
 
       if (touched[field]) {
         const error = validateField(field, value);
@@ -367,7 +425,7 @@ export const TaskForm: React.FC<TaskFormProps> = ({
       }
 
       if (touched.assignee_id) {
-        const error = validateField('assignee_id', formData.assignee_id);
+        const error = validateField("assignee_id", formData.assignee_id);
         setErrors((prev) => ({ ...prev, assignee_id: error }));
       }
     };
@@ -376,10 +434,10 @@ export const TaskForm: React.FC<TaskFormProps> = ({
     const value = parseInt(e.target.value) || 0;
     const safe = Math.max(0, value);
     setFormData({ ...formData, duration_days: safe });
-    setLastChangedField('duration');
+    setLastChangedField("duration");
 
     if (touched.duration_days) {
-      const error = validateField('duration_days', safe);
+      const error = validateField("duration_days", safe);
       setErrors((prev) => ({ ...prev, duration_days: error }));
     }
   };
@@ -392,13 +450,13 @@ export const TaskForm: React.FC<TaskFormProps> = ({
 
   const handleHoursChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const raw = e.target.value;
-    const num = raw === '' ? 0 : Number(raw);
+    const num = raw === "" ? 0 : Number(raw);
     const safe = Number.isFinite(num) ? Math.max(0, num) : 0;
 
     setFormData((prev) => ({ ...prev, estimated_hours: safe }));
 
     if (touched.estimated_hours) {
-      const error = validateField('estimated_hours', safe);
+      const error = validateField("estimated_hours", safe);
       setErrors((prev) => ({ ...prev, estimated_hours: error }));
     }
   };
@@ -408,7 +466,7 @@ export const TaskForm: React.FC<TaskFormProps> = ({
     setFormData((prev) => ({ ...prev, assignee_id: value }));
 
     if (touched.assignee_id) {
-      const error = validateField('assignee_id', value);
+      const error = validateField("assignee_id", value);
       setErrors((prev) => ({ ...prev, assignee_id: error }));
     }
   };
@@ -424,13 +482,18 @@ export const TaskForm: React.FC<TaskFormProps> = ({
 
     if (Object.keys(newErrors).length > 0) {
       setErrors(newErrors);
-      setTouched(Object.keys(formData).reduce((acc, key) => ({ ...acc, [key]: true }), {}));
+      setTouched(
+        Object.keys(formData).reduce(
+          (acc, key) => ({ ...acc, [key]: true }),
+          {},
+        ),
+      );
       return;
     }
 
     onSubmit({
       ...formData,
-      assignee_id: hasDates ? formData.assignee_id : '',
+      assignee_id: hasDates ? formData.assignee_id : "",
     });
   };
 
@@ -441,8 +504,8 @@ export const TaskForm: React.FC<TaskFormProps> = ({
           label="Название"
           type="text"
           value={formData.title}
-          onChange={handleInputChange('title')}
-          onBlur={handleBlur('title')}
+          onChange={handleInputChange("title")}
+          onBlur={handleBlur("title")}
           error={errors.title}
           required
         />
@@ -451,8 +514,8 @@ export const TaskForm: React.FC<TaskFormProps> = ({
           label="Описание"
           type="textarea"
           value={formData.description}
-          onChange={handleInputChange('description')}
-          onBlur={handleBlur('description')}
+          onChange={handleInputChange("description")}
+          onBlur={handleBlur("description")}
           error={errors.description}
           isTextarea
           required
@@ -463,8 +526,8 @@ export const TaskForm: React.FC<TaskFormProps> = ({
             label="Дата начала"
             type="date"
             value={formData.start_date}
-            onChange={handleDateChange('start_date')}
-            onBlur={handleBlur('start_date')}
+            onChange={handleDateChange("start_date")}
+            onBlur={handleBlur("start_date")}
             error={errors.start_date}
           />
 
@@ -473,7 +536,7 @@ export const TaskForm: React.FC<TaskFormProps> = ({
             type="number"
             value={formData.duration_days.toString()}
             onChange={handleDurationChange}
-            onBlur={handleBlur('duration_days')}
+            onBlur={handleBlur("duration_days")}
             error={errors.duration_days}
             min="0"
             step="1"
@@ -483,8 +546,8 @@ export const TaskForm: React.FC<TaskFormProps> = ({
             label="Дата окончания"
             type="date"
             value={formData.end_date}
-            onChange={handleDateChange('end_date')}
-            onBlur={handleBlur('end_date')}
+            onChange={handleDateChange("end_date")}
+            onBlur={handleBlur("end_date")}
             error={errors.end_date}
           />
         </div>
@@ -495,7 +558,10 @@ export const TaskForm: React.FC<TaskFormProps> = ({
               label="Исполнитель"
               options={availableUsers.map((user) => ({
                 value: user.id,
-                label: [user.last_name, user.first_name].filter(Boolean).join(' ') || user.username || user.email,
+                label:
+                  [user.last_name, user.first_name].filter(Boolean).join(" ") ||
+                  user.username ||
+                  user.email,
               }))}
               value={formData.assignee_id}
               onChange={handleAssigneeChange}
@@ -505,10 +571,10 @@ export const TaskForm: React.FC<TaskFormProps> = ({
 
             <div className="task-form__availability-note">
               {loadingCandidates
-                ? 'Подбираем доступных сотрудников...'
+                ? "Подбираем доступных сотрудников..."
                 : availableUsers.length > 0
                   ? `Доступно сотрудников: ${availableUsers.length}`
-                  : 'Нет свободных сотрудников на выбранный период'}
+                  : "Нет свободных сотрудников на выбранный период"}
             </div>
 
             <div className="task-form__candidate-actions">
@@ -530,7 +596,12 @@ export const TaskForm: React.FC<TaskFormProps> = ({
             options={PRIORITY_OPTIONS}
             value={formData.priority}
             includePlaceholder={false}
-            onChange={(e) => setFormData((prev) => ({ ...prev, priority: e.target.value as any }))}
+            onChange={(e) =>
+              setFormData((prev) => ({
+                ...prev,
+                priority: e.target.value as any,
+              }))
+            }
           />
         )}
 
@@ -551,7 +622,10 @@ export const TaskForm: React.FC<TaskFormProps> = ({
             value={formData.complexity}
             includePlaceholder={false}
             onChange={(e) =>
-              setFormData((prev) => ({ ...prev, complexity: e.target.value as any }))
+              setFormData((prev) => ({
+                ...prev,
+                complexity: e.target.value as any,
+              }))
             }
           />
         </div>
@@ -572,7 +646,12 @@ export const TaskForm: React.FC<TaskFormProps> = ({
             options={NOVELTY_OPTIONS}
             value={formData.novelty}
             includePlaceholder={false}
-            onChange={(e) => setFormData((prev) => ({ ...prev, novelty: e.target.value as any }))}
+            onChange={(e) =>
+              setFormData((prev) => ({
+                ...prev,
+                novelty: e.target.value as any,
+              }))
+            }
           />
         </div>
 
@@ -581,7 +660,7 @@ export const TaskForm: React.FC<TaskFormProps> = ({
           type="number"
           value={formData.estimated_hours.toString()}
           onChange={handleHoursChange}
-          onBlur={handleBlur('estimated_hours')}
+          onBlur={handleBlur("estimated_hours")}
           error={errors.estimated_hours}
           min="0"
           step="1"
@@ -607,7 +686,14 @@ export const TaskForm: React.FC<TaskFormProps> = ({
           <div className="candidate-profile">
             <div className="candidate-profile__row">
               <span className="candidate-profile__label">ФИО:</span>
-              <span>{[selectedProfile.user.last_name, selectedProfile.user.first_name].filter(Boolean).join(' ') || selectedProfile.user.username}</span>
+              <span>
+                {[
+                  selectedProfile.user.last_name,
+                  selectedProfile.user.first_name,
+                ]
+                  .filter(Boolean)
+                  .join(" ") || selectedProfile.user.username}
+              </span>
             </div>
             <div className="candidate-profile__row">
               <span className="candidate-profile__label">Логин:</span>
@@ -638,7 +724,9 @@ export const TaskForm: React.FC<TaskFormProps> = ({
                     </div>
                   ))
                 ) : (
-                  <span className="candidate-profile__empty">Нет активных задач</span>
+                  <span className="candidate-profile__empty">
+                    Нет активных задач
+                  </span>
                 )}
               </div>
             </div>

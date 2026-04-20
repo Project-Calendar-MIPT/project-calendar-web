@@ -1,31 +1,31 @@
-import React, { useEffect, useState } from 'react';
-import { Card } from '../components/ui/Card';
-import { Loader } from '../components/ui/Loader';
-import type { User, Task, WorkScheduleDay } from '../types';
-import { apiClient } from '../api/client';
-import { authService } from '../api/authService';
-import './ProfilePage.scss';
+import React, { useEffect, useState } from "react";
+import { Card } from "../components/ui/Card";
+import { Loader } from "../components/ui/Loader";
+import type { User, Task, WorkScheduleDay } from "../types";
+import { apiClient } from "../api/client";
+import { authService } from "../api/authService";
+import "./ProfilePage.scss";
 
 const DAY_NAMES: Record<number, string> = {
-  1: 'Понедельник',
-  2: 'Вторник',
-  3: 'Среда',
-  4: 'Четверг',
-  5: 'Пятница',
-  6: 'Суббота',
-  7: 'Воскресенье',
+  1: "Понедельник",
+  2: "Вторник",
+  3: "Среда",
+  4: "Четверг",
+  5: "Пятница",
+  6: "Суббота",
+  7: "Воскресенье",
 };
 
-const formatStatusLabel = (status: Task['status'] | string) => {
+const formatStatusLabel = (status: Task["status"] | string) => {
   switch (status) {
-    case 'pending':
-      return 'Ожидает';
-    case 'in_progress':
-      return 'В работе';
-    case 'completed':
-      return 'Выполнено';
-    case 'cancelled':
-      return 'Отменено';
+    case "pending":
+      return "Ожидает";
+    case "in_progress":
+      return "В работе";
+    case "completed":
+      return "Выполнено";
+    case "cancelled":
+      return "Отменено";
     default:
       return String(status);
   }
@@ -33,15 +33,15 @@ const formatStatusLabel = (status: Task['status'] | string) => {
 
 const getAllocatedHours = (task: Task): number => {
   const raw = (task as any).allocated_hours;
-  if (typeof raw === 'number') return raw;
-  if (typeof raw === 'string') {
+  if (typeof raw === "number") return raw;
+  if (typeof raw === "string") {
     const parsed = Number(raw);
     return Number.isFinite(parsed) ? parsed : 0;
   }
   return task.estimated_hours || 0;
 };
 
-const getTaskUrgency = (task: Task): 'overdue' | null => {
+const getTaskUrgency = (task: Task): "overdue" | null => {
   if (!task.end_date) return null;
 
   const today = new Date();
@@ -50,49 +50,74 @@ const getTaskUrgency = (task: Task): 'overdue' | null => {
   const endDate = new Date(task.end_date);
   endDate.setHours(0, 0, 0, 0);
 
-  if (endDate < today) return 'overdue';
+  if (endDate < today) return "overdue";
 
   return null;
 };
 
-const formatUrgencyLabel = (urgency: 'overdue' | null): string => {
+const formatUrgencyLabel = (urgency: "overdue" | null): string => {
   switch (urgency) {
-    case 'overdue':
-      return 'Просрочено';
+    case "overdue":
+      return "Просрочено";
     default:
-      return '';
+      return "";
   }
 };
 
 const EXPERIENCE_LABELS: Record<string, string> = {
-  junior: 'Junior',
-  middle: 'Middle',
-  senior: 'Senior',
+  junior: "Junior",
+  middle: "Middle",
+  senior: "Senior",
 };
 
-const formatStackLabel = (stack: User['stack']): string => {
-  if (!stack || stack.length === 0) return '—';
+const formatStackLabel = (stack: User["stack"]): string => {
+  if (!stack || stack.length === 0) return "—";
 
   return stack
     .map((item: any) => {
-      if (typeof item === 'string') {
+      if (typeof item === "string") {
         return item;
       }
 
       const level = item?.experience_level
         ? EXPERIENCE_LABELS[item.experience_level] || item.experience_level
-        : '—';
-      return `${item?.name || '—'} (${level})`;
+        : "—";
+      return `${item?.name || "—"} (${level})`;
     })
-    .join(', ');
+    .join(", ");
 };
 
 const DEFAULT_WORK_SCHEDULE: WorkScheduleDay[] = [
-  { day_of_week: 1, is_working_day: true, start_time: '09:00', end_time: '18:00' },
-  { day_of_week: 2, is_working_day: true, start_time: '09:00', end_time: '18:00' },
-  { day_of_week: 3, is_working_day: true, start_time: '09:00', end_time: '18:00' },
-  { day_of_week: 4, is_working_day: true, start_time: '09:00', end_time: '18:00' },
-  { day_of_week: 5, is_working_day: true, start_time: '09:00', end_time: '18:00' },
+  {
+    day_of_week: 1,
+    is_working_day: true,
+    start_time: "09:00",
+    end_time: "18:00",
+  },
+  {
+    day_of_week: 2,
+    is_working_day: true,
+    start_time: "09:00",
+    end_time: "18:00",
+  },
+  {
+    day_of_week: 3,
+    is_working_day: true,
+    start_time: "09:00",
+    end_time: "18:00",
+  },
+  {
+    day_of_week: 4,
+    is_working_day: true,
+    start_time: "09:00",
+    end_time: "18:00",
+  },
+  {
+    day_of_week: 5,
+    is_working_day: true,
+    start_time: "09:00",
+    end_time: "18:00",
+  },
   { day_of_week: 6, is_working_day: false },
   { day_of_week: 7, is_working_day: false },
 ];
@@ -106,28 +131,30 @@ async function loadProfileData(): Promise<{
 
   const [workScheduleResp, tasksResp] = await Promise.allSettled([
     apiClient.get<WorkScheduleDay[]>(`/users/${user.id}/work-schedule`),
-    apiClient.get<Task[]>('/tasks', { params: { assigned_to: 'me' } }),
+    apiClient.get<Task[]>("/tasks", { params: { assigned_to: "me" } }),
   ]);
 
   const workSchedule =
-    workScheduleResp.status === 'fulfilled' && workScheduleResp.value.data
+    workScheduleResp.status === "fulfilled" && workScheduleResp.value.data
       ? workScheduleResp.value.data
       : DEFAULT_WORK_SCHEDULE;
 
   const tasks =
-    tasksResp.status === 'fulfilled' && tasksResp.value.data ? tasksResp.value.data : [];
+    tasksResp.status === "fulfilled" && tasksResp.value.data
+      ? tasksResp.value.data
+      : [];
 
   return { user, workSchedule, tasks };
 }
 
-type ProfileTabId = 'info' | 'schedule' | 'stats' | 'projects' | 'tasks';
+type ProfileTabId = "info" | "schedule" | "stats" | "projects" | "tasks";
 
 const PROFILE_TABS: { id: ProfileTabId; label: string }[] = [
-  { id: 'info', label: 'Профиль' },
-  { id: 'schedule', label: 'Расписание' },
-  { id: 'stats', label: 'Статистика' },
-  { id: 'projects', label: 'Мои проекты' },
-  { id: 'tasks', label: 'Мои задачи' },
+  { id: "info", label: "Профиль" },
+  { id: "schedule", label: "Расписание" },
+  { id: "stats", label: "Статистика" },
+  { id: "projects", label: "Мои проекты" },
+  { id: "tasks", label: "Мои задачи" },
 ];
 
 export const ProfilePage: React.FC = () => {
@@ -136,7 +163,7 @@ export const ProfilePage: React.FC = () => {
   const [tasks, setTasks] = useState<Task[]>([]);
   const [selectedDay, setSelectedDay] = useState<number | null>(null);
 
-  const [activeTab, setActiveTab] = useState<ProfileTabId>('info');
+  const [activeTab, setActiveTab] = useState<ProfileTabId>("info");
 
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
@@ -158,7 +185,9 @@ export const ProfilePage: React.FC = () => {
       } catch (e) {
         console.error(e);
         if (isMounted) {
-          setError('Не удалось загрузить данные профиля. Попробуйте обновить страницу.');
+          setError(
+            "Не удалось загрузить данные профиля. Попробуйте обновить страницу.",
+          );
         }
       } finally {
         if (isMounted) {
@@ -180,17 +209,26 @@ export const ProfilePage: React.FC = () => {
 
   const projectTasks = tasks.filter((t) => t.parent_task_id === null);
   const projectsCount = projectTasks.length;
-  const activeTasksCount = tasks.filter((t) => t.status === 'in_progress').length;
-  const completedTasksCount = tasks.filter((t) => t.status === 'completed').length;
+  const activeTasksCount = tasks.filter(
+    (t) => t.status === "in_progress",
+  ).length;
+  const completedTasksCount = tasks.filter(
+    (t) => t.status === "completed",
+  ).length;
 
-  const totalAllocatedHours = tasks.reduce((sum, t) => sum + getAllocatedHours(t), 0);
+  const totalAllocatedHours = tasks.reduce(
+    (sum, t) => sum + getAllocatedHours(t),
+    0,
+  );
 
   const formattedTotalHours =
-    totalAllocatedHours % 1 === 0 ? totalAllocatedHours.toString() : totalAllocatedHours.toFixed(1);
+    totalAllocatedHours % 1 === 0
+      ? totalAllocatedHours.toString()
+      : totalAllocatedHours.toFixed(1);
 
   const projects = projectTasks;
   const sortedProjects = [...projects].sort((a, b) =>
-    (a.title || '').localeCompare(b.title || '', 'ru'),
+    (a.title || "").localeCompare(b.title || "", "ru"),
   );
 
   if (loading) {
@@ -216,14 +254,16 @@ export const ProfilePage: React.FC = () => {
     (user?.last_name && user.last_name.trim()[0]) ||
     (user?.first_name && user.first_name.trim()[0]) ||
     (user?.username && user.username.trim()[0]) ||
-    '?';
+    "?";
 
   const fullName = user
-    ? [user.last_name, user.first_name, user.middle_name].filter(Boolean).join(' ')
-    : '';
+    ? [user.last_name, user.first_name, user.middle_name]
+        .filter(Boolean)
+        .join(" ")
+    : "";
   const experienceLabel = user?.experience_level
     ? EXPERIENCE_LABELS[user.experience_level] || user.experience_level
-    : '—';
+    : "—";
   const stackLabel = formatStackLabel(user?.stack);
 
   return (
@@ -238,8 +278,12 @@ export const ProfilePage: React.FC = () => {
                 {avatarLetter.toUpperCase()}
               </div>
               <div className="profile-page__user-meta">
-                <div className="profile-page__user-name">{fullName || user.username}</div>
-                <div className="profile-page__user-username">@{user.username}</div>
+                <div className="profile-page__user-name">
+                  {fullName || user.username}
+                </div>
+                <div className="profile-page__user-username">
+                  @{user.username}
+                </div>
               </div>
             </div>
           )}
@@ -250,7 +294,8 @@ export const ProfilePage: React.FC = () => {
                 key={tab.id}
                 type="button"
                 className={
-                  'profile-tabs__btn' + (activeTab === tab.id ? ' profile-tabs__btn--active' : '')
+                  "profile-tabs__btn" +
+                  (activeTab === tab.id ? " profile-tabs__btn--active" : "")
                 }
                 onClick={() => setActiveTab(tab.id)}
               >
@@ -262,50 +307,71 @@ export const ProfilePage: React.FC = () => {
         </aside>
 
         <main className="profile-page__content">
-          {activeTab === 'info' && user && (
-            <Card className="profile-page__section" title="Информация о пользователе">
+          {activeTab === "info" && user && (
+            <Card
+              className="profile-page__section"
+              title="Информация о пользователе"
+            >
               <div className="profile-info">
                 <div className="profile-info__row">
                   <span className="profile-info__label">ФИО</span>
-                  <span className="profile-info__value">{fullName || '—'}</span>
+                  <span className="profile-info__value">{fullName || "—"}</span>
                 </div>
                 <div className="profile-info__row">
                   <span className="profile-info__label">Фамилия</span>
-                  <span className="profile-info__value">{user.last_name || '—'}</span>
+                  <span className="profile-info__value">
+                    {user.last_name || "—"}
+                  </span>
                 </div>
                 <div className="profile-info__row">
                   <span className="profile-info__label">Имя</span>
-                  <span className="profile-info__value">{user.first_name || '—'}</span>
+                  <span className="profile-info__value">
+                    {user.first_name || "—"}
+                  </span>
                 </div>
                 <div className="profile-info__row">
                   <span className="profile-info__label">Отчество</span>
-                  <span className="profile-info__value">{user.middle_name || '—'}</span>
+                  <span className="profile-info__value">
+                    {user.middle_name || "—"}
+                  </span>
                 </div>
                 <div className="profile-info__row">
                   <span className="profile-info__label">Username</span>
-                  <span className="profile-info__value">@{user.username || '—'}</span>
+                  <span className="profile-info__value">
+                    @{user.username || "—"}
+                  </span>
                 </div>
                 <div className="profile-info__row">
                   <span className="profile-info__label">Telegram</span>
-                  <span className="profile-info__value">{user.telegram || '—'}</span>
+                  <span className="profile-info__value">
+                    {user.telegram || "—"}
+                  </span>
                 </div>
                 <div className="profile-info__row">
                   <span className="profile-info__label">Телефон</span>
-                  <span className="profile-info__value">{user.phone || '—'}</span>
+                  <span className="profile-info__value">
+                    {user.phone || "—"}
+                  </span>
                 </div>
                 <div className="profile-info__row">
-                  <span className="profile-info__label">Видимость контактов</span>
+                  <span className="profile-info__label">
+                    Видимость контактов
+                  </span>
                   <span className="profile-info__value">
-                    {user.contacts_visible ? 'Видимы' : 'Скрыты'}
+                    {user.contacts_visible ? "Видимы" : "Скрыты"}
                   </span>
                 </div>
                 <div className="profile-info__row">
                   <span className="profile-info__label">Email</span>
-                  <span className="profile-info__value">{user.email || '—'}</span>
+                  <span className="profile-info__value">
+                    {user.email || "—"}
+                  </span>
                 </div>
                 <div className="profile-info__row">
                   <span className="profile-info__label">Часовой пояс</span>
-                  <span className="profile-info__value">{user.timezone || '—'}</span>
+                  <span className="profile-info__value">
+                    {user.timezone || "—"}
+                  </span>
                 </div>
                 <div className="profile-info__row">
                   <span className="profile-info__label">Уровень опыта</span>
@@ -319,7 +385,7 @@ export const ProfilePage: React.FC = () => {
             </Card>
           )}
 
-          {activeTab === 'schedule' && (
+          {activeTab === "schedule" && (
             <Card className="profile-page__section" title="Рабочее расписание">
               {workSchedule.length === 0 ? (
                 <p className="profile-empty">Расписание не задано</p>
@@ -338,13 +404,14 @@ export const ProfilePage: React.FC = () => {
                         <tr
                           key={day.day_of_week}
                           className={
-                            'schedule-table__row' +
-                            (isSelected ? ' schedule-table__row--selected' : '')
+                            "schedule-table__row" +
+                            (isSelected ? " schedule-table__row--selected" : "")
                           }
                           onClick={() => handleDayClick(day)}
                         >
                           <td className="schedule-table__day">
-                            {DAY_NAMES[day.day_of_week] || `День ${day.day_of_week}`}
+                            {DAY_NAMES[day.day_of_week] ||
+                              `День ${day.day_of_week}`}
                           </td>
                           <td className="schedule-table__time">
                             {day.is_working_day ? (
@@ -366,7 +433,7 @@ export const ProfilePage: React.FC = () => {
             </Card>
           )}
 
-          {activeTab === 'stats' && (
+          {activeTab === "stats" && (
             <Card className="profile-page__section" title="Статистика">
               {tasks.length === 0 ? (
                 <p className="profile-empty">Нет задач для статистики</p>
@@ -375,29 +442,39 @@ export const ProfilePage: React.FC = () => {
                   <div className="stats-card">
                     <div className="stats-card__label">Проектов</div>
                     <div className="stats-card__value">{projectsCount}</div>
-                    <div className="stats-card__hint">Все верхнеуровневые задачи</div>
+                    <div className="stats-card__hint">
+                      Все верхнеуровневые задачи
+                    </div>
                   </div>
                   <div className="stats-card">
                     <div className="stats-card__label">Активных задач</div>
                     <div className="stats-card__value">{activeTasksCount}</div>
-                    <div className="stats-card__hint">Со статусом «В работе»</div>
+                    <div className="stats-card__hint">
+                      Со статусом «В работе»
+                    </div>
                   </div>
                   <div className="stats-card">
                     <div className="stats-card__label">Завершённых задач</div>
-                    <div className="stats-card__value">{completedTasksCount}</div>
+                    <div className="stats-card__value">
+                      {completedTasksCount}
+                    </div>
                     <div className="stats-card__hint">Выполненные задачи</div>
                   </div>
                   <div className="stats-card">
                     <div className="stats-card__label">Всего часов</div>
-                    <div className="stats-card__value">{formattedTotalHours}</div>
-                    <div className="stats-card__hint">Сумма по всем задачам</div>
+                    <div className="stats-card__value">
+                      {formattedTotalHours}
+                    </div>
+                    <div className="stats-card__hint">
+                      Сумма по всем задачам
+                    </div>
                   </div>
                 </div>
               )}
             </Card>
           )}
 
-          {activeTab === 'projects' && (
+          {activeTab === "projects" && (
             <Card className="profile-page__section" title="Мои проекты">
               {sortedProjects.length === 0 ? (
                 <p className="profile-empty">Пока нет проектов</p>
@@ -407,14 +484,21 @@ export const ProfilePage: React.FC = () => {
                     <li key={p.id} className="projects-list__item">
                       <div className="projects-list__header">
                         <span className="projects-list__title">{p.title}</span>
-                        <span className={`task-status-badge task-status-badge--${p.status}`}>
+                        <span
+                          className={`task-status-badge task-status-badge--${p.status}`}
+                        >
                           {formatStatusLabel(p.status)}
                         </span>
                       </div>
                       {p.description && (
-                        <p className="projects-list__description">{p.description}</p>
+                        <p className="projects-list__description">
+                          {p.description}
+                        </p>
                       )}
-                      <a className="projects-list__link" href={`/projects/${p.id}`}>
+                      <a
+                        className="projects-list__link"
+                        href={`/projects/${p.id}`}
+                      >
                         Открыть проект
                       </a>
                     </li>
@@ -424,7 +508,7 @@ export const ProfilePage: React.FC = () => {
             </Card>
           )}
 
-          {activeTab === 'tasks' && (
+          {activeTab === "tasks" && (
             <Card className="profile-page__section" title="Мои задачи">
               {tasks.length === 0 ? (
                 <p className="profile-empty">Пока нет задач</p>
@@ -437,7 +521,8 @@ export const ProfilePage: React.FC = () => {
                       <li
                         key={t.id}
                         className={
-                          'task-list__item' + (urgency ? ` task-list__item--${urgency}` : '')
+                          "task-list__item" +
+                          (urgency ? ` task-list__item--${urgency}` : "")
                         }
                       >
                         <div className="task-list__main">
@@ -445,18 +530,26 @@ export const ProfilePage: React.FC = () => {
 
                           <div className="task-list__badges">
                             {urgency && (
-                              <span className={`task-urgency-badge task-urgency-badge--${urgency}`}>
+                              <span
+                                className={`task-urgency-badge task-urgency-badge--${urgency}`}
+                              >
                                 {formatUrgencyLabel(urgency)}
                               </span>
                             )}
 
-                            <span className={`task-status-badge task-status-badge--${t.status}`}>
+                            <span
+                              className={`task-status-badge task-status-badge--${t.status}`}
+                            >
                               {formatStatusLabel(t.status)}
                             </span>
                           </div>
                         </div>
 
-                        {t.description && <p className="task-list__description">{t.description}</p>}
+                        {t.description && (
+                          <p className="task-list__description">
+                            {t.description}
+                          </p>
+                        )}
                       </li>
                     );
                   })}

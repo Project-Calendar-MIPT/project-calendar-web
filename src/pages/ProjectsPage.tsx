@@ -1,22 +1,22 @@
-import React, { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
-import { Button } from '../components/ui/Button';
-import { Card } from '../components/ui/Card';
-import { Modal } from '../components/ui/Modal';
-import { Loader } from '../components/ui/Loader';
-import { EmptyState } from '../components/EmptyState';
-import { TaskForm } from '../components/TaskForm';
-import { taskService } from '../api/taskService';
-import { assignmentService } from '../api/assignmentService';
-import { authService } from '../api/authService';
-import type { Task } from '../types';
-import './ProjectsPage.scss';
+import React, { useState, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
+import { Button } from "../components/ui/Button";
+import { Card } from "../components/ui/Card";
+import { Modal } from "../components/ui/Modal";
+import { Loader } from "../components/ui/Loader";
+import { EmptyState } from "../components/EmptyState";
+import { TaskForm } from "../components/TaskForm";
+import { taskService } from "../api/taskService";
+import { assignmentService } from "../api/assignmentService";
+import { authService } from "../api/authService";
+import type { Task } from "../types";
+import "./ProjectsPage.scss";
 
 const ProjectsPage: React.FC = () => {
   const navigate = useNavigate();
   const [projects, setProjects] = useState<Task[]>([]);
   const [loading, setLoading] = useState(true);
-  const [error, setError] = useState('');
+  const [error, setError] = useState("");
   const [isModalOpen, setIsModalOpen] = useState(false);
 
   useEffect(() => {
@@ -29,7 +29,7 @@ const ProjectsPage: React.FC = () => {
       const data = await taskService.getTasks({ parent_task_id: null });
       setProjects(data);
     } catch (err: any) {
-      setError(err.message || 'Ошибка при загрузке проектов');
+      setError(err.message || "Ошибка при загрузке проектов");
     } finally {
       setLoading(false);
     }
@@ -46,15 +46,15 @@ const ProjectsPage: React.FC = () => {
       // Assign creator as owner of the project
       await assignmentService.assignUser(newProject.id, {
         user_id: currentUser.id,
-        role: 'owner',
+        role: "owner",
         allocated_hours: 0,
       });
 
       setProjects((prev) => [...prev, newProject]);
       setIsModalOpen(false);
-      setError('');
+      setError("");
     } catch (err: any) {
-      setError(err.message || 'Ошибка при создании проекта');
+      setError(err.message || "Ошибка при создании проекта");
     }
   };
 
@@ -76,7 +76,11 @@ const ProjectsPage: React.FC = () => {
         <div className="projects-page__title-section">
           <h1>Проекты</h1>
         </div>
-        <Button onClick={() => setIsModalOpen(true)} variant="primary" size="lg">
+        <Button
+          onClick={() => setIsModalOpen(true)}
+          variant="primary"
+          size="lg"
+        >
           + Создать проект
         </Button>
       </div>
@@ -99,7 +103,9 @@ const ProjectsPage: React.FC = () => {
               onClick={() => handleProjectClick(project.id)}
               hoverable
             >
-              <p className="projects-page__description">{project.description}</p>
+              <p className="projects-page__description">
+                {project.description}
+              </p>
               {/* Для проектов не показываем статус и приоритет */}
             </Card>
           ))}

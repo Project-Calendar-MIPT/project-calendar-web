@@ -1,20 +1,31 @@
-import React, { useMemo, useState } from 'react';
-import { useNavigate, Link } from 'react-router-dom';
-import { Input } from '../components/ui/Input';
-import { Button } from '../components/ui/Button';
-import { Card } from '../components/ui/Card';
-import { Select } from '../components/ui/Select';
-import { WorkScheduleForm } from '../components/ui/WorkScheduleForm';
-import { authService } from '../api/authService';
-import { useFloatingColumns } from '../hooks/useFloatingColumns';
-import type { ExperienceLevel, RegisterData, StackItem, WorkScheduleDay } from '../types';
-import './RegisterPage.scss';
+import React, { useMemo, useState } from "react";
+import { useNavigate, Link } from "react-router-dom";
+import { Input } from "../components/ui/Input";
+import { Button } from "../components/ui/Button";
+import { Card } from "../components/ui/Card";
+import { Select } from "../components/ui/Select";
+import { WorkScheduleForm } from "../components/ui/WorkScheduleForm";
+import { authService } from "../api/authService";
+import { useFloatingColumns } from "../hooks/useFloatingColumns";
+import type {
+  ExperienceLevel,
+  RegisterData,
+  StackItem,
+  WorkScheduleDay,
+} from "../types";
+import "./RegisterPage.scss";
 
-const ALLOWED_EMAIL_DOMAINS = ['example.com', 'gmail.com', 'yandex.ru', 'mail.ru', 'outlook.com'];
+const ALLOWED_EMAIL_DOMAINS = [
+  "example.com",
+  "gmail.com",
+  "yandex.ru",
+  "mail.ru",
+  "outlook.com",
+];
 
 const EMAIL_ALLOWED_DOMAINS_REGEX = new RegExp(
-  `^[A-Za-z0-9._%+-]+@(?:${ALLOWED_EMAIL_DOMAINS.map((domain) => domain.replace('.', '\\.')).join('|')})$`,
-  'i',
+  `^[A-Za-z0-9._%+-]+@(?:${ALLOWED_EMAIL_DOMAINS.map((domain) => domain.replace(".", "\\.")).join("|")})$`,
+  "i",
 );
 const USERNAME_ALLOWED_REGEX = /^[A-Za-z0-9._-]+$/;
 const EMAIL_ALLOWED_CHARACTERS_REGEX = /^[A-Za-z0-9._%+\-@]*$/;
@@ -22,35 +33,36 @@ const EMAIL_FORMAT_REGEX = /^[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}$/;
 
 const PASSWORD_DIGIT_REGEX = /\d/;
 const PASSWORD_SPECIAL_CHAR_REGEX = /[!"#$%&'()*+,\-./:;<=>?@[\\\]^_`{|}~]/;
-const PASSWORD_ALLOWED_CHARACTERS_REGEX = /^[A-Za-z0-9!"#$%&'()*+,\-./:;<=>?@[\\\]^_`{|}~]+$/;
-const EXPERIENCE_LEVELS: ExperienceLevel[] = ['junior', 'middle', 'senior'];
+const PASSWORD_ALLOWED_CHARACTERS_REGEX =
+  /^[A-Za-z0-9!"#$%&'()*+,\-./:;<=>?@[\\\]^_`{|}~]+$/;
+const EXPERIENCE_LEVELS: ExperienceLevel[] = ["junior", "middle", "senior"];
 const EXPERIENCE_OPTIONS = [
-  { value: 'junior', label: 'Junior' },
-  { value: 'middle', label: 'Middle' },
-  { value: 'senior', label: 'Senior' },
+  { value: "junior", label: "Junior" },
+  { value: "middle", label: "Middle" },
+  { value: "senior", label: "Senior" },
 ];
 const EXPERIENCE_LABELS: Record<ExperienceLevel, string> = {
-  junior: 'Junior',
-  middle: 'Middle',
-  senior: 'Senior',
+  junior: "Junior",
+  middle: "Middle",
+  senior: "Senior",
 };
 const TECHNOLOGY_OPTIONS = [
-  'JavaScript',
-  'TypeScript',
-  'Python',
-  'Java',
-  'C#',
-  'C++',
-  'Go',
-  'PHP',
-  'Kotlin',
-  'Swift',
-  'Rust',
-  'SQL',
-  'React',
-  'Node.js',
-  '.NET',
-  'Docker',
+  "JavaScript",
+  "TypeScript",
+  "Python",
+  "Java",
+  "C#",
+  "C++",
+  "Go",
+  "PHP",
+  "Kotlin",
+  "Swift",
+  "Rust",
+  "SQL",
+  "React",
+  "Node.js",
+  ".NET",
+  "Docker",
 ];
 
 type StackSelectionItem = StackItem & {
@@ -71,62 +83,67 @@ const getPasswordRules = (password: string): PasswordRules => ({
 
 const capitalizeWord = (word: string): string => {
   if (!word) return word;
-  return `${word.charAt(0).toLocaleUpperCase('ru-RU')}${word.slice(1).toLocaleLowerCase('ru-RU')}`;
+  return `${word.charAt(0).toLocaleUpperCase("ru-RU")}${word.slice(1).toLocaleLowerCase("ru-RU")}`;
 };
 
 const normalizeFioValue = (value: string): string => {
-  const normalizedSpaces = value.trim().replace(/\s+/g, ' ');
-  if (!normalizedSpaces) return '';
+  const normalizedSpaces = value.trim().replace(/\s+/g, " ");
+  if (!normalizedSpaces) return "";
 
   return normalizedSpaces
-    .split(' ')
-    .map((part) => part.split('-').map(capitalizeWord).join('-'))
-    .join(' ');
+    .split(" ")
+    .map((part) => part.split("-").map(capitalizeWord).join("-"))
+    .join(" ");
 };
 
 const getPasswordStrength = (
   rules: PasswordRules,
 ): { score: number; label: string; tone: string } => {
-  const score = Number(rules.hasMinLength) + Number(rules.hasDigit) + Number(rules.hasSpecialChar);
+  const score =
+    Number(rules.hasMinLength) +
+    Number(rules.hasDigit) +
+    Number(rules.hasSpecialChar);
 
   if (score <= 1) {
-    return { score, label: 'Слабый', tone: 'weak' };
+    return { score, label: "Слабый", tone: "weak" };
   }
 
   if (score === 2) {
-    return { score, label: 'Средний', tone: 'medium' };
+    return { score, label: "Средний", tone: "medium" };
   }
 
-  return { score, label: 'Сильный', tone: 'strong' };
+  return { score, label: "Сильный", tone: "strong" };
 };
 
 const RegisterPage: React.FC = () => {
   const navigate = useNavigate();
   const [loading, setLoading] = useState(false);
-  const [error, setError] = useState('');
+  const [error, setError] = useState("");
 
   const [formData, setFormData] = useState({
-    username: '',
-    email: '',
-    password: '',
-    last_name: '',
-    first_name: '',
-    middle_name: '',
-    timezone: 'Europe/Moscow',
-    telegram: '',
-    phone: '',
+    username: "",
+    email: "",
+    password: "",
+    last_name: "",
+    first_name: "",
+    middle_name: "",
+    timezone: "Europe/Moscow",
+    telegram: "",
+    phone: "",
     contacts_visible: true,
     stack: [] as StackSelectionItem[],
-    experience_level: '' as ExperienceLevel | '',
+    experience_level: "" as ExperienceLevel | "",
   });
 
   const [workSchedule, setWorkSchedule] = useState<WorkScheduleDay[]>([]);
   const [workingDaysCount, setWorkingDaysCount] = useState(5);
   const [errors, setErrors] = useState<Record<string, string>>({});
-  const [touched, setTouched] = useState<Record<string, boolean>>({ work_schedule: true });
+  const [touched, setTouched] = useState<Record<string, boolean>>({
+    work_schedule: true,
+  });
   const [totalWorkingHours, setTotalWorkingHours] = useState(40);
   const [showPassword, setShowPassword] = useState(false);
-  const [customTechnology, setCustomTechnology] = useState('');
+  const [customTechnology, setCustomTechnology] = useState("");
   const passwordRules = getPasswordRules(formData.password);
   const passwordStrength = getPasswordStrength(passwordRules);
 
@@ -134,77 +151,81 @@ const RegisterPage: React.FC = () => {
     field: keyof typeof formData,
     value: string | boolean | StackSelectionItem[],
   ): string => {
-    if (typeof value === 'boolean' || Array.isArray(value)) return '';
+    if (typeof value === "boolean" || Array.isArray(value)) return "";
 
     switch (field) {
-      case 'username':
-        if (!value.trim()) return 'Имя пользователя обязательно';
+      case "username":
+        if (!value.trim()) return "Имя пользователя обязательно";
         if (!USERNAME_ALLOWED_REGEX.test(value)) {
-          return 'Допустимы только латинские буквы, цифры и символы . _ -';
+          return "Допустимы только латинские буквы, цифры и символы . _ -";
         }
-        return '';
-      case 'email':
-        if (!value.trim()) return 'Email обязателен';
+        return "";
+      case "email":
+        if (!value.trim()) return "Email обязателен";
         if (!EMAIL_ALLOWED_CHARACTERS_REGEX.test(value)) {
-          return 'Допустимы только латинские буквы, цифры и символы @ . _ % + -';
+          return "Допустимы только латинские буквы, цифры и символы @ . _ % + -";
         }
         if (!EMAIL_FORMAT_REGEX.test(value)) {
-          return 'Неверный формат email. Пример: user@example.com';
+          return "Неверный формат email. Пример: user@example.com";
         }
         if (!EMAIL_ALLOWED_DOMAINS_REGEX.test(value)) {
-          return `Разрешены только домены: ${ALLOWED_EMAIL_DOMAINS.join(', ')}`;
+          return `Разрешены только домены: ${ALLOWED_EMAIL_DOMAINS.join(", ")}`;
         }
-        return '';
-      case 'password':
-        if (!value) return 'Пароль обязателен';
+        return "";
+      case "password":
+        if (!value) return "Пароль обязателен";
         if (!PASSWORD_ALLOWED_CHARACTERS_REGEX.test(value)) {
-          return 'Допустимы только латинские буквы, цифры и спецсимволы клавиатуры';
+          return "Допустимы только латинские буквы, цифры и спецсимволы клавиатуры";
         }
-        if (value.length < 8) return 'Пароль должен содержать минимум 8 символов';
-        if (!PASSWORD_DIGIT_REGEX.test(value)) return 'Пароль должен содержать минимум одну цифру';
+        if (value.length < 8)
+          return "Пароль должен содержать минимум 8 символов";
+        if (!PASSWORD_DIGIT_REGEX.test(value))
+          return "Пароль должен содержать минимум одну цифру";
         if (!PASSWORD_SPECIAL_CHAR_REGEX.test(value)) {
-          return 'Пароль должен содержать минимум один спецсимвол';
+          return "Пароль должен содержать минимум один спецсимвол";
         }
-        return '';
-      case 'last_name':
-        if (!value.trim()) return 'Фамилия обязательна';
-        return '';
-      case 'first_name':
-        if (!value.trim()) return 'Имя обязательно';
-        return '';
-      case 'middle_name':
-        return ''; // Необязательное поле
-      case 'timezone':
-        if (!value.trim()) return 'Часовой пояс обязателен';
-        if (!/^[A-Za-z_]+\/[A-Za-z_]+$/.test(value)) return 'Неверный формат часового пояса';
-        return '';
-      case 'telegram':
+        return "";
+      case "last_name":
+        if (!value.trim()) return "Фамилия обязательна";
+        return "";
+      case "first_name":
+        if (!value.trim()) return "Имя обязательно";
+        return "";
+      case "middle_name":
+        return ""; // Необязательное поле
+      case "timezone":
+        if (!value.trim()) return "Часовой пояс обязателен";
+        if (!/^[A-Za-z_]+\/[A-Za-z_]+$/.test(value))
+          return "Неверный формат часового пояса";
+        return "";
+      case "telegram":
         if (value && !/^@?[a-zA-Z0-9_]{5,32}$/.test(value))
-          return 'Неверный формат Telegram (например: @username)';
-        return '';
-      case 'phone':
-        if (value && !/^\+?[0-9\s\-()]{10,}$/.test(value)) return 'Неверный формат телефона';
-        return '';
-      case 'experience_level':
-        if (!value) return 'Укажите уровень опыта';
+          return "Неверный формат Telegram (например: @username)";
+        return "";
+      case "phone":
+        if (value && !/^\+?[0-9\s\-()]{10,}$/.test(value))
+          return "Неверный формат телефона";
+        return "";
+      case "experience_level":
+        if (!value) return "Укажите уровень опыта";
         if (!EXPERIENCE_LEVELS.includes(value as ExperienceLevel)) {
-          return 'Выберите уровень опыта из списка';
+          return "Выберите уровень опыта из списка";
         }
-        return '';
+        return "";
       default:
-        return '';
+        return "";
     }
   };
 
   const validateStack = (stack: StackSelectionItem[]): string => {
-    if (stack.length === 0) return 'Выберите хотя бы одну технологию';
+    if (stack.length === 0) return "Выберите хотя бы одну технологию";
 
     const hasInvalidLevel = stack.some(
       (item) => !EXPERIENCE_LEVELS.includes(item.experience_level),
     );
-    if (hasInvalidLevel) return 'Укажите уровень для каждой технологии';
+    if (hasInvalidLevel) return "Укажите уровень для каждой технологии";
 
-    return '';
+    return "";
   };
 
   const validateForm = (
@@ -224,11 +245,13 @@ const RegisterPage: React.FC = () => {
     }
 
     if (schedule.length !== 7) {
-      newErrors.work_schedule = 'Заполните расписание на все 7 дней';
+      newErrors.work_schedule = "Заполните расписание на все 7 дней";
     } else if (workingDaysCount > 6) {
-      newErrors.work_schedule = 'Нельзя выбирать рабочими больше 6 дней в неделю';
+      newErrors.work_schedule =
+        "Нельзя выбирать рабочими больше 6 дней в неделю";
     } else if (totalWorkingHours > 40) {
-      newErrors.work_schedule = 'Суммарное рабочее время не должно превышать 40 часов в неделю';
+      newErrors.work_schedule =
+        "Суммарное рабочее время не должно превышать 40 часов в неделю";
     }
 
     setErrors(newErrors);
@@ -244,7 +267,7 @@ const RegisterPage: React.FC = () => {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    setError('');
+    setError("");
 
     const normalizedFormData = {
       ...formData,
@@ -267,22 +290,25 @@ const RegisterPage: React.FC = () => {
           name: item.name,
           experience_level: item.experience_level,
         })),
-        experience_level: normalizedFormData.experience_level as ExperienceLevel,
+        experience_level:
+          normalizedFormData.experience_level as ExperienceLevel,
         work_schedule: workSchedule,
       };
 
       await authService.register(registerData);
-      navigate('/');
+      navigate("/");
     } catch (err: any) {
-      setError(err.response?.data?.message || 'Ошибка при регистрации');
+      setError(err.response?.data?.message || "Ошибка при регистрации");
     } finally {
       setLoading(false);
     }
   };
 
   const handleInputChange =
-    (field: keyof typeof formData) => (e: React.ChangeEvent<HTMLInputElement>) => {
-      const value = e.target.type === 'checkbox' ? e.target.checked : e.target.value;
+    (field: keyof typeof formData) =>
+    (e: React.ChangeEvent<HTMLInputElement>) => {
+      const value =
+        e.target.type === "checkbox" ? e.target.checked : e.target.value;
       setFormData({ ...formData, [field]: value });
       if (touched[field]) {
         const msg = validateField(field, value);
@@ -311,7 +337,8 @@ const RegisterPage: React.FC = () => {
           ...formData.stack,
           {
             name: technology,
-            experience_level: (formData.experience_level || 'junior') as ExperienceLevel,
+            experience_level: (formData.experience_level ||
+              "junior") as ExperienceLevel,
             custom_level: false,
           },
         ];
@@ -330,12 +357,13 @@ const RegisterPage: React.FC = () => {
         ...formData.stack,
         {
           name: normalized,
-          experience_level: (formData.experience_level || 'junior') as ExperienceLevel,
+          experience_level: (formData.experience_level ||
+            "junior") as ExperienceLevel,
           custom_level: false,
         },
       ]);
     }
-    setCustomTechnology('');
+    setCustomTechnology("");
   };
 
   const removeTechnology = (technology: string) => {
@@ -343,7 +371,7 @@ const RegisterPage: React.FC = () => {
   };
 
   const handleExperienceChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
-    const value = e.target.value as ExperienceLevel | '';
+    const value = e.target.value as ExperienceLevel | "";
     setFormData((prev) => ({
       ...prev,
       experience_level: value,
@@ -357,10 +385,16 @@ const RegisterPage: React.FC = () => {
       ),
     }));
     setTouched((prev) => ({ ...prev, experience_level: true }));
-    setErrors((prev) => ({ ...prev, experience_level: validateField('experience_level', value) }));
+    setErrors((prev) => ({
+      ...prev,
+      experience_level: validateField("experience_level", value),
+    }));
   };
 
-  const handleTechnologyLevelChange = (technology: string, level: ExperienceLevel) => {
+  const handleTechnologyLevelChange = (
+    technology: string,
+    level: ExperienceLevel,
+  ) => {
     const nextStack = formData.stack.map((item) =>
       item.name === technology
         ? {
@@ -374,7 +408,8 @@ const RegisterPage: React.FC = () => {
   };
 
   const resetTechnologyLevel = (technology: string) => {
-    const defaultLevel = (formData.experience_level || 'junior') as ExperienceLevel;
+    const defaultLevel = (formData.experience_level ||
+      "junior") as ExperienceLevel;
     const nextStack = formData.stack.map((item) =>
       item.name === technology
         ? {
@@ -392,7 +427,7 @@ const RegisterPage: React.FC = () => {
   // Keep floating columns visually as fast as on the login page,
   // even when registration page becomes taller than viewport.
   const heightRatio =
-    typeof window !== 'undefined' && window.innerHeight > 0
+    typeof window !== "undefined" && window.innerHeight > 0
       ? Math.max(1, document.documentElement.scrollHeight / window.innerHeight)
       : 1;
 
@@ -400,11 +435,11 @@ const RegisterPage: React.FC = () => {
     () =>
       columns.map((column) => {
         const rawDuration =
-          typeof column.style.animationDuration === 'string'
+          typeof column.style.animationDuration === "string"
             ? parseFloat(column.style.animationDuration)
             : 16;
         const rawDelay =
-          typeof column.style.animationDelay === 'string'
+          typeof column.style.animationDelay === "string"
             ? parseFloat(column.style.animationDelay)
             : -Math.random() * rawDuration;
         const nextDuration = Number.isFinite(rawDuration)
@@ -449,7 +484,14 @@ const RegisterPage: React.FC = () => {
         strokeLinecap="round"
         strokeLinejoin="round"
       />
-      <circle cx="12" cy="12" r="3" fill="none" stroke="currentColor" strokeWidth="2" />
+      <circle
+        cx="12"
+        cy="12"
+        r="3"
+        fill="none"
+        stroke="currentColor"
+        strokeWidth="2"
+      />
     </svg>
   );
 
@@ -457,7 +499,11 @@ const RegisterPage: React.FC = () => {
     <div className="register-page">
       <div className="register-page__background" aria-hidden="true">
         {adjustedColumns.map((column) => (
-          <div key={column.id} className="register-page__column" style={column.style} />
+          <div
+            key={column.id}
+            className="register-page__column"
+            style={column.style}
+          />
         ))}
       </div>
       <Card className="register-page__card">
@@ -473,8 +519,8 @@ const RegisterPage: React.FC = () => {
               label="Имя пользователя"
               type="text"
               value={formData.username}
-              onChange={handleInputChange('username')}
-              onBlur={handleInputBlur('username')}
+              onChange={handleInputChange("username")}
+              onBlur={handleInputBlur("username")}
               error={errors.username}
               required
             />
@@ -483,25 +529,27 @@ const RegisterPage: React.FC = () => {
               label="Email"
               type="email"
               value={formData.email}
-              onChange={handleInputChange('email')}
-              onBlur={handleInputBlur('email')}
+              onChange={handleInputChange("email")}
+              onBlur={handleInputBlur("email")}
               error={errors.email}
               required
             />
 
             <Input
               label="Пароль"
-              type={showPassword ? 'text' : 'password'}
+              type={showPassword ? "text" : "password"}
               value={formData.password}
-              onChange={handleInputChange('password')}
-              onBlur={handleInputBlur('password')}
+              onChange={handleInputChange("password")}
+              onBlur={handleInputBlur("password")}
               error={errors.password}
               rightAdornment={
                 <button
                   type="button"
                   className="register-page__password-icon-button"
                   onClick={() => setShowPassword((prev) => !prev)}
-                  aria-label={showPassword ? 'Скрыть пароль' : 'Показать пароль'}
+                  aria-label={
+                    showPassword ? "Скрыть пароль" : "Показать пароль"
+                  }
                   aria-pressed={showPassword}
                 >
                   {passwordToggleIcon}
@@ -511,12 +559,18 @@ const RegisterPage: React.FC = () => {
             />
 
             {formData.password && (
-              <div className="register-page__password-strength" aria-live="polite">
+              <div
+                className="register-page__password-strength"
+                aria-live="polite"
+              >
                 <div className="register-page__password-strength-header">
                   <span>Надежность пароля: {passwordStrength.label}</span>
                   <span>{passwordStrength.score}/3</span>
                 </div>
-                <div className="register-page__password-strength-track" aria-hidden="true">
+                <div
+                  className="register-page__password-strength-track"
+                  aria-hidden="true"
+                >
                   <div
                     className={`register-page__password-strength-fill register-page__password-strength-fill--${passwordStrength.tone}`}
                     style={{ width: `${(passwordStrength.score / 3) * 100}%` }}
@@ -524,17 +578,17 @@ const RegisterPage: React.FC = () => {
                 </div>
                 <ul className="register-page__password-checklist">
                   <li
-                    className={`register-page__password-checkitem ${passwordRules.hasMinLength ? 'register-page__password-checkitem--ok' : ''}`}
+                    className={`register-page__password-checkitem ${passwordRules.hasMinLength ? "register-page__password-checkitem--ok" : ""}`}
                   >
                     Минимум 8 символов
                   </li>
                   <li
-                    className={`register-page__password-checkitem ${passwordRules.hasDigit ? 'register-page__password-checkitem--ok' : ''}`}
+                    className={`register-page__password-checkitem ${passwordRules.hasDigit ? "register-page__password-checkitem--ok" : ""}`}
                   >
                     Минимум одна цифра
                   </li>
                   <li
-                    className={`register-page__password-checkitem ${passwordRules.hasSpecialChar ? 'register-page__password-checkitem--ok' : ''}`}
+                    className={`register-page__password-checkitem ${passwordRules.hasSpecialChar ? "register-page__password-checkitem--ok" : ""}`}
                   >
                     Минимум один спецсимвол
                   </li>
@@ -549,8 +603,8 @@ const RegisterPage: React.FC = () => {
               label="Фамилия"
               type="text"
               value={formData.last_name}
-              onChange={handleInputChange('last_name')}
-              onBlur={handleInputBlur('last_name')}
+              onChange={handleInputChange("last_name")}
+              onBlur={handleInputBlur("last_name")}
               error={errors.last_name}
               required
             />
@@ -559,8 +613,8 @@ const RegisterPage: React.FC = () => {
               label="Имя"
               type="text"
               value={formData.first_name}
-              onChange={handleInputChange('first_name')}
-              onBlur={handleInputBlur('first_name')}
+              onChange={handleInputChange("first_name")}
+              onBlur={handleInputBlur("first_name")}
               error={errors.first_name}
               required
             />
@@ -569,8 +623,8 @@ const RegisterPage: React.FC = () => {
               label="Отчество"
               type="text"
               value={formData.middle_name}
-              onChange={handleInputChange('middle_name')}
-              onBlur={handleInputBlur('middle_name')}
+              onChange={handleInputChange("middle_name")}
+              onBlur={handleInputBlur("middle_name")}
               error={errors.middle_name}
             />
           </div>
@@ -582,8 +636,8 @@ const RegisterPage: React.FC = () => {
               type="text"
               placeholder="@username"
               value={formData.telegram}
-              onChange={handleInputChange('telegram')}
-              onBlur={handleInputBlur('telegram')}
+              onChange={handleInputChange("telegram")}
+              onBlur={handleInputBlur("telegram")}
               error={errors.telegram}
             />
 
@@ -592,8 +646,8 @@ const RegisterPage: React.FC = () => {
               type="tel"
               placeholder="+7 (XXX) XXX-XX-XX"
               value={formData.phone}
-              onChange={handleInputChange('phone')}
-              onBlur={handleInputBlur('phone')}
+              onChange={handleInputChange("phone")}
+              onBlur={handleInputBlur("phone")}
               error={errors.phone}
             />
 
@@ -602,7 +656,7 @@ const RegisterPage: React.FC = () => {
                 <input
                   type="checkbox"
                   checked={formData.contacts_visible}
-                  onChange={handleInputChange('contacts_visible')}
+                  onChange={handleInputChange("contacts_visible")}
                 />
                 <span>Сделать контакты видимыми для других пользователей</span>
               </label>
@@ -610,7 +664,9 @@ const RegisterPage: React.FC = () => {
           </div>
 
           <div className="register-page__section">
-            <h2 className="register-page__section-title">Профессиональный профиль</h2>
+            <h2 className="register-page__section-title">
+              Профессиональный профиль
+            </h2>
 
             <Select
               label="Общий уровень опыта"
@@ -621,7 +677,10 @@ const RegisterPage: React.FC = () => {
                 setTouched((prev) => ({ ...prev, experience_level: true }));
                 setErrors((prev) => ({
                   ...prev,
-                  experience_level: validateField('experience_level', formData.experience_level),
+                  experience_level: validateField(
+                    "experience_level",
+                    formData.experience_level,
+                  ),
                 }));
               }}
               error={errors.experience_level}
@@ -629,8 +688,8 @@ const RegisterPage: React.FC = () => {
               required
             />
             <p className="register-page__experience-hint">
-              Этот уровень автоматически применяется ко всему стеку. Для отдельных технологий его
-              можно изменить вручную.
+              Этот уровень автоматически применяется ко всему стеку. Для
+              отдельных технологий его можно изменить вручную.
             </p>
 
             <div className="register-page__stack-block">
@@ -640,12 +699,14 @@ const RegisterPage: React.FC = () => {
 
               <div className="register-page__stack-options">
                 {TECHNOLOGY_OPTIONS.map((technology) => {
-                  const isSelected = formData.stack.some((item) => item.name === technology);
+                  const isSelected = formData.stack.some(
+                    (item) => item.name === technology,
+                  );
                   return (
                     <button
                       key={technology}
                       type="button"
-                      className={`register-page__stack-option ${isSelected ? 'register-page__stack-option--active' : ''}`}
+                      className={`register-page__stack-option ${isSelected ? "register-page__stack-option--active" : ""}`}
                       onClick={() => toggleTechnology(technology)}
                     >
                       {technology}
@@ -661,7 +722,7 @@ const RegisterPage: React.FC = () => {
                   value={customTechnology}
                   onChange={(e) => setCustomTechnology(e.target.value)}
                   onKeyDown={(e) => {
-                    if (e.key === 'Enter') {
+                    if (e.key === "Enter") {
                       e.preventDefault();
                       addCustomTechnology();
                     }
@@ -680,9 +741,14 @@ const RegisterPage: React.FC = () => {
               {formData.stack.length > 0 && (
                 <div className="register-page__stack-selected">
                   {formData.stack.map((technology) => (
-                    <div key={technology.name} className="register-page__stack-item">
+                    <div
+                      key={technology.name}
+                      className="register-page__stack-item"
+                    >
                       <div className="register-page__stack-item-header">
-                        <span className="register-page__stack-chip">{technology.name}</span>
+                        <span className="register-page__stack-chip">
+                          {technology.name}
+                        </span>
                         <button
                           type="button"
                           className="register-page__stack-remove"
@@ -714,7 +780,8 @@ const RegisterPage: React.FC = () => {
                           По умолчанию (
                           {
                             EXPERIENCE_LABELS[
-                              (formData.experience_level || 'junior') as ExperienceLevel
+                              (formData.experience_level ||
+                                "junior") as ExperienceLevel
                             ]
                           }
                           )
@@ -725,7 +792,11 @@ const RegisterPage: React.FC = () => {
                 </div>
               )}
 
-              {errors.stack && <span className="register-page__field-error">{errors.stack}</span>}
+              {errors.stack && (
+                <span className="register-page__field-error">
+                  {errors.stack}
+                </span>
+              )}
             </div>
           </div>
 
@@ -735,8 +806,8 @@ const RegisterPage: React.FC = () => {
               label="Часовой пояс"
               type="text"
               value={formData.timezone}
-              onChange={handleInputChange('timezone')}
-              onBlur={handleInputBlur('timezone')}
+              onChange={handleInputChange("timezone")}
+              onBlur={handleInputBlur("timezone")}
               error={errors.timezone}
               required
             />
@@ -748,18 +819,24 @@ const RegisterPage: React.FC = () => {
           </div>
 
           {(errors.work_schedule ||
-            (touched.work_schedule && (workingDaysCount > 6 || totalWorkingHours > 40))) && (
+            (touched.work_schedule &&
+              (workingDaysCount > 6 || totalWorkingHours > 40))) && (
             <div className="register-page__error">
               {errors.work_schedule ||
                 (workingDaysCount > 6
-                  ? 'Нельзя выбирать рабочими больше 6 дней в неделю'
-                  : 'Суммарное рабочее время не должно превышать 40 часов в неделю')}
+                  ? "Нельзя выбирать рабочими больше 6 дней в неделю"
+                  : "Суммарное рабочее время не должно превышать 40 часов в неделю")}
             </div>
           )}
 
           {error && <div className="register-page__error">{error}</div>}
 
-          <Button type="submit" loading={loading} size="lg" className="register-page__submit">
+          <Button
+            type="submit"
+            loading={loading}
+            size="lg"
+            className="register-page__submit"
+          >
             Зарегистрироваться
           </Button>
 

@@ -1,25 +1,26 @@
-import React, { useState } from 'react';
-import { useNavigate, Link } from 'react-router-dom';
-import { Input } from '../components/ui/Input';
-import { Button } from '../components/ui/Button';
-import { Card } from '../components/ui/Card';
-import { authService } from '../api/authService';
-import { useFloatingColumns } from '../hooks/useFloatingColumns';
-import './LoginPage.scss';
+import React, { useState } from "react";
+import { useNavigate, Link } from "react-router-dom";
+import { Input } from "../components/ui/Input";
+import { Button } from "../components/ui/Button";
+import { Card } from "../components/ui/Card";
+import { authService } from "../api/authService";
+import { useFloatingColumns } from "../hooks/useFloatingColumns";
+import "./LoginPage.scss";
 
 const EMAIL_ALLOWED_CHARACTERS_REGEX = /^[A-Za-z0-9._%+\-@]*$/;
 const EMAIL_FORMAT_REGEX = /^[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}$/;
-const PASSWORD_ALLOWED_CHARACTERS_REGEX = /^[A-Za-z0-9!"#$%&'()*+,\-./:;<=>?@[\\\]^_`{|}~]+$/;
+const PASSWORD_ALLOWED_CHARACTERS_REGEX =
+  /^[A-Za-z0-9!"#$%&'()*+,\-./:;<=>?@[\\\]^_`{|}~]+$/;
 
 const LoginPage: React.FC = () => {
   const navigate = useNavigate();
   const [loading, setLoading] = useState(false);
-  const [error, setError] = useState('');
+  const [error, setError] = useState("");
   const [showPassword, setShowPassword] = useState(false);
 
   const [formData, setFormData] = useState({
-    email: '',
-    password: '',
+    email: "",
+    password: "",
   });
 
   const [errors, setErrors] = useState<Record<string, string>>({});
@@ -28,20 +29,22 @@ const LoginPage: React.FC = () => {
     const newErrors: Record<string, string> = {};
 
     if (!formData.email.trim()) {
-      newErrors.email = 'Email обязателен';
+      newErrors.email = "Email обязателен";
     } else if (!EMAIL_ALLOWED_CHARACTERS_REGEX.test(formData.email)) {
-      newErrors.email = 'Допустимы только латинские буквы, цифры и символы @ . _ % + -';
+      newErrors.email =
+        "Допустимы только латинские буквы, цифры и символы @ . _ % + -";
     } else {
       // Проверка формата email: должен быть @ и хотя бы одна точка после @
       if (!EMAIL_FORMAT_REGEX.test(formData.email)) {
-        newErrors.email = 'Неверный формат email. Пример: user@example.com';
+        newErrors.email = "Неверный формат email. Пример: user@example.com";
       }
     }
 
     if (!formData.password) {
-      newErrors.password = 'Пароль обязателен';
+      newErrors.password = "Пароль обязателен";
     } else if (!PASSWORD_ALLOWED_CHARACTERS_REGEX.test(formData.password)) {
-      newErrors.password = 'Допустимы только латинские буквы, цифры и спецсимволы клавиатуры';
+      newErrors.password =
+        "Допустимы только латинские буквы, цифры и спецсимволы клавиатуры";
     }
 
     setErrors(newErrors);
@@ -50,7 +53,7 @@ const LoginPage: React.FC = () => {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    setError('');
+    setError("");
 
     if (!validateForm()) {
       return;
@@ -60,23 +63,24 @@ const LoginPage: React.FC = () => {
 
     try {
       await authService.login(formData);
-      navigate('/');
+      navigate("/");
     } catch (err: any) {
-      setError(err.message || 'Ошибка при входе');
+      setError(err.message || "Ошибка при входе");
     } finally {
       setLoading(false);
     }
   };
 
   const handleInputChange =
-    (field: keyof typeof formData) => (e: React.ChangeEvent<HTMLInputElement>) => {
+    (field: keyof typeof formData) =>
+    (e: React.ChangeEvent<HTMLInputElement>) => {
       setFormData({ ...formData, [field]: e.target.value });
       if (errors[field]) {
-        setErrors({ ...errors, [field]: '' });
+        setErrors({ ...errors, [field]: "" });
       }
       // Очищаем общую ошибку при изменении поля
       if (error) {
-        setError('');
+        setError("");
       }
     };
 
@@ -105,7 +109,14 @@ const LoginPage: React.FC = () => {
         strokeLinecap="round"
         strokeLinejoin="round"
       />
-      <circle cx="12" cy="12" r="3" fill="none" stroke="currentColor" strokeWidth="2" />
+      <circle
+        cx="12"
+        cy="12"
+        r="3"
+        fill="none"
+        stroke="currentColor"
+        strokeWidth="2"
+      />
     </svg>
   );
 
@@ -113,7 +124,11 @@ const LoginPage: React.FC = () => {
     <div className="login-page">
       <div className="login-page__background" aria-hidden="true">
         {columns.map((column) => (
-          <div key={column.id} className="login-page__column" style={column.style} />
+          <div
+            key={column.id}
+            className="login-page__column"
+            style={column.style}
+          />
         ))}
       </div>
       <Card className="login-page__card">
@@ -127,23 +142,23 @@ const LoginPage: React.FC = () => {
             label="Email"
             type="email"
             value={formData.email}
-            onChange={handleInputChange('email')}
+            onChange={handleInputChange("email")}
             error={errors.email}
             required
           />
 
           <Input
             label="Пароль"
-            type={showPassword ? 'text' : 'password'}
+            type={showPassword ? "text" : "password"}
             value={formData.password}
-            onChange={handleInputChange('password')}
+            onChange={handleInputChange("password")}
             error={errors.password}
             rightAdornment={
               <button
                 type="button"
                 className="login-page__password-icon-button"
                 onClick={() => setShowPassword((prev) => !prev)}
-                aria-label={showPassword ? 'Скрыть пароль' : 'Показать пароль'}
+                aria-label={showPassword ? "Скрыть пароль" : "Показать пароль"}
                 aria-pressed={showPassword}
               >
                 {passwordToggleIcon}
@@ -154,7 +169,12 @@ const LoginPage: React.FC = () => {
 
           {error && <div className="login-page__error">{error}</div>}
 
-          <Button type="submit" loading={loading} size="lg" className="login-page__submit">
+          <Button
+            type="submit"
+            loading={loading}
+            size="lg"
+            className="login-page__submit"
+          >
             Войти
           </Button>
 

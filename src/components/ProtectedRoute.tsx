@@ -1,7 +1,7 @@
-import React from 'react';
-import { Navigate } from 'react-router-dom';
-import { Layout } from './Layout';
-import { authService } from '../api/authService';
+import React from "react";
+import { Navigate } from "react-router-dom";
+import { Layout } from "./Layout";
+import { authService } from "../api/authService";
 
 interface ProtectedRouteProps {
   children: React.ReactNode;

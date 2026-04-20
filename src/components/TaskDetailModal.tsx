@@ -1,10 +1,10 @@
-import React, { useState, useEffect } from 'react';
-import { Modal } from './ui/Modal';
-import { Button } from './ui/Button';
-import { Loader } from './ui/Loader';
-import type { Task } from '../types';
-import { TaskDetailView } from './TaskDetailView';
-import './TaskDetailModal.scss';
+import React, { useState, useEffect } from "react";
+import { Modal } from "./ui/Modal";
+import { Button } from "./ui/Button";
+import { Loader } from "./ui/Loader";
+import type { Task } from "../types";
+import { TaskDetailView } from "./TaskDetailView";
+import "./TaskDetailModal.scss";
 
 interface TaskDetailModalProps {
   task: Task | null;
@@ -26,12 +26,12 @@ export const TaskDetailModal: React.FC<TaskDetailModalProps> = ({
   const [showConfirm, setShowConfirm] = useState(false);
 
   const [notesOpen, setNotesOpen] = useState(false);
-  const [notesText, setNotesText] = useState('');
+  const [notesText, setNotesText] = useState("");
 
   useEffect(() => {
     if (task) {
       const saved = localStorage.getItem(`task_notes_${task.id}`);
-      setNotesText(saved || '');
+      setNotesText(saved || "");
     }
   }, [task]);
 

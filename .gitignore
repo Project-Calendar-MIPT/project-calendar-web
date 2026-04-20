@@ -26,4 +26,3 @@ dist-ssr
 #LInter & Prettier
 .eslintrc.json
 .prettierrc
-eslint.config.js

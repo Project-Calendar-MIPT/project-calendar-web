@@ -1,5 +1,5 @@
-import React from 'react';
-import './Select.scss';
+import React from "react";
+import "./Select.scss";
 
 interface SelectOption {
   value: string;
@@ -21,13 +21,14 @@ export const Select: React.FC<SelectProps> = ({
   label,
   error,
   required,
-  className = '',
+  className = "",
   includePlaceholder = true,
-  placeholderLabel = 'Выберите...',
-  placeholderValue = '',
+  placeholderLabel = "Выберите...",
+  placeholderValue = "",
   ...props
 }) => {
-  const selectClass = `select__field ${error ? 'select__field--error' : ''} ${className}`.trim();
+  const selectClass =
+    `select__field ${error ? "select__field--error" : ""} ${className}`.trim();
 
   return (
     <div className="select">
@@ -38,7 +39,9 @@ export const Select: React.FC<SelectProps> = ({
         </label>
       )}
       <select className={selectClass} {...props}>
-        {includePlaceholder && <option value={placeholderValue}>{placeholderLabel}</option>}
+        {includePlaceholder && (
+          <option value={placeholderValue}>{placeholderLabel}</option>
+        )}
         {options.map((option) => (
           <option key={option.value} value={option.value}>
             {option.label}
