@@ -53,6 +53,26 @@ const getProjectDurationDays = (project: Task): number => {
   return Math.ceil(diff / (1000 * 60 * 60 * 24));
 };
 
+const formatDate = (iso?: string) => {
+  if (!iso) return "—";
+  try {
+    return new Date(iso).toLocaleDateString("ru-RU", {
+      day: "numeric",
+      month: "long",
+      year: "numeric",
+    });
+  } catch {
+    return iso;
+  }
+};
+
+const STATUS_LABELS: Record<string, string> = {
+  pending: "Новый",
+  in_progress: "В процессе",
+  completed: "Завершён",
+  cancelled: "Отменён",
+};
+
 const ProjectDetailPage: React.FC = () => {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
@@ -65,6 +85,12 @@ const ProjectDetailPage: React.FC = () => {
 
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [selectedTask, setSelectedTask] = useState<Task | null>(null);
+
+  const [isEditTaskModalOpen, setIsEditTaskModalOpen] = useState(false);
+  const [editingTask, setEditingTask] = useState<Task | null>(null);
+
+  const [showDeleteProjectConfirm, setShowDeleteProjectConfirm] = useState(false);
+  const [deletingProject, setDeletingProject] = useState(false);
 
   const [taskTreeRefreshKey, setTaskTreeRefreshKey] = useState(0);
 
@@ -159,6 +185,48 @@ const ProjectDetailPage: React.FC = () => {
     setIsModalOpen(true);
   };
 
+  const handleEditTask = (task: Task) => {
+    setEditingTask(task);
+    setIsEditTaskModalOpen(true);
+  };
+
+  const handleEditTaskSubmit = async (formData: any) => {
+    if (!editingTask) return;
+    try {
+      const { assignee_id, ...taskData } = formData;
+      await taskService.updateTask(editingTask.id, taskData);
+      await loadProject();
+      setTaskTreeRefreshKey((prev) => prev + 1);
+      setIsEditTaskModalOpen(false);
+      setEditingTask(null);
+    } catch (err: any) {
+      setError(err.message || "Ошибка при обновлении задачи");
+    }
+  };
+
+  const handleDeleteTask = async (task: Task) => {
+    try {
+      await taskService.deleteTask(task.id);
+      await loadProject();
+      setTaskTreeRefreshKey((prev) => prev + 1);
+    } catch (err: any) {
+      setError(err.message || "Ошибка при удалении задачи");
+    }
+  };
+
+  const handleDeleteProject = async () => {
+    if (!id) return;
+    setDeletingProject(true);
+    try {
+      await taskService.deleteTask(id);
+      navigate("/");
+    } catch (err: any) {
+      setError(err.message || "Ошибка при удалении проекта");
+      setDeletingProject(false);
+      setShowDeleteProjectConfirm(false);
+    }
+  };
+
   const handleAssignmentChange = () => {
     loadProject();
     setTaskTreeRefreshKey((prev) => prev + 1);
@@ -207,7 +275,7 @@ const ProjectDetailPage: React.FC = () => {
                 Сроки проекта
               </div>
               <div className="project-detail-page__summary-value">
-                {project.start_date} — {project.end_date}
+                {formatDate(project.start_date)} — {formatDate(project.end_date)}
               </div>
             </div>
             <div className="project-detail-page__summary-card">
@@ -250,13 +318,22 @@ const ProjectDetailPage: React.FC = () => {
           </div>
         </div>
 
-        <Button
-          onClick={() => setIsModalOpen(true)}
-          variant="primary"
-          size="lg"
-        >
-          + Создать {selectedTask ? "подзадачу" : "задачу"}
-        </Button>
+        <div style={{ display: "flex", gap: "8px" }}>
+          <Button
+            onClick={() => setIsModalOpen(true)}
+            variant="primary"
+            size="lg"
+          >
+            + Создать {selectedTask ? "подзадачу" : "задачу"}
+          </Button>
+          <Button
+            onClick={() => setShowDeleteProjectConfirm(true)}
+            variant="danger"
+            size="lg"
+          >
+            Удалить проект
+          </Button>
+        </div>
       </div>
 
       {error && <div className="project-detail-page__error">{error}</div>}
@@ -269,6 +346,8 @@ const ProjectDetailPage: React.FC = () => {
             taskId={id}
             onTaskSelect={handleTaskSelect}
             onAddSubtask={handleAddSubtask}
+            onEditTask={handleEditTask}
+            onDeleteTask={handleDeleteTask}
           />
         )}
       </div>
@@ -300,6 +379,49 @@ const ProjectDetailPage: React.FC = () => {
           projectEndDate={project.end_date}
           projectId={project.id}
         />
+      </Modal>
+
+      <Modal
+        isOpen={isEditTaskModalOpen}
+        onClose={() => { setIsEditTaskModalOpen(false); setEditingTask(null); }}
+        title={editingTask ? `Редактировать: ${editingTask.title}` : "Редактировать задачу"}
+        size="md"
+      >
+        {editingTask && (
+          <TaskForm
+            task={editingTask}
+            onSubmit={handleEditTaskSubmit}
+            onCancel={() => { setIsEditTaskModalOpen(false); setEditingTask(null); }}
+            projectStartDate={project.start_date}
+            projectEndDate={project.end_date}
+            projectId={project.id}
+          />
+        )}
+      </Modal>
+
+      <Modal
+        isOpen={showDeleteProjectConfirm}
+        onClose={() => setShowDeleteProjectConfirm(false)}
+        title="Удаление проекта"
+      >
+        <div style={{ padding: "8px 0" }}>
+          <p>Вы уверены, что хотите удалить проект <strong>{project.title}</strong>? Все данные будут потеряны.</p>
+          <div style={{ display: "flex", gap: "8px", marginTop: "16px" }}>
+            <Button
+              variant="danger"
+              onClick={handleDeleteProject}
+              loading={deletingProject}
+            >
+              Удалить
+            </Button>
+            <Button
+              variant="outline"
+              onClick={() => setShowDeleteProjectConfirm(false)}
+            >
+              Отмена
+            </Button>
+          </div>
+        </div>
       </Modal>
     </div>
   );

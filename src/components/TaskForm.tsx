@@ -45,18 +45,18 @@ const NOVELTY_OPTIONS = [
 ];
 
 const calculateDaysDiff = (startDate: string, endDate: string): number => {
-  if (!startDate || !endDate) return 0;
+  if (!startDate || !endDate) return 1;
   const start = new Date(startDate);
   const end = new Date(endDate);
   const diffTime = end.getTime() - start.getTime();
   const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
-  return diffDays >= 0 ? diffDays : 0;
+  return Math.max(1, diffDays + 1);
 };
 
 const addDaysToDate = (dateStr: string, days: number): string => {
   if (!dateStr) return "";
   const date = new Date(dateStr);
-  date.setDate(date.getDate() + days);
+  date.setDate(date.getDate() + Math.max(0, days - 1));
   return date.toISOString().split("T")[0];
 };
 
@@ -102,12 +102,13 @@ export const TaskForm: React.FC<TaskFormProps> = ({
   projectEndDate,
   projectId,
 }) => {
+  const today = new Date().toISOString().split("T")[0];
   const [formData, setFormData] = useState({
     title: task?.title || "",
     description: task?.description || "",
-    start_date: task?.start_date || "",
-    end_date: task?.end_date || "",
-    duration_days: task?.duration_days || 0,
+    start_date: task?.start_date || today,
+    end_date: task?.end_date || today,
+    duration_days: task?.duration_days || 1,
     priority: task?.priority || "medium",
     estimated_hours: task?.estimated_hours || 0,
     complexity: task?.complexity || "medium",
@@ -146,7 +147,7 @@ export const TaskForm: React.FC<TaskFormProps> = ({
     if (
       lastChangedField === "start" &&
       formData.start_date &&
-      formData.duration_days > 0
+      formData.duration_days >= 1
     ) {
       const newEndDate = addDaysToDate(
         formData.start_date,
@@ -166,7 +167,7 @@ export const TaskForm: React.FC<TaskFormProps> = ({
     } else if (
       lastChangedField === "duration" &&
       formData.start_date &&
-      formData.duration_days >= 0
+      formData.duration_days >= 1
     ) {
       const newEndDate = addDaysToDate(
         formData.start_date,
@@ -386,7 +387,7 @@ export const TaskForm: React.FC<TaskFormProps> = ({
         return "";
 
       case "duration_days":
-        if (value < 0) return "Длительность не может быть отрицательной";
+        if (value < 1) return "Длительность должна быть не менее 1 дня";
         return "";
 
       case "assignee_id":
@@ -431,8 +432,8 @@ export const TaskForm: React.FC<TaskFormProps> = ({
     };
 
   const handleDurationChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const value = parseInt(e.target.value) || 0;
-    const safe = Math.max(0, value);
+    const value = parseInt(e.target.value) || 1;
+    const safe = Math.max(1, value);
     setFormData({ ...formData, duration_days: safe });
     setLastChangedField("duration");
 
@@ -532,13 +533,13 @@ export const TaskForm: React.FC<TaskFormProps> = ({
           />
 
           <Input
-            label="Длительность (дней)"
+            label="Длительность (полных дней)"
             type="number"
             value={formData.duration_days.toString()}
             onChange={handleDurationChange}
             onBlur={handleBlur("duration_days")}
             error={errors.duration_days}
-            min="0"
+            min="1"
             step="1"
           />
 

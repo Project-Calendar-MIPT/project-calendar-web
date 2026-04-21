@@ -41,6 +41,26 @@
       color: var(--color-text-primary);
     }
   }
+
+  &__add-subtask {
+    background: none;
+    border: 1px solid var(--color-border);
+    cursor: pointer;
+    color: var(--color-text-primary);
+    font-size: $font-size-sm;
+    padding: $spacing-1 $spacing-3;
+    width: auto;
+    height: auto;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: $radius-sm;
+    transition: all $transition-base;
+
+    &:hover {
+      background-color: var(--color-ghost-hover);
+    }
+  }
 }
 
 .task-node {

@@ -24,6 +24,7 @@ const VerifyEmailPage: React.FC = () => {
         const { token: jwt } = res.data;
         if (jwt) {
           localStorage.setItem("auth_token", jwt);
+          localStorage.removeItem("current_user");
         }
         setStatus("success");
       })

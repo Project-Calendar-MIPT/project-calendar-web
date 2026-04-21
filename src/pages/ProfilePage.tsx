@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from "react";
+import { Link } from "react-router-dom";
 import { Card } from "../components/ui/Card";
 import { Loader } from "../components/ui/Loader";
 import type { User, Task, WorkScheduleDay } from "../types";
@@ -487,12 +488,12 @@ export const ProfilePage: React.FC = () => {
                           {p.description}
                         </p>
                       )}
-                      <a
+                      <Link
                         className="projects-list__link"
-                        href={`/projects/${p.id}`}
+                        to={`/projects/${p.id}`}
                       >
                         Открыть проект
-                      </a>
+                      </Link>
                     </li>
                   ))}
                 </ul>

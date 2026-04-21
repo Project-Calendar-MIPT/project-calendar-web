@@ -113,7 +113,7 @@ export const TaskDetailModal: React.FC<TaskDetailModalProps> = ({
           title="Подтверждение удаления"
         >
           <div className="task-detail-modal__confirm">
-            <p>Вы уверены, что хотите удалить эту задачу?</p>
+            <p>Вы уверены, что хотите удалить эту задачу? Все данные будут потеряны.</p>
 
             <div className="task-detail-modal__actions">
               <Button variant="secondary" onClick={() => setShowConfirm(false)}>

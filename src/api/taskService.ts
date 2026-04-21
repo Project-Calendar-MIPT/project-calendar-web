@@ -26,6 +26,9 @@ function mapTaskFromBackend(raw: any): Task {
     start_date: raw.start_date ?? "",
     end_date: raw.due_date ?? raw.end_date ?? "",
     estimated_hours: raw.estimated_hours ? Number(raw.estimated_hours) : 0,
+    complexity: raw.complexity,
+    novelty: raw.novelty,
+    duration_days: raw.duration_days,
     created_at: raw.created_at,
     updated_at: raw.updated_at,
   };
@@ -45,6 +48,9 @@ function mapTaskToBackend(data: Partial<Task>): Record<string, any> {
     payload.estimated_hours = data.estimated_hours;
   if (data.parent_task_id !== undefined)
     payload.parent_task_id = data.parent_task_id;
+  if (data.complexity !== undefined) payload.complexity = data.complexity;
+  if (data.novelty !== undefined) payload.novelty = data.novelty;
+  if (data.duration_days !== undefined) payload.duration_days = data.duration_days;
   return payload;
 }
 

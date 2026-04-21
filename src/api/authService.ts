@@ -23,6 +23,8 @@ function mapBackendUser(backendUser: any): User {
     telegram: backendUser.telegram,
     phone: backendUser.phone,
     contacts_visible: backendUser.contacts_visible ?? true,
+    stack: backendUser.stack,
+    experience_level: backendUser.experience_level,
   };
 }
 
@@ -37,11 +39,16 @@ export const authService = {
       name: data.first_name,
       surname: data.last_name,
       middle_name: data.middle_name,
-      // timezone: data.timezone,
+      timezone: data.timezone,
       telegram: data.telegram,
       phone: data.phone,
       contacts_visible: data.contacts_visible,
       stack: data.stack,
+      work_schedule: data.work_schedule.map((d) => ({
+        weekday: d.day_of_week,
+        ...(d.is_working_day && d.start_time ? { start_time: d.start_time } : {}),
+        ...(d.is_working_day && d.end_time ? { end_time: d.end_time } : {}),
+      })),
       ...(data.experience_level ? { experience_level: data.experience_level } : {}),
     };
 
@@ -86,13 +93,14 @@ export const authService = {
       throw new Error("Not authenticated");
     }
 
-    // Return cached user if available
+    // Return cached user only if it has full profile data (first_name present)
     const savedUser = localStorage.getItem("current_user");
     if (savedUser) {
-      return JSON.parse(savedUser) as User;
+      const u = JSON.parse(savedUser) as User;
+      if (u.first_name) return u;
     }
 
-    // Fetch from API
+    // Fetch full profile from API
     const response = await apiClient.get("/auth/me");
     const user = mapBackendUser(response.data);
     localStorage.setItem("current_user", JSON.stringify(user));
@@ -102,7 +110,8 @@ export const authService = {
   logout(): void {
     localStorage.removeItem("auth_token");
     localStorage.removeItem("current_user");
-    window.location.href = "/login";
+    const base = (import.meta.env.BASE_URL || "/").replace(/\/$/, "");
+    window.location.href = base + "/login";
   },
 
   getToken(): string | null {
