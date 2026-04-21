@@ -1,4 +1,4 @@
-import React, { useMemo, useState } from "react";
+import React, { useState } from "react";
 import { useNavigate, Link } from "react-router-dom";
 import { Input } from "../components/ui/Input";
 import { Button } from "../components/ui/Button";
@@ -85,7 +85,6 @@ const RegisterPage: React.FC = () => {
     timezone: "Europe/Moscow",
     telegram: "",
     phone: "",
-    contacts_visible: true,
     stack: [] as StackSelectionItem[],
     experience_level: "" as ExperienceLevel | "",
   });
@@ -108,7 +107,7 @@ const RegisterPage: React.FC = () => {
 
     switch (field) {
       case "username":
-        if (!value.trim()) return "Имя пользователя обязательно";
+        if (!value.trim()) return "Логин обязателен";
         if (!USERNAME_ALLOWED_REGEX.test(value)) {
           return "Допустимы только латинские буквы, цифры и символы . _ -";
         }
@@ -150,7 +149,7 @@ const RegisterPage: React.FC = () => {
           return "Неверный формат телефона";
         return "";
       case "experience_level":
-        if (!value) return "Укажите уровень опыта";
+        if (!value) return "";
         if (!EXPERIENCE_LEVELS.includes(value as ExperienceLevel)) {
           return "Выберите уровень опыта из списка";
         }
@@ -161,7 +160,7 @@ const RegisterPage: React.FC = () => {
   };
 
   const validateStack = (stack: StackSelectionItem[]): string => {
-    if (stack.length === 0) return "Выберите хотя бы одну технологию";
+    if (stack.length === 0) return "";
 
     const hasInvalidLevel = stack.some(
       (item) => !EXPERIENCE_LEVELS.includes(item.experience_level),
@@ -228,13 +227,26 @@ const RegisterPage: React.FC = () => {
 
     try {
       const registerData: RegisterData = {
-        ...normalizedFormData,
+        username: normalizedFormData.username,
+        email: normalizedFormData.email,
+        password: normalizedFormData.password,
+        last_name: normalizedFormData.last_name,
+        first_name: normalizedFormData.first_name,
+        middle_name: normalizedFormData.middle_name,
+        timezone: normalizedFormData.timezone,
+        telegram: normalizedFormData.telegram,
+        phone: normalizedFormData.phone,
+        contacts_visible: true,
         stack: normalizedFormData.stack.map((item) => ({
           name: item.name,
           experience_level: item.experience_level,
         })),
-        experience_level:
-          normalizedFormData.experience_level as ExperienceLevel,
+        ...(normalizedFormData.experience_level
+          ? {
+              experience_level:
+                normalizedFormData.experience_level as ExperienceLevel,
+            }
+          : {}),
         work_schedule: workSchedule,
       };
 
@@ -371,43 +383,6 @@ const RegisterPage: React.FC = () => {
 
   const columns = useFloatingColumns(24);
 
-  // Keep floating columns visually as fast as on the login page,
-  // even when registration page becomes taller than viewport.
-  const heightRatio =
-    typeof window !== "undefined" && window.innerHeight > 0
-      ? Math.max(1, document.documentElement.scrollHeight / window.innerHeight)
-      : 1;
-
-  const adjustedColumns = useMemo(
-    () =>
-      columns.map((column) => {
-        const rawDuration =
-          typeof column.style.animationDuration === "string"
-            ? parseFloat(column.style.animationDuration)
-            : 16;
-        const rawDelay =
-          typeof column.style.animationDelay === "string"
-            ? parseFloat(column.style.animationDelay)
-            : -Math.random() * rawDuration;
-        const nextDuration = Number.isFinite(rawDuration)
-          ? `${rawDuration * heightRatio}s`
-          : column.style.animationDuration;
-        const nextDelay = Number.isFinite(rawDelay)
-          ? `${rawDelay * heightRatio}s`
-          : column.style.animationDelay;
-
-        return {
-          ...column,
-          style: {
-            ...column.style,
-            animationDuration: nextDuration,
-            animationDelay: nextDelay,
-          },
-        };
-      }),
-    [columns, heightRatio],
-  );
-
   const passwordToggleIcon = showPassword ? (
     // Slashed eye when password is visible.
     <svg viewBox="0 0 24 24" width="20" height="20" aria-hidden="true">
@@ -446,7 +421,7 @@ const RegisterPage: React.FC = () => {
     return (
       <div className="register-page">
         <div className="register-page__background" aria-hidden="true">
-          {adjustedColumns.map((column) => (
+          {columns.map((column) => (
             <div
               key={column.id}
               className="register-page__column"
@@ -474,7 +449,7 @@ const RegisterPage: React.FC = () => {
   return (
     <div className="register-page">
       <div className="register-page__background" aria-hidden="true">
-        {adjustedColumns.map((column) => (
+        {columns.map((column) => (
           <div
             key={column.id}
             className="register-page__column"
@@ -492,7 +467,7 @@ const RegisterPage: React.FC = () => {
           <div className="register-page__section">
             <h2 className="register-page__section-title">Учетные данные</h2>
             <Input
-              label="Имя пользователя"
+              label="Логин"
               type="text"
               value={formData.username}
               onChange={handleInputChange("username")}
@@ -503,7 +478,7 @@ const RegisterPage: React.FC = () => {
 
             <Input
               label="Email"
-              type="email"
+              type="text"
               value={formData.email}
               onChange={handleInputChange("email")}
               onBlur={handleInputBlur("email")}
@@ -588,17 +563,6 @@ const RegisterPage: React.FC = () => {
               onBlur={handleInputBlur("phone")}
               error={errors.phone}
             />
-
-            <div className="register-page__checkbox">
-              <label>
-                <input
-                  type="checkbox"
-                  checked={formData.contacts_visible}
-                  onChange={handleInputChange("contacts_visible")}
-                />
-                <span>Сделать контакты видимыми для других пользователей</span>
-              </label>
-            </div>
           </div>
 
           <div className="register-page__section">
@@ -607,7 +571,7 @@ const RegisterPage: React.FC = () => {
             </h2>
 
             <Select
-              label="Общий уровень опыта"
+              label="Уровень опыта по умолчанию"
               options={EXPERIENCE_OPTIONS}
               value={formData.experience_level}
               onChange={handleExperienceChange}
@@ -623,17 +587,14 @@ const RegisterPage: React.FC = () => {
               }}
               error={errors.experience_level}
               placeholderLabel="Выберите уровень по умолчанию"
-              required
             />
             <p className="register-page__experience-hint">
-              Этот уровень автоматически применяется ко всему стеку. Для
-              отдельных технологий его можно изменить вручную.
+              Необязательный уровень по умолчанию для технологий в стеке.
+              Для отдельных технологий его можно изменить вручную.
             </p>
 
             <div className="register-page__stack-block">
-              <div className="register-page__stack-label">
-                Стек <span>*</span>
-              </div>
+              <div className="register-page__stack-label">Стек</div>
 
               <div className="register-page__stack-options">
                 {TECHNOLOGY_OPTIONS.map((technology) => {
