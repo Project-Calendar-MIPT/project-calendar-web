@@ -134,6 +134,9 @@ export const TaskDetailView: React.FC<TaskDetailViewProps> = ({ task }) => {
           <div className="task-detail__k">Дата окончания</div>
           <div className="task-detail__v">{formatDate(task.end_date)}</div>
 
+          <div className="task-detail__k">Длительность (полных дней)</div>
+          <div className="task-detail__v">{task.duration_days ?? "—"}</div>
+
           <div className="task-detail__k">Оценка часов</div>
           <div className="task-detail__v">{task.estimated_hours ?? 0}</div>
         </div>

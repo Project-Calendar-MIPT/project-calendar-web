@@ -9,7 +9,6 @@ interface TaskNodeProps {
   task: Task;
   level: number;
   onTaskClick: (task: Task) => void;
-  onTaskDoubleClick: (task: Task) => void;
   selectedTaskId: string | null;
 }
 
@@ -17,7 +16,6 @@ const TaskNode: React.FC<TaskNodeProps> = ({
   task,
   level,
   onTaskClick,
-  onTaskDoubleClick,
   selectedTaskId,
 }) => {
   const [expanded, setExpanded] = useState(false);
@@ -126,7 +124,6 @@ const TaskNode: React.FC<TaskNodeProps> = ({
         <div
           className="task-node__info"
           onClick={() => onTaskClick(task)}
-          onDoubleClick={() => onTaskDoubleClick(task)}
         >
           <div className="task-node__title-row">
             <span className="task-node__title">{task.title}</span>
@@ -163,7 +160,6 @@ const TaskNode: React.FC<TaskNodeProps> = ({
                 task={subtask}
                 level={level + 1}
                 onTaskClick={onTaskClick}
-                onTaskDoubleClick={onTaskDoubleClick}
                 selectedTaskId={selectedTaskId}
               />
             ))
@@ -180,12 +176,16 @@ interface TaskTreeProps {
   taskId: string;
   onTaskSelect?: (task: Task | null) => void;
   onAddSubtask?: (parentTask: Task) => void;
+  onEditTask?: (task: Task) => void;
+  onDeleteTask?: (task: Task) => void;
 }
 
 export const TaskTree: React.FC<TaskTreeProps> = ({
   taskId,
   onTaskSelect,
   onAddSubtask,
+  onEditTask,
+  onDeleteTask,
 }) => {
   const [tasks, setTasks] = useState<Task[]>([]);
   const [loading, setLoading] = useState(true);
@@ -214,10 +214,6 @@ export const TaskTree: React.FC<TaskTreeProps> = ({
     onTaskSelect?.(newSelectedTask);
   };
 
-  const handleTaskDoubleClick = (task: Task) => {
-    setDetailTask(task);
-  };
-
   if (loading) {
     return <div className="task-tree">Загрузка...</div>;
   }
@@ -231,7 +227,6 @@ export const TaskTree: React.FC<TaskTreeProps> = ({
             task={task}
             level={0}
             onTaskClick={handleTaskClick}
-            onTaskDoubleClick={handleTaskDoubleClick}
             selectedTaskId={selectedTask?.id || null}
           />
         ))
@@ -245,13 +240,19 @@ export const TaskTree: React.FC<TaskTreeProps> = ({
           {onAddSubtask && (
             <button
               onClick={() => onAddSubtask(selectedTask)}
-              className="task-tree__deselect"
-              style={{ marginLeft: 12 }}
+              className="task-tree__add-subtask"
               title="Добавить подзадачу"
             >
               + Подзадача
             </button>
           )}
+          <button
+            onClick={() => setDetailTask(selectedTask)}
+            className="task-tree__add-subtask"
+            title="Подробнее"
+          >
+            Подробнее
+          </button>
           <button
             onClick={() => handleTaskClick(selectedTask)}
             className="task-tree__deselect"
@@ -265,6 +266,8 @@ export const TaskTree: React.FC<TaskTreeProps> = ({
         task={detailTask}
         isOpen={!!detailTask}
         onClose={() => setDetailTask(null)}
+        onEdit={onEditTask ? (_id) => { if (detailTask) { onEditTask(detailTask); setDetailTask(null); } } : undefined}
+        onDelete={onDeleteTask ? (_id) => { if (detailTask) { onDeleteTask(detailTask); setDetailTask(null); } } : undefined}
       />
     </div>
   );

@@ -257,7 +257,11 @@ const RegisterPage: React.FC = () => {
         navigate("/");
       }
     } catch (err: any) {
-      setError(err.response?.data?.message || "Ошибка при регистрации");
+      const backendMsg = err.response?.data?.message
+        || (typeof err.response?.data === "string" ? err.response.data : "")
+        || err.message
+        || "Ошибка при регистрации";
+      setError(backendMsg);
     } finally {
       setLoading(false);
     }

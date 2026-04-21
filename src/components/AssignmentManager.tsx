@@ -386,6 +386,8 @@ export const AssignmentManager: React.FC<AssignmentManagerProps> = ({
   };
 
   const handleRemoveMember = async (userId: string) => {
+    const name = getUserName(userId);
+    if (!window.confirm(`Удалить участника ${name} из проекта? Все данные будут потеряны.`)) return;
     try {
       const userAssignments = assignments.filter(
         (a) => a.user_id === userId && a.role !== "owner",
@@ -493,11 +495,11 @@ export const AssignmentManager: React.FC<AssignmentManagerProps> = ({
               style={{ display: "flex", gap: "8px", alignItems: "flex-end" }}
             >
               <Input
-                label="Имя или email"
+                label="Логин или email"
                 value={inviteQuery}
                 onChange={(e) => setInviteQuery(e.target.value)}
                 onKeyDown={(e) => e.key === "Enter" && handleInviteSearch()}
-                placeholder="Введите имя или email..."
+                placeholder="Введите логин или email"
               />
               <Button
                 onClick={handleInviteSearch}
@@ -513,6 +515,7 @@ export const AssignmentManager: React.FC<AssignmentManagerProps> = ({
               label="Роль"
               options={ROLE_OPTIONS}
               value={inviteRole}
+              includePlaceholder={false}
               onChange={(e) => setInviteRole(e.target.value)}
             />
 

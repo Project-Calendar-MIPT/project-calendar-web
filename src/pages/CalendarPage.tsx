@@ -36,6 +36,7 @@ export default function CalendarPage() {
       const allTasks = await taskService.getTasks();
 
       const filtered = allTasks.filter((t) => {
+        if (t.parent_task_id === null) return false;
         const startDate = new Date(t.start_date);
         const endDate = new Date(t.end_date);
         return startDate >= start && endDate <= end;
