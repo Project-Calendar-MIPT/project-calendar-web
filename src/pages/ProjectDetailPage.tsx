@@ -8,35 +8,15 @@ import { TaskTree } from "../components/TaskTree";
 import { AssignmentManager } from "../components/AssignmentManager";
 import { taskService } from "../api/taskService";
 import { assignmentService } from "../api/assignmentService";
+import { authService } from "../api/authService";
 import type { Task } from "../types";
 import "./ProjectDetailPage.scss";
 
-const collectAllProjectTasks = (
-  tasks: Task[],
-  rootProjectId: string,
-): Task[] => {
-  const result: Task[] = [];
-  const visited = new Set<string>();
-
-  const dfs = (parentId: string) => {
-    const children = tasks.filter((t) => t.parent_task_id === parentId);
-    for (const child of children) {
-      if (visited.has(child.id)) continue;
-      visited.add(child.id);
-      result.push(child);
-      dfs(child.id);
-    }
-  };
-
-  const projectTask = tasks.find((t) => t.id === rootProjectId);
-  if (projectTask) {
-    visited.add(projectTask.id);
-    result.push(projectTask);
-  }
-
-  dfs(rootProjectId);
-  return result;
-};
+async function fetchAllSubtasksRecursive(taskId: string): Promise<Task[]> {
+  const direct = await taskService.getSubtasks(taskId);
+  const nested = await Promise.all(direct.map((t) => fetchAllSubtasksRecursive(t.id)));
+  return [...direct, ...nested.flat()];
+}
 
 const getProjectDurationDays = (project: Task): number => {
   if (typeof project.duration_days === "number" && project.duration_days > 0) {
@@ -82,6 +62,7 @@ const ProjectDetailPage: React.FC = () => {
   const [error, setError] = useState("");
   const [projectTasks, setProjectTasks] = useState<Task[]>([]);
   const [memberCount, setMemberCount] = useState(0);
+  const [currentUserId, setCurrentUserId] = useState<string | null>(null);
 
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [selectedTask, setSelectedTask] = useState<Task | null>(null);
@@ -95,6 +76,7 @@ const ProjectDetailPage: React.FC = () => {
   const [taskTreeRefreshKey, setTaskTreeRefreshKey] = useState(0);
 
   useEffect(() => {
+    authService.getCurrentUser().then((u) => setCurrentUserId(u?.id ?? null)).catch(() => {});
     if (id) {
       loadProject();
     }
@@ -103,13 +85,13 @@ const ProjectDetailPage: React.FC = () => {
   const loadProject = async () => {
     try {
       setLoading(true);
-      const [data, allTasks] = await Promise.all([
+      const [data, subtasks] = await Promise.all([
         taskService.getTask(id!),
-        taskService.getTasks(),
+        fetchAllSubtasksRecursive(id!),
       ]);
       setProject(data);
 
-      const relatedTasks = collectAllProjectTasks(allTasks, id!);
+      const relatedTasks = [data, ...subtasks];
       setProjectTasks(relatedTasks);
 
       // Count unique members via real API
@@ -326,13 +308,15 @@ const ProjectDetailPage: React.FC = () => {
           >
             + Создать {selectedTask ? "подзадачу" : "задачу"}
           </Button>
-          <Button
-            onClick={() => setShowDeleteProjectConfirm(true)}
-            variant="danger"
-            size="lg"
-          >
-            Удалить проект
-          </Button>
+          {currentUserId && project.created_by === currentUserId && (
+            <Button
+              onClick={() => setShowDeleteProjectConfirm(true)}
+              variant="danger"
+              size="lg"
+            >
+              Удалить проект
+            </Button>
+          )}
         </div>
       </div>
 

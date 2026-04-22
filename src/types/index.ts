@@ -67,6 +67,7 @@ export interface Task {
   end_date: string;
   duration_days?: number;
   estimated_hours?: number;
+  created_by?: string;
   created_at?: string;
   updated_at?: string;
 }
