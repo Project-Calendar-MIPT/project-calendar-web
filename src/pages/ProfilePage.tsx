@@ -128,7 +128,24 @@ async function loadProfileData(): Promise<{
   workSchedule: WorkScheduleDay[];
   tasks: Task[];
 }> {
-  const user = await authService.getCurrentUser();
+  // Always fetch fresh profile data — bypasses stale localStorage cache
+  const meResp = await apiClient.get("/auth/me");
+  const user = {
+    id: meResp.data.id ?? "",
+    username: meResp.data.display_name ?? meResp.data.username ?? "",
+    email: meResp.data.email ?? "",
+    first_name: meResp.data.name ?? meResp.data.first_name ?? "",
+    last_name: meResp.data.surname ?? meResp.data.last_name ?? "",
+    middle_name: meResp.data.middle_name,
+    timezone: meResp.data.timezone ?? "Europe/Moscow",
+    telegram: meResp.data.telegram,
+    phone: meResp.data.phone,
+    contacts_visible: meResp.data.contacts_visible ?? true,
+    stack: meResp.data.stack,
+    experience_level: meResp.data.experience_level,
+  } as User;
+  // Update cache with fresh data
+  localStorage.setItem("current_user", JSON.stringify(user));
 
   const [workScheduleResp, tasksResp] = await Promise.allSettled([
     apiClient.get<WorkScheduleDay[]>(`/users/${user.id}/work-schedule`),
