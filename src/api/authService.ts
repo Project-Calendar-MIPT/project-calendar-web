@@ -44,11 +44,13 @@ export const authService = {
       phone: data.phone,
       contacts_visible: data.contacts_visible,
       stack: data.stack,
-      work_schedule: data.work_schedule.map((d) => ({
-        weekday: d.day_of_week,
-        ...(d.is_working_day && d.start_time ? { start_time: d.start_time } : {}),
-        ...(d.is_working_day && d.end_time ? { end_time: d.end_time } : {}),
-      })),
+      work_schedule: data.work_schedule
+        .filter((d) => d.is_working_day && d.start_time && d.end_time)
+        .map((d) => ({
+          weekday: d.day_of_week,
+          start_time: d.start_time,
+          end_time: d.end_time,
+        })),
       ...(data.experience_level ? { experience_level: data.experience_level } : {}),
     };
 
