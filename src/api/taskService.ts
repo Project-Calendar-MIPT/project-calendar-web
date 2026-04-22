@@ -29,6 +29,7 @@ function mapTaskFromBackend(raw: any): Task {
     complexity: raw.complexity,
     novelty: raw.novelty,
     duration_days: raw.duration_days,
+    created_by: raw.created_by,
     created_at: raw.created_at,
     updated_at: raw.updated_at,
   };
