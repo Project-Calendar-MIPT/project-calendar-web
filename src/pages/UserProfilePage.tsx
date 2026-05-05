@@ -33,8 +33,21 @@ export const UserProfilePage: React.FC = () => {
             .get<any[]>(`/users/${id}/work-schedule`)
             .catch(() => ({ data: [] })),
         ]);
-        setUser(userResp.data);
-        setSchedule(schedResp.data || []);
+        const rawUser = userResp.data?.user ?? userResp.data;
+        setUser({
+          ...rawUser,
+          display_name:
+            rawUser.display_name ||
+            [rawUser.surname, rawUser.name].filter(Boolean).join(" "),
+        });
+        setSchedule(
+          (schedResp.data || []).map((day: any) => ({
+            ...day,
+            weekday:
+              day.day_of_week ??
+              (typeof day.weekday === "number" ? day.weekday + 1 : 1),
+          })),
+        );
       } catch {
         setError("Пользователь не найден");
       } finally {

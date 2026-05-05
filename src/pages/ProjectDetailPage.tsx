@@ -198,16 +198,43 @@ const ProjectDetailPage: React.FC = () => {
 
   const handleDeleteProject = async () => {
     if (!id) return;
+
     setDeletingProject(true);
+    setError("");
+    const tasksToDelete = [...nestedTasks].sort((a, b) => {
+      const aDepth = a.parent_task_id ? 1 : 0;
+      const bDepth = b.parent_task_id ? 1 : 0;
+      return bDepth - aDepth;
+    });
     try {
-      await taskService.deleteTask(id);
+      for (const task of tasksToDelete) {
+        try {
+          await taskService.deleteTask(task.id);
+        } catch (err: any) {
+          if (err.response?.status !== 404) {
+            throw err;
+          }
+        }
+      }
+      try {
+        await taskService.deleteTask(id);
+      } catch (err: any) {
+        if (err.response?.status !== 404) {
+          throw err;
+        }
+      }
       navigate("/");
     } catch (err: any) {
-      setError(err.message || "Ошибка при удалении проекта");
-      setDeletingProject(false);
-      setShowDeleteProjectConfirm(false);
+      try {
+        await taskService.getTask(id);
+        setError(err.message || "Ошибка при удалении проекта");
+        setDeletingProject(false);
+        setShowDeleteProjectConfirm(false);
+      } catch {
+        navigate("/");
+      }
     }
-  };
+  }; 
 
   const handleAssignmentChange = () => {
     loadProject();

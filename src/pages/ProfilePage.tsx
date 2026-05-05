@@ -128,38 +128,44 @@ async function loadProfileData(): Promise<{
   workSchedule: WorkScheduleDay[];
   tasks: Task[];
 }> {
-  // Always fetch fresh profile data — bypasses stale localStorage cache
-  const meResp = await apiClient.get("/auth/me");
-  const user = {
-    id: meResp.data.id ?? "",
-    username: meResp.data.display_name ?? meResp.data.username ?? "",
-    email: meResp.data.email ?? "",
-    first_name: meResp.data.name ?? meResp.data.first_name ?? "",
-    last_name: meResp.data.surname ?? meResp.data.last_name ?? "",
-    middle_name: meResp.data.middle_name,
-    timezone: meResp.data.timezone ?? "Europe/Moscow",
-    telegram: meResp.data.telegram,
-    phone: meResp.data.phone,
-    contacts_visible: meResp.data.contacts_visible ?? true,
-    stack: meResp.data.stack,
-    experience_level: meResp.data.experience_level,
-  } as User;
-  // Update cache with fresh data
+  const user = await authService.getCurrentUser();
+
   localStorage.setItem("current_user", JSON.stringify(user));
 
+  const normalizeSchedule = (items: any[]): WorkScheduleDay[] => {
+    return items.map((day) => ({
+      day_of_week:
+        day.day_of_week ??
+        (typeof day.weekday === "number" ? day.weekday + 1 : 1),
+      is_working_day:
+        day.is_working_day ?? Boolean(day.start_time && day.end_time),
+      start_time: day.start_time,
+      end_time: day.end_time,
+    }));
+  };
+
+  const normalizeTask = (raw: any): Task => ({
+    ...raw,
+    parent_task_id: raw.parent_task_id ?? null,
+    description: raw.description ?? "",
+    status: raw.status === "open" ? "pending" : raw.status,
+    end_date: raw.due_date ?? raw.end_date ?? "",
+    estimated_hours: raw.estimated_hours ? Number(raw.estimated_hours) : 0,
+  });
+
   const [workScheduleResp, tasksResp] = await Promise.allSettled([
-    apiClient.get<WorkScheduleDay[]>(`/users/${user.id}/work-schedule`),
-    apiClient.get<Task[]>("/tasks", { params: { assigned_to: "me" } }),
+    apiClient.get<any[]>(`/users/${user.id}/work-schedule`),
+    apiClient.get<any[]>("/tasks", { params: { assigned_to: "me" } }),
   ]);
 
   const workSchedule =
     workScheduleResp.status === "fulfilled" && workScheduleResp.value.data
-      ? workScheduleResp.value.data
+      ? normalizeSchedule(workScheduleResp.value.data)
       : DEFAULT_WORK_SCHEDULE;
 
   const tasks =
     tasksResp.status === "fulfilled" && tasksResp.value.data
-      ? tasksResp.value.data
+      ? tasksResp.value.data.map(normalizeTask)
       : [];
 
   return { user, workSchedule, tasks };
