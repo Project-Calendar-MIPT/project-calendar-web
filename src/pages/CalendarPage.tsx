@@ -35,22 +35,45 @@ export default function CalendarPage() {
 
       const allTasks = await taskService.getTasks();
 
-      const filtered = allTasks.filter((t) => {
-        if (t.parent_task_id === null) return false;
-        const startDate = new Date(t.start_date);
-        const endDate = new Date(t.end_date);
-        return startDate >= start && endDate <= end;
-      });
+      const active = allTasks.filter(
+        (t) => t.status !== "completed" && t.status !== "cancelled",
+      );
 
-      const mapped: CalendarEvent[] = filtered.map((t) => ({
-        id: t.id,
-        title: t.title,
-        start: new Date(t.start_date),
-        end: new Date(t.end_date),
-        resource: t,
-      }));
+      const spanEvents: CalendarEvent[] = [];
+      const deadlineEvents: CalendarEvent[] = [];
+      const seenDeadlines = new Set<string>();
 
-      setEvents(mapped);
+      for (const t of active) {
+        const hasStart = t.start_date && t.start_date !== "";
+        const hasEnd = t.end_date && t.end_date !== "";
+
+        if (hasStart && hasEnd) {
+          const s = new Date(t.start_date);
+          const e = new Date(t.end_date);
+          if (s <= end && e >= start) {
+            spanEvents.push({ id: t.id, title: t.title, start: s, end: e, resource: t });
+          }
+        }
+
+        if (hasEnd) {
+          const deadline = new Date(t.end_date);
+          if (deadline >= start && deadline <= end && !seenDeadlines.has(t.id)) {
+            seenDeadlines.add(t.id);
+            const deadlineEnd = new Date(deadline);
+            deadlineEnd.setHours(23, 59, 59);
+            deadlineEvents.push({
+              id: `deadline-${t.id}`,
+              title: `⏰ ${t.title}`,
+              start: deadline,
+              end: deadlineEnd,
+              resource: t,
+              isDeadline: true,
+            });
+          }
+        }
+      }
+
+      setEvents([...spanEvents, ...deadlineEvents]);
     } catch (e) {
       setError("Не удалось загрузить события календаря");
     } finally {

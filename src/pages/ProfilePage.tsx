@@ -171,7 +171,7 @@ async function loadProfileData(): Promise<{
   return { user, workSchedule, tasks };
 }
 
-type ProfileTabId = "info" | "schedule" | "stats" | "projects" | "tasks";
+type ProfileTabId = "info" | "schedule" | "stats" | "projects" | "tasks" | "notifications";
 
 const PROFILE_TABS: { id: ProfileTabId; label: string }[] = [
   { id: "info", label: "Профиль" },
@@ -179,7 +179,22 @@ const PROFILE_TABS: { id: ProfileTabId; label: string }[] = [
   { id: "stats", label: "Статистика" },
   { id: "projects", label: "Мои проекты" },
   { id: "tasks", label: "Мои задачи" },
+  { id: "notifications", label: "Уведомления" },
 ];
+
+interface NotificationSettings {
+  deadline_reminders_enabled: boolean;
+  reminder_days_before: number[];
+  reminder_hours_before: number[];
+}
+
+const DAYS_OPTIONS = [1, 2, 3, 5, 7, 14];
+const HOURS_OPTIONS = [1, 2, 3, 6, 12, 24];
+
+const labelDay = (d: number) =>
+  d === 1 ? "За 1 день" : d < 5 ? `За ${d} дня` : `За ${d} дней`;
+const labelHour = (h: number) =>
+  h === 1 ? "За 1 час" : h < 5 ? `За ${h} часа` : `За ${h} часов`;
 
 export const ProfilePage: React.FC = () => {
   const [user, setUser] = useState<User | null>(null);
@@ -191,6 +206,14 @@ export const ProfilePage: React.FC = () => {
 
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
+
+  const [notifSettings, setNotifSettings] = useState<NotificationSettings>({
+    deadline_reminders_enabled: true,
+    reminder_days_before: [1, 3, 7],
+    reminder_hours_before: [],
+  });
+  const [notifSaving, setNotifSaving] = useState(false);
+  const [notifFeedback, setNotifFeedback] = useState<"ok" | "err" | null>(null);
 
   useEffect(() => {
     let isMounted = true;
@@ -206,6 +229,15 @@ export const ProfilePage: React.FC = () => {
         setUser(user);
         setWorkSchedule(workSchedule);
         setTasks(tasks);
+
+        try {
+          const ns = await apiClient.get<NotificationSettings>(
+            `/users/${user.id}/notification-settings`,
+          );
+          if (isMounted && ns.data) setNotifSettings(ns.data);
+        } catch {
+          // default values are fine
+        }
       } catch (e) {
         console.error(e);
         if (isMounted) {
@@ -226,6 +258,39 @@ export const ProfilePage: React.FC = () => {
       isMounted = false;
     };
   }, []);
+
+  const toggleDay = (d: number) => {
+    setNotifSettings((prev) => ({
+      ...prev,
+      reminder_days_before: prev.reminder_days_before.includes(d)
+        ? prev.reminder_days_before.filter((x) => x !== d)
+        : [...prev.reminder_days_before, d].sort((a, b) => a - b),
+    }));
+  };
+
+  const toggleHour = (h: number) => {
+    setNotifSettings((prev) => ({
+      ...prev,
+      reminder_hours_before: prev.reminder_hours_before.includes(h)
+        ? prev.reminder_hours_before.filter((x) => x !== h)
+        : [...prev.reminder_hours_before, h].sort((a, b) => a - b),
+    }));
+  };
+
+  const saveNotifSettings = async () => {
+    if (!user) return;
+    setNotifSaving(true);
+    setNotifFeedback(null);
+    try {
+      await apiClient.put(`/users/${user.id}/notification-settings`, notifSettings);
+      setNotifFeedback("ok");
+    } catch {
+      setNotifFeedback("err");
+    } finally {
+      setNotifSaving(false);
+      setTimeout(() => setNotifFeedback(null), 3000);
+    }
+  };
 
   const handleDayClick = (day: WorkScheduleDay) => {
     setSelectedDay(day.day_of_week);
@@ -571,6 +636,88 @@ export const ProfilePage: React.FC = () => {
                   })}
                 </ul>
               )}
+            </Card>
+          )}
+
+          {activeTab === "notifications" && (
+            <Card className="profile-page__section" title="Уведомления о дедлайнах">
+              <div className={`notif-settings${!notifSettings.deadline_reminders_enabled ? " notif-settings--disabled" : ""}`}>
+                <div className="notif-settings__toggle-row">
+                  <label className="notif-settings__toggle">
+                    <input
+                      type="checkbox"
+                      checked={notifSettings.deadline_reminders_enabled}
+                      onChange={(e) =>
+                        setNotifSettings((prev) => ({
+                          ...prev,
+                          deadline_reminders_enabled: e.target.checked,
+                        }))
+                      }
+                    />
+                    <span className="notif-settings__toggle-track" />
+                  </label>
+                  <span className="notif-settings__toggle-label">
+                    Напоминания по email о приближающихся дедлайнах
+                  </span>
+                </div>
+
+                <div className="notif-settings__group">
+                  <div className="notif-settings__group-title">За сколько дней напомнить</div>
+                  <div className="notif-settings__chips">
+                    {DAYS_OPTIONS.map((d) => {
+                      const active = notifSettings.reminder_days_before.includes(d);
+                      return (
+                        <label
+                          key={d}
+                          className={`notif-settings__chip${active ? " notif-settings__chip--active" : ""}`}
+                        >
+                          <input type="checkbox" checked={active} onChange={() => toggleDay(d)} />
+                          {labelDay(d)}
+                        </label>
+                      );
+                    })}
+                  </div>
+                </div>
+
+                <div className="notif-settings__group">
+                  <div className="notif-settings__group-title">За сколько часов напомнить</div>
+                  <div className="notif-settings__chips">
+                    {HOURS_OPTIONS.map((h) => {
+                      const active = notifSettings.reminder_hours_before.includes(h);
+                      return (
+                        <label
+                          key={h}
+                          className={`notif-settings__chip${active ? " notif-settings__chip--active" : ""}`}
+                        >
+                          <input type="checkbox" checked={active} onChange={() => toggleHour(h)} />
+                          {labelHour(h)}
+                        </label>
+                      );
+                    })}
+                  </div>
+                </div>
+
+                <div className="notif-settings__actions">
+                  <button
+                    type="button"
+                    className="notif-settings__save-btn"
+                    onClick={saveNotifSettings}
+                    disabled={notifSaving}
+                  >
+                    {notifSaving ? "Сохраняем…" : "Сохранить"}
+                  </button>
+                  {notifFeedback === "ok" && (
+                    <span className="notif-settings__feedback notif-settings__feedback--ok">
+                      Настройки сохранены
+                    </span>
+                  )}
+                  {notifFeedback === "err" && (
+                    <span className="notif-settings__feedback notif-settings__feedback--err">
+                      Не удалось сохранить
+                    </span>
+                  )}
+                </div>
+              </div>
             </Card>
           )}
         </main>

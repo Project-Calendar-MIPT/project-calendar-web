@@ -73,13 +73,30 @@ interface CalendarViewProps {
   onRangeChange?: (range: any) => void;
 }
 
-export const CalendarView = ({ events, onSelectEvent }: CalendarViewProps) => {
+export const CalendarView = ({ events, onSelectEvent, onRangeChange }: CalendarViewProps) => {
   const [currentDate, setCurrentDate] = useState(new Date());
   const [currentView, setCurrentView] = useState<"month" | "week" | "day">(
     "month",
   );
 
   const eventStyleGetter = (event: CalendarEvent) => {
+    if (event.isDeadline) {
+      const task: Task | undefined = event.resource;
+      const isOverdue = task?.end_date && new Date(task.end_date) < new Date();
+      return {
+        style: {
+          backgroundColor: isOverdue ? "#b91c1c" : "#7c3aed",
+          color: "white",
+          borderRadius: "6px",
+          padding: "3px 6px",
+          border: "none",
+          fontSize: "13px",
+          fontWeight: 600,
+          opacity: 0.92,
+        },
+      };
+    }
+
     const task: Task | undefined = event.resource;
     const bg =
       task?.priority && priorityColors[task.priority]
@@ -119,6 +136,7 @@ export const CalendarView = ({ events, onSelectEvent }: CalendarViewProps) => {
         onView={handleViewChange}
         onNavigate={handleNavigate}
         onSelectEvent={onSelectEvent}
+        onRangeChange={onRangeChange}
         eventPropGetter={eventStyleGetter}
         views={["month", "week", "day"]}
         culture="ru"

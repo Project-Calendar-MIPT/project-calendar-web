@@ -122,7 +122,6 @@ export const TaskForm: React.FC<TaskFormProps> = ({
     "start" | "end" | "duration" | null
   >(null);
 
-  const [availableUsers, setAvailableUsers] = useState<User[]>([]);
   const [candidateProfiles, setCandidateProfiles] = useState<
     Record<string, CandidateProfile>
   >({});
@@ -215,7 +214,6 @@ export const TaskForm: React.FC<TaskFormProps> = ({
     const loadCandidates = async () => {
       if (isProject || !hasDates) {
         if (!cancelled) {
-          setAvailableUsers([]);
           setCandidateProfiles({});
         }
         return;
@@ -256,7 +254,6 @@ export const TaskForm: React.FC<TaskFormProps> = ({
         const baseUsers = memberUsersRaw.filter(Boolean) as User[];
 
         const nextProfiles: Record<string, CandidateProfile> = {};
-        const nextAvailableUsers: User[] = [];
 
         // Collect all assignments across project tasks
         const allAssignmentsForProject: typeof projectAssignments = [
@@ -306,21 +303,16 @@ export const TaskForm: React.FC<TaskFormProps> = ({
             overlappingTasks,
           };
 
-          if (overlappingTasks.length === 0) {
-            nextAvailableUsers.push(user);
-          }
         }
 
         if (!cancelled) {
           setCandidateProfiles(nextProfiles);
-          setAvailableUsers(nextAvailableUsers);
 
+          // Clear selected assignee if they became busy after date change
           setFormData((prev) => {
             if (!prev.assignee_id) return prev;
-            const stillAvailable = nextAvailableUsers.some(
-              (user) => user.id === prev.assignee_id,
-            );
-            return stillAvailable ? prev : { ...prev, assignee_id: "" };
+            const isBusy = (nextProfiles[prev.assignee_id]?.overlappingTasks.length ?? 0) > 0;
+            return isBusy ? { ...prev, assignee_id: "" } : prev;
           });
         }
       } catch (err) {
@@ -392,7 +384,10 @@ export const TaskForm: React.FC<TaskFormProps> = ({
 
       case "assignee_id":
         if (!isProject && hasDates && !value) {
-          return "При наличии дат нужно выбрать исполнителя";
+          return "Выберите исполнителя";
+        }
+        if (value && candidateProfiles[value]?.overlappingTasks.length > 0) {
+          return "Сотрудник занят в выбранный период";
         }
         return "";
 
@@ -459,16 +454,6 @@ export const TaskForm: React.FC<TaskFormProps> = ({
     if (touched.estimated_hours) {
       const error = validateField("estimated_hours", safe);
       setErrors((prev) => ({ ...prev, estimated_hours: error }));
-    }
-  };
-
-  const handleAssigneeChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
-    const value = e.target.value;
-    setFormData((prev) => ({ ...prev, assignee_id: value }));
-
-    if (touched.assignee_id) {
-      const error = validateField("assignee_id", value);
-      setErrors((prev) => ({ ...prev, assignee_id: error }));
     }
   };
 
@@ -555,39 +540,93 @@ export const TaskForm: React.FC<TaskFormProps> = ({
 
         {!isProject && hasDates && (
           <div className="task-form__assignee-block">
-            <Select
-              label="Исполнитель"
-              options={availableUsers.map((user) => ({
-                value: user.id,
-                label:
-                  [user.last_name, user.first_name].filter(Boolean).join(" ") ||
-                  user.username ||
-                  user.email,
-              }))}
-              value={formData.assignee_id}
-              onChange={handleAssigneeChange}
-              error={errors.assignee_id}
-              required
-            />
-
-            <div className="task-form__availability-note">
-              {loadingCandidates
-                ? "Подбираем доступных сотрудников..."
-                : availableUsers.length > 0
-                  ? `Доступно сотрудников: ${availableUsers.length}`
-                  : "Нет свободных сотрудников на выбранный период"}
+            <div className="task-form__assignee-label">
+              Исполнитель
+              {errors.assignee_id && (
+                <span className="task-form__assignee-error">{errors.assignee_id}</span>
+              )}
             </div>
 
-            <div className="task-form__candidate-actions">
-              <Button
-                type="button"
-                variant="outline"
-                onClick={() => setProfileUserId(formData.assignee_id)}
-                disabled={!formData.assignee_id}
-              >
-                Профиль кандидата
-              </Button>
-            </div>
+            {loadingCandidates ? (
+              <div className="task-form__availability-note">Подбираем сотрудников…</div>
+            ) : Object.keys(candidateProfiles).length === 0 ? (
+              <div className="task-form__availability-note">
+                Нет участников проекта — сначала добавьте людей в проект
+              </div>
+            ) : (
+              <div className="assignee-picker">
+                {Object.values(candidateProfiles).map(({ user, overlappingTasks, activeTasks }) => {
+                  const isBusy = overlappingTasks.length > 0;
+                  const isSelected = formData.assignee_id === user.id;
+                  const name =
+                    [user.last_name, user.first_name].filter(Boolean).join(" ") ||
+                    user.username ||
+                    user.email;
+                  const initial = (user.last_name || user.first_name || user.username || "?")[0].toUpperCase();
+
+                  return (
+                    <div
+                      key={user.id}
+                      className={[
+                        "assignee-card",
+                        isBusy ? "assignee-card--busy" : "assignee-card--free",
+                        isSelected ? "assignee-card--selected" : "",
+                      ].join(" ")}
+                      onClick={() => {
+                        if (isBusy) return;
+                        const next = isSelected ? "" : user.id;
+                        setFormData((prev) => ({ ...prev, assignee_id: next }));
+                        if (touched.assignee_id) {
+                          setErrors((prev) => ({ ...prev, assignee_id: validateField("assignee_id", next) }));
+                        }
+                      }}
+                    >
+                      <div className="assignee-card__avatar">{initial}</div>
+                      <div className="assignee-card__body">
+                        <div className="assignee-card__name">{name}</div>
+                        {isBusy ? (
+                          <>
+                            <div className="assignee-card__status assignee-card__status--busy">
+                              Занят: {overlappingTasks.length}{" "}
+                              {overlappingTasks.length === 1 ? "задача" : overlappingTasks.length < 5 ? "задачи" : "задач"}
+                            </div>
+                            <div className="assignee-card__tasks">
+                              {overlappingTasks.map((t) => (
+                                <div key={t.id} className="assignee-card__task">
+                                  <span className="assignee-card__task-title">{t.title}</span>
+                                  <span className="assignee-card__task-dates">
+                                    {t.start_date} — {t.end_date}
+                                  </span>
+                                </div>
+                              ))}
+                            </div>
+                          </>
+                        ) : (
+                          <div className="assignee-card__status assignee-card__status--free">
+                            Свободен{activeTasks.length > 0 ? ` (${activeTasks.length} др. задач)` : ""}
+                          </div>
+                        )}
+                      </div>
+                      {isSelected && !isBusy && (
+                        <div className="assignee-card__check">✓</div>
+                      )}
+                    </div>
+                  );
+                })}
+              </div>
+            )}
+
+            {formData.assignee_id && (
+              <div className="task-form__candidate-actions">
+                <Button
+                  type="button"
+                  variant="outline"
+                  onClick={() => setProfileUserId(formData.assignee_id)}
+                >
+                  Подробный профиль
+                </Button>
+              </div>
+            )}
           </div>
         )}
 

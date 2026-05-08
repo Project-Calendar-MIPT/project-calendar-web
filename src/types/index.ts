@@ -88,6 +88,7 @@ export interface CalendarEvent {
   start: Date;
   end: Date;
   resource: Task;
+  isDeadline?: boolean;
 }
 
 export interface TasksQueryParams {

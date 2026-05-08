@@ -5,6 +5,21 @@
   flex-direction: column;
   gap: $spacing-4;
 
+  &__assignee-label {
+    font-size: 14px;
+    font-weight: 600;
+    color: var(--color-text-primary);
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+
+  &__assignee-error {
+    font-size: 12px;
+    font-weight: 400;
+    color: #dc2626;
+  }
+
   &__date-group {
     display: grid;
     grid-template-columns: 1fr 1fr 1fr;
@@ -94,6 +109,137 @@
 
 .task-form__info-button:hover {
   background: var(--color-ghost-hover);
+}
+
+.assignee-picker {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  max-height: 320px;
+  overflow-y: auto;
+  padding-right: 4px;
+}
+
+.assignee-card {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  padding: 10px 12px;
+  border-radius: 12px;
+  border: 1.5px solid var(--color-border);
+  background: var(--color-surface);
+  transition: border-color 0.15s, background 0.15s, box-shadow 0.15s;
+
+  &--free {
+    cursor: pointer;
+
+    &:hover {
+      border-color: #4f46e5;
+      background: rgba(79, 70, 229, 0.04);
+      box-shadow: 0 2px 8px rgba(79, 70, 229, 0.1);
+    }
+  }
+
+  &--busy {
+    cursor: not-allowed;
+    opacity: 0.75;
+    background: rgba(239, 68, 68, 0.04);
+    border-color: rgba(239, 68, 68, 0.3);
+  }
+
+  &--selected {
+    border-color: #4f46e5;
+    background: rgba(79, 70, 229, 0.08);
+    box-shadow: 0 0 0 3px rgba(79, 70, 229, 0.15);
+  }
+
+  &__avatar {
+    width: 36px;
+    height: 36px;
+    border-radius: 50%;
+    background: #4f46e5;
+    color: #fff;
+    font-size: 15px;
+    font-weight: 600;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    margin-top: 1px;
+
+    .assignee-card--busy & {
+      background: #9ca3af;
+    }
+  }
+
+  &__body {
+    flex: 1;
+    min-width: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 3px;
+  }
+
+  &__name {
+    font-size: 14px;
+    font-weight: 500;
+    color: var(--color-text-primary);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  &__status {
+    font-size: 12px;
+    font-weight: 500;
+
+    &--free {
+      color: #059669;
+    }
+
+    &--busy {
+      color: #dc2626;
+    }
+  }
+
+  &__tasks {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    margin-top: 4px;
+  }
+
+  &__task {
+    display: flex;
+    flex-direction: column;
+    gap: 1px;
+    padding: 5px 8px;
+    border-radius: 6px;
+    background: rgba(239, 68, 68, 0.06);
+    border: 1px solid rgba(239, 68, 68, 0.2);
+  }
+
+  &__task-title {
+    font-size: 12px;
+    font-weight: 500;
+    color: var(--color-text-primary);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  &__task-dates {
+    font-size: 11px;
+    color: var(--color-text-secondary);
+  }
+
+  &__check {
+    font-size: 16px;
+    color: #4f46e5;
+    font-weight: 700;
+    flex-shrink: 0;
+    align-self: center;
+  }
 }
 
 .candidate-profile {
