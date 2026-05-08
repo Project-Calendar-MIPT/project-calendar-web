@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react";
-import { useSearchParams, Link } from "react-router-dom";
+import { useSearchParams, Link, useNavigate } from "react-router-dom";
 import { apiClient } from "../api/client";
 import { Card } from "../components/ui/Card";
 
@@ -9,6 +9,8 @@ const VerifyEmailPage: React.FC = () => {
   const [searchParams] = useSearchParams();
   const [status, setStatus] = useState<Status>("loading");
   const [message, setMessage] = useState("");
+  const [countdown, setCountdown] = useState(3);
+  const navigate = useNavigate();
 
   useEffect(() => {
     const token = searchParams.get("token");
@@ -37,6 +39,16 @@ const VerifyEmailPage: React.FC = () => {
       });
   }, [searchParams]);
 
+  useEffect(() => {
+    if (status !== "success") return;
+    if (countdown <= 0) {
+      navigate("/");
+      return;
+    }
+    const timer = setTimeout(() => setCountdown((c) => c - 1), 1000);
+    return () => clearTimeout(timer);
+  }, [status, countdown, navigate]);
+
   return (
     <div
       style={{
@@ -54,10 +66,11 @@ const VerifyEmailPage: React.FC = () => {
           {status === "success" && (
             <>
               <h1 style={{ marginBottom: "0.75rem" }}>Email подтверждён!</h1>
-              <p>Ваш аккаунт активирован. Теперь вы можете войти.</p>
-              <div style={{ marginTop: "1.5rem" }}>
-                <Link to="/login">Войти в аккаунт</Link>
-              </div>
+              <p>Аккаунт активирован. Входим в систему…</p>
+              <p style={{ marginTop: "0.5rem", color: "#6b7280", fontSize: "0.875rem" }}>
+                Перенаправление через {countdown} сек.{" "}
+                <Link to="/" onClick={() => navigate("/")}>Войти сейчас</Link>
+              </p>
             </>
           )}
 
