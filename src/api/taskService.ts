@@ -75,12 +75,8 @@ export const taskService = {
   },
 
   async getTask(id: string): Promise<Task> {
-    // TODO: заменить на GET /tasks/{id} когда бэкенд добавит маршрут
-    const response = await apiClient.get<any[]>("/tasks");
-    const all = (response.data || []).map(mapTaskFromBackend);
-    const task = all.find((t) => t.id === id);
-    if (!task) throw new Error("Task not found");
-    return task;
+    const response = await apiClient.get<any>(`/tasks/${id}`);
+    return mapTaskFromBackend(response.data);
   },
 
   async createTask(data: Partial<Task>): Promise<Task> {

@@ -102,6 +102,7 @@ export const AssignmentManager: React.FC<AssignmentManagerProps> = ({
   const [inviteRole, setInviteRole] = useState("executor");
   const [inviteError, setInviteError] = useState("");
   const [inviteLoading, setInviteLoading] = useState(false);
+  const [confirmRemoveUserId, setConfirmRemoveUserId] = useState<string | null>(null);
 
   const navigate = useNavigate();
 
@@ -386,8 +387,7 @@ export const AssignmentManager: React.FC<AssignmentManagerProps> = ({
   };
 
   const handleRemoveMember = async (userId: string) => {
-    const name = getUserName(userId);
-    if (!window.confirm(`Удалить участника ${name} из проекта? Все данные будут потеряны.`)) return;
+    setConfirmRemoveUserId(null);
     try {
       const userAssignments = assignments.filter(
         (a) => a.user_id === userId && a.role !== "owner",
@@ -463,13 +463,33 @@ export const AssignmentManager: React.FC<AssignmentManagerProps> = ({
                   </span>
                 </div>
                 {member.role !== "owner" && (
-                  <Button
-                    onClick={() => handleRemoveMember(member.user_id)}
-                    variant="danger"
-                    size="sm"
-                  >
-                    Удалить
-                  </Button>
+                  confirmRemoveUserId === member.user_id ? (
+                    <div style={{ display: "flex", gap: "4px", alignItems: "center" }}>
+                      <span style={{ fontSize: "13px", color: "#6b7280" }}>Удалить?</span>
+                      <Button
+                        onClick={() => handleRemoveMember(member.user_id)}
+                        variant="danger"
+                        size="sm"
+                      >
+                        Да
+                      </Button>
+                      <Button
+                        onClick={() => setConfirmRemoveUserId(null)}
+                        variant="outline"
+                        size="sm"
+                      >
+                        Нет
+                      </Button>
+                    </div>
+                  ) : (
+                    <Button
+                      onClick={() => setConfirmRemoveUserId(member.user_id)}
+                      variant="danger"
+                      size="sm"
+                    >
+                      Удалить
+                    </Button>
+                  )
                 )}
               </div>
             ))}

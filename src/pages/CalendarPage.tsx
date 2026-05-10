@@ -107,9 +107,7 @@ export default function CalendarPage() {
       let guard = 0;
 
       while (current?.parent_task_id && guard < 20) {
-        const parent = await (taskService as any).getTask?.(
-          current.parent_task_id,
-        );
+        const parent = await taskService.getTask(current.parent_task_id);
         if (!parent) break;
         current = parent;
         guard += 1;
@@ -123,7 +121,7 @@ export default function CalendarPage() {
 
   const handleEdit = async (taskId: string) => {
     try {
-      const full = await (taskService as any).getTask?.(taskId);
+      const full = await taskService.getTask(taskId);
       const toEdit = (full || selectedTask) as Task | null;
 
       setEditTask(toEdit);
@@ -148,15 +146,7 @@ export default function CalendarPage() {
       setLoading(true);
       setError(null);
 
-      const updateFn = (taskService as any).updateTask;
-      if (typeof updateFn !== "function") {
-        setError(
-          "В taskService нет updateTask(). Если скинешь taskService.ts — добавлю.",
-        );
-        return;
-      }
-
-      await updateFn(editTask.id, data);
+      await taskService.updateTask(editTask.id, data);
 
       // перезагрузка календаря
       const now = new Date();
@@ -179,15 +169,7 @@ export default function CalendarPage() {
       setLoading(true);
       setError(null);
 
-      const deleteFn = (taskService as any).deleteTask;
-      if (typeof deleteFn !== "function") {
-        setError(
-          "В taskService нет deleteTask(). Если скинешь taskService.ts — добавлю.",
-        );
-        return;
-      }
-
-      await deleteFn(taskId);
+      await taskService.deleteTask(taskId);
 
       const now = new Date();
       await loadEvents(startOfMonth(now), endOfMonth(now));
