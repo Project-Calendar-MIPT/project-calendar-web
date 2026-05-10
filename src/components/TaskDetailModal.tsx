@@ -4,6 +4,7 @@ import { Button } from "./ui/Button";
 import { Loader } from "./ui/Loader";
 import type { Task } from "../types";
 import { TaskDetailView } from "./TaskDetailView";
+import { assignmentService } from "../api/assignmentService";
 import "./TaskDetailModal.scss";
 
 interface TaskDetailModalProps {
@@ -24,6 +25,7 @@ export const TaskDetailModal: React.FC<TaskDetailModalProps> = ({
   onDelete,
 }) => {
   const [showConfirm, setShowConfirm] = useState(false);
+  const [taskAssignees, setTaskAssignees] = useState<{ user_id: string; role: string; display_name: string }[]>([]);
 
   const [notesOpen, setNotesOpen] = useState(false);
   const [notesText, setNotesText] = useState("");
@@ -34,6 +36,14 @@ export const TaskDetailModal: React.FC<TaskDetailModalProps> = ({
       setNotesText(saved || "");
     }
   }, [task]);
+
+  useEffect(() => {
+    if (!task?.id || !isOpen) {
+      setTaskAssignees([]);
+      return;
+    }
+    assignmentService.getAssignmentsWithNames(task.id).then(setTaskAssignees).catch(() => {});
+  }, [task?.id, isOpen]);
 
   const handleSaveNotes = () => {
     if (task) {
@@ -56,7 +66,7 @@ export const TaskDetailModal: React.FC<TaskDetailModalProps> = ({
 
           {!loading && task && (
             <>
-              <TaskDetailView task={task} />
+              <TaskDetailView task={task} assignees={taskAssignees} />
 
               <div className="task-detail-modal__actions">
                 {onEdit && (

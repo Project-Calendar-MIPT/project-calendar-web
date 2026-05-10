@@ -14,7 +14,11 @@ import "./AssignmentManager.scss";
 interface AssignmentManagerProps {
   projectId: string;
   onAssignmentChange?: () => void;
+  currentUserId?: string;
 }
+
+const ROLE_LEGEND =
+  "Владелец — полный контроль над проектом\nРуководитель — управление задачами и участниками\nИсполнитель — выполнение задач\nГибридная — и управление, и выполнение\nНаблюдатель — только просмотр, без изменений";
 
 const ROLE_OPTIONS = [
   { value: "supervisor", label: "Руководитель" },
@@ -70,6 +74,7 @@ const hasDateOverlap = (
 export const AssignmentManager: React.FC<AssignmentManagerProps> = ({
   projectId,
   onAssignmentChange,
+  currentUserId: _currentUserId,
 }) => {
   const [assignments, setAssignments] = useState<Assignment[]>([]);
   const [projectTasks, setProjectTasks] = useState<Task[]>([]);
@@ -102,6 +107,10 @@ export const AssignmentManager: React.FC<AssignmentManagerProps> = ({
   const [inviteRole, setInviteRole] = useState("executor");
   const [inviteError, setInviteError] = useState("");
   const [inviteLoading, setInviteLoading] = useState(false);
+  const [confirmRemoveUserId, setConfirmRemoveUserId] = useState<string | null>(null);
+  const [expandedMemberIds, setExpandedMemberIds] = useState<Set<string>>(new Set());
+  const [changingRoleLoading, setChangingRoleLoading] = useState<string | null>(null);
+  const [applications, setApplications] = useState<any[]>([]);
 
   const navigate = useNavigate();
 
@@ -249,6 +258,19 @@ export const AssignmentManager: React.FC<AssignmentManagerProps> = ({
     loadAssignments();
   }, [loadAssignments]);
 
+  const loadApplications = useCallback(async () => {
+    try {
+      const apps = await assignmentService.getApplications(projectId);
+      setApplications(apps);
+    } catch {
+      setApplications([]);
+    }
+  }, [projectId]);
+
+  useEffect(() => {
+    loadApplications();
+  }, [loadApplications]);
+
   // Compute available users and candidate profiles based on selected task dates
   useEffect(() => {
     const selectedTask = projectTasks.find(
@@ -385,9 +407,59 @@ export const AssignmentManager: React.FC<AssignmentManagerProps> = ({
     }
   };
 
+  const handleChangeRole = async (userId: string, newRole: string) => {
+    setChangingRoleLoading(userId);
+    try {
+      await assignmentService.changeProjectRole(projectId, userId, newRole);
+      await loadAssignments();
+      onAssignmentChange?.();
+    } catch (err) {
+      console.error("Ошибка при смене роли:", err);
+    } finally {
+      setChangingRoleLoading(null);
+    }
+  };
+
+  const toggleMemberExpand = (userId: string) => {
+    setExpandedMemberIds((prev) => {
+      const next = new Set(prev);
+      if (next.has(userId)) next.delete(userId);
+      else next.add(userId);
+      return next;
+    });
+  };
+
+  const getMemberTasks = (userId: string) => {
+    return assignments
+      .filter((a) => a.user_id === userId)
+      .map((a) => ({
+        ...a,
+        taskTitle: allTasks.find((t) => t.id === a.task_id)?.title || "—",
+        isProjectRoot: a.task_id === projectId,
+      }));
+  };
+
+  const handleApproveApplication = async (applicationId: string) => {
+    try {
+      await assignmentService.approveApplication(projectId, applicationId);
+      await Promise.all([loadApplications(), loadAssignments()]);
+      onAssignmentChange?.();
+    } catch (err) {
+      console.error("Ошибка при одобрении заявки:", err);
+    }
+  };
+
+  const handleRejectApplication = async (applicationId: string) => {
+    try {
+      await assignmentService.rejectApplication(projectId, applicationId);
+      await loadApplications();
+    } catch (err) {
+      console.error("Ошибка при отклонении заявки:", err);
+    }
+  };
+
   const handleRemoveMember = async (userId: string) => {
-    const name = getUserName(userId);
-    if (!window.confirm(`Удалить участника ${name} из проекта? Все данные будут потеряны.`)) return;
+    setConfirmRemoveUserId(null);
     try {
       const userAssignments = assignments.filter(
         (a) => a.user_id === userId && a.role !== "owner",
@@ -449,33 +521,148 @@ export const AssignmentManager: React.FC<AssignmentManagerProps> = ({
 
         {displayMembers.length > 0 ? (
           <div className="assignment-manager__list">
-            {displayMembers.map((member) => (
-              <div key={member.user_id} className="assignment-manager__item">
-                <div className="assignment-manager__info">
-                  <span
-                    className="assignment-manager__user assignment-manager__user--link"
-                    onClick={() => navigate(`/users/${member.user_id}`)}
-                  >
-                    {getUserName(member.user_id)}
-                  </span>
-                  <span className="assignment-manager__role">
-                    {getRoleLabel(member.role)}
-                  </span>
+            {displayMembers.map((member) => {
+              const isExpanded = expandedMemberIds.has(member.user_id);
+              const memberTasks = getMemberTasks(member.user_id);
+              const nonRootTasks = memberTasks.filter((t) => !t.isProjectRoot);
+              const taskNames = nonRootTasks.map((t) => t.taskTitle);
+              const isChangingRole = changingRoleLoading === member.user_id;
+
+              return (
+                <div key={member.user_id} className="assignment-manager__item">
+                  <div className="assignment-manager__info">
+                    <button
+                      type="button"
+                      className="assignment-manager__expand-btn"
+                      onClick={() => toggleMemberExpand(member.user_id)}
+                      title={isExpanded ? "Свернуть задачи" : "Показать задачи участника"}
+                    >
+                      {isExpanded ? "▼" : "▶"}
+                    </button>
+
+                    <span
+                      className="assignment-manager__user assignment-manager__user--link"
+                      onClick={() => navigate(`/users/${member.user_id}`)}
+                    >
+                      {getUserName(member.user_id)}
+                    </span>
+
+                    {member.role === "owner" ? (
+                      <span className="assignment-manager__role">
+                        {getRoleLabel(member.role)}
+                      </span>
+                    ) : isChangingRole ? (
+                      <span className="assignment-manager__role" style={{ opacity: 0.5 }}>
+                        Сохранение…
+                      </span>
+                    ) : (
+                      <select
+                        className="assignment-manager__role-select"
+                        value={member.role}
+                        title={ROLE_LEGEND}
+                        onChange={(e) => handleChangeRole(member.user_id, e.target.value)}
+                      >
+                        {ROLE_OPTIONS.map((opt) => (
+                          <option key={opt.value} value={opt.value}>
+                            {opt.label}
+                          </option>
+                        ))}
+                      </select>
+                    )}
+                  </div>
+
+                  {isExpanded && (
+                    <div className="assignment-manager__member-tasks">
+                      {nonRootTasks.length > 0 ? (
+                        nonRootTasks.map((t) => (
+                          <div key={t.task_id} className="assignment-manager__member-task">
+                            <span className="assignment-manager__member-task-title">{t.taskTitle}</span>
+                            <span className="assignment-manager__member-task-role">{getRoleLabel(t.role)}</span>
+                          </div>
+                        ))
+                      ) : (
+                        <span style={{ opacity: 0.6, fontSize: "13px" }}>Нет назначений на задачи</span>
+                      )}
+                    </div>
+                  )}
+
+                  {member.role !== "owner" && (
+                    confirmRemoveUserId === member.user_id ? (
+                      <div className="assignment-manager__remove-confirm">
+                        {taskNames.length > 0 && (
+                          <div className="assignment-manager__remove-warning">
+                            Участник будет снят с задач:{" "}
+                            <strong>{taskNames.join(", ")}</strong>
+                          </div>
+                        )}
+                        <div style={{ display: "flex", gap: "4px", alignItems: "center" }}>
+                          <span style={{ fontSize: "13px", color: "#6b7280" }}>Удалить?</span>
+                          <Button
+                            onClick={() => handleRemoveMember(member.user_id)}
+                            variant="danger"
+                            size="sm"
+                          >
+                            Да
+                          </Button>
+                          <Button
+                            onClick={() => setConfirmRemoveUserId(null)}
+                            variant="outline"
+                            size="sm"
+                          >
+                            Нет
+                          </Button>
+                        </div>
+                      </div>
+                    ) : (
+                      <Button
+                        onClick={() => setConfirmRemoveUserId(member.user_id)}
+                        variant="danger"
+                        size="sm"
+                      >
+                        Удалить
+                      </Button>
+                    )
+                  )}
                 </div>
-                {member.role !== "owner" && (
-                  <Button
-                    onClick={() => handleRemoveMember(member.user_id)}
-                    variant="danger"
-                    size="sm"
-                  >
-                    Удалить
-                  </Button>
-                )}
-              </div>
-            ))}
+              );
+            })}
           </div>
         ) : (
           <p className="assignment-manager__empty">Никого не назначено</p>
+        )}
+
+        {applications.length > 0 && (
+          <div className="assignment-manager__applications">
+            <div className="assignment-manager__section-title">
+              Заявки на вступление ({applications.length})
+            </div>
+            {applications.map((app: any) => (
+              <div key={app.id} className="assignment-manager__application">
+                <div className="assignment-manager__application-info">
+                  <span>{app.display_name || app.email || app.user_id}</span>
+                  {app.email && app.display_name && (
+                    <span style={{ opacity: 0.6, fontSize: "12px" }}>{app.email}</span>
+                  )}
+                </div>
+                <div style={{ display: "flex", gap: "4px" }}>
+                  <Button
+                    onClick={() => handleApproveApplication(app.id)}
+                    variant="primary"
+                    size="sm"
+                  >
+                    Принять
+                  </Button>
+                  <Button
+                    onClick={() => handleRejectApplication(app.id)}
+                    variant="danger"
+                    size="sm"
+                  >
+                    Отклонить
+                  </Button>
+                </div>
+              </div>
+            ))}
+          </div>
         )}
 
         {/* Invite user modal */}
@@ -511,13 +698,35 @@ export const AssignmentManager: React.FC<AssignmentManagerProps> = ({
               </Button>
             </div>
 
-            <Select
-              label="Роль"
-              options={ROLE_OPTIONS}
-              value={inviteRole}
-              includePlaceholder={false}
-              onChange={(e) => setInviteRole(e.target.value)}
-            />
+            <div style={{ display: "flex", alignItems: "flex-end", gap: "6px" }}>
+              <div style={{ flex: 1 }}>
+                <Select
+                  label="Роль"
+                  options={ROLE_OPTIONS}
+                  value={inviteRole}
+                  includePlaceholder={false}
+                  onChange={(e) => setInviteRole(e.target.value)}
+                />
+              </div>
+              <button
+                type="button"
+                title={ROLE_LEGEND}
+                style={{
+                  background: "none",
+                  border: "1px solid var(--color-border, #e5e7eb)",
+                  borderRadius: "50%",
+                  width: "24px",
+                  height: "24px",
+                  cursor: "help",
+                  fontSize: "12px",
+                  color: "var(--color-text-secondary, #6b7280)",
+                  marginBottom: "2px",
+                  flexShrink: 0,
+                }}
+              >
+                ?
+              </button>
+            </div>
 
             {inviteResults.length > 0 && (
               <div

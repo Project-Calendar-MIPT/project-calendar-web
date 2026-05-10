@@ -25,6 +25,13 @@ type CandidateProfile = {
   overlappingTasks: Task[];
 };
 
+const ASSIGNMENT_ROLE_OPTIONS = [
+  { value: "executor", label: "Исполнитель" },
+  { value: "supervisor", label: "Руководитель" },
+  { value: "hybrid", label: "Гибридная роль" },
+  { value: "spectator", label: "Наблюдатель" },
+];
+
 const PRIORITY_OPTIONS = [
   { value: "low", label: "Низкий" },
   { value: "medium", label: "Средний" },
@@ -114,6 +121,7 @@ export const TaskForm: React.FC<TaskFormProps> = ({
     complexity: task?.complexity || "medium",
     novelty: task?.novelty || "medium",
     assignee_id: "",
+    assignee_role: "executor",
   });
 
   const [errors, setErrors] = useState<Record<string, string>>({});
@@ -618,6 +626,15 @@ export const TaskForm: React.FC<TaskFormProps> = ({
 
             {formData.assignee_id && (
               <div className="task-form__candidate-actions">
+                <Select
+                  label="Роль исполнителя"
+                  options={ASSIGNMENT_ROLE_OPTIONS}
+                  value={formData.assignee_role}
+                  includePlaceholder={false}
+                  onChange={(e) =>
+                    setFormData((prev) => ({ ...prev, assignee_role: e.target.value }))
+                  }
+                />
                 <Button
                   type="button"
                   variant="outline"

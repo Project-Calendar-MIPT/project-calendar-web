@@ -7,8 +7,6 @@ import { Loader } from "../components/ui/Loader";
 import { EmptyState } from "../components/EmptyState";
 import { TaskForm } from "../components/TaskForm";
 import { taskService } from "../api/taskService";
-import { assignmentService } from "../api/assignmentService";
-import { authService } from "../api/authService";
 import type { Task } from "../types";
 import "./ProjectsPage.scss";
 
