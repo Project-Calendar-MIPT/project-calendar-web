@@ -71,6 +71,14 @@ const EXPERIENCE_LABELS: Record<string, string> = {
   senior: "Senior",
 };
 
+const TASK_ROLE_LABELS: Record<string, string> = {
+  owner: "Владелец",
+  supervisor: "Руководитель",
+  hybrid: "Гибридная",
+  executor: "Исполнитель",
+  spectator: "Наблюдатель",
+};
+
 const formatStackLabel = (stack: User["stack"]): string => {
   if (!stack || stack.length === 0) return "—";
 
@@ -623,6 +631,12 @@ export const ProfilePage: React.FC = () => {
                             >
                               {formatStatusLabel(t.status)}
                             </span>
+
+                            {(t as any).role && (
+                              <span className="task-role-badge">
+                                {TASK_ROLE_LABELS[(t as any).role] || (t as any).role}
+                              </span>
+                            )}
                           </div>
                         </div>
 

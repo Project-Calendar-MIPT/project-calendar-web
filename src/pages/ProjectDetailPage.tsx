@@ -46,13 +46,6 @@ const formatDate = (iso?: string) => {
   }
 };
 
-const STATUS_LABELS: Record<string, string> = {
-  pending: "Новый",
-  in_progress: "В процессе",
-  completed: "Завершён",
-  cancelled: "Отменён",
-};
-
 const ProjectDetailPage: React.FC = () => {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
@@ -74,6 +67,7 @@ const ProjectDetailPage: React.FC = () => {
   const [deletingProject, setDeletingProject] = useState(false);
 
   const [taskTreeRefreshKey, setTaskTreeRefreshKey] = useState(0);
+  const [applyState, setApplyState] = useState<"idle" | "loading" | "applied" | "error">("idle");
 
   useEffect(() => {
     authService.getCurrentUser().then((u) => setCurrentUserId(u?.id ?? null)).catch(() => {});
@@ -144,7 +138,7 @@ const ProjectDetailPage: React.FC = () => {
       if (assignee_id && (taskData.start_date || taskData.end_date)) {
         await assignmentService.assignUser(createdTask.id, {
           user_id: assignee_id,
-          role: "executor",
+          role: formData.assignee_role || "executor",
           allocated_hours: taskData.estimated_hours || 0,
         });
       }
@@ -241,6 +235,17 @@ const ProjectDetailPage: React.FC = () => {
     setTaskTreeRefreshKey((prev) => prev + 1);
   };
 
+  const handleApply = async () => {
+    if (!id) return;
+    setApplyState("loading");
+    try {
+      await assignmentService.applyToProject(id);
+      setApplyState("applied");
+    } catch {
+      setApplyState("error");
+    }
+  };
+
   if (loading) {
     return (
       <div className="project-detail-page">
@@ -327,7 +332,7 @@ const ProjectDetailPage: React.FC = () => {
           </div>
         </div>
 
-        <div style={{ display: "flex", gap: "8px" }}>
+        <div style={{ display: "flex", gap: "8px", alignItems: "center" }}>
           <Button
             onClick={() => setIsModalOpen(true)}
             variant="primary"
@@ -343,6 +348,26 @@ const ProjectDetailPage: React.FC = () => {
             >
               Удалить проект
             </Button>
+          )}
+          {currentUserId && project.created_by !== currentUserId && applyState !== "applied" && (
+            <Button
+              onClick={handleApply}
+              variant="outline"
+              size="lg"
+              loading={applyState === "loading"}
+            >
+              Подать заявку
+            </Button>
+          )}
+          {applyState === "applied" && (
+            <span style={{ fontSize: "14px", color: "var(--color-success, #10b981)" }}>
+              Заявка отправлена
+            </span>
+          )}
+          {applyState === "error" && (
+            <span style={{ fontSize: "14px", color: "var(--color-danger, #ef4444)" }}>
+              Ошибка — возможно, вы уже участник
+            </span>
           )}
         </div>
       </div>
@@ -369,6 +394,7 @@ const ProjectDetailPage: React.FC = () => {
           <AssignmentManager
             projectId={id}
             onAssignmentChange={handleAssignmentChange}
+            currentUserId={currentUserId ?? undefined}
           />
         )}
       </div>

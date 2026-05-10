@@ -2,8 +2,15 @@ import React from "react";
 import type { Task } from "../types";
 import "./TaskDetailView.scss";
 
+interface AssigneeInfo {
+  user_id: string;
+  role: string;
+  display_name: string;
+}
+
 interface TaskDetailViewProps {
   task: Task;
+  assignees?: AssigneeInfo[];
 }
 
 const formatDate = (dateStr?: string) => {
@@ -57,6 +64,17 @@ const getNoveltyLabel = (value?: string): string => {
   return value ? labels[value] || value : "—";
 };
 
+const getRoleLabel = (role: string): string => {
+  const labels: Record<string, string> = {
+    owner: "Владелец",
+    supervisor: "Руководитель",
+    hybrid: "Гибридная",
+    executor: "Исполнитель",
+    spectator: "Наблюдатель",
+  };
+  return labels[role] || role;
+};
+
 const getPriorityColor = (priority: string): string => {
   const colors: Record<string, string> = {
     critical: "#ef4444",
@@ -67,7 +85,7 @@ const getPriorityColor = (priority: string): string => {
   return colors[priority] || "#6b7280";
 };
 
-export const TaskDetailView: React.FC<TaskDetailViewProps> = ({ task }) => {
+export const TaskDetailView: React.FC<TaskDetailViewProps> = ({ task, assignees }) => {
   return (
     <div className="task-detail">
       <div className="task-detail__top">
@@ -141,6 +159,20 @@ export const TaskDetailView: React.FC<TaskDetailViewProps> = ({ task }) => {
           <div className="task-detail__v">{task.estimated_hours ?? 0}</div>
         </div>
       </div>
+
+      {assignees && assignees.length > 0 && (
+        <div className="task-detail__section">
+          <div className="task-detail__section-title">Исполнители</div>
+          <div className="task-detail__assignees">
+            {assignees.map((a) => (
+              <div key={a.user_id} className="task-detail__assignee">
+                <span className="task-detail__assignee-name">{a.display_name}</span>
+                <span className="task-detail__assignee-role">{getRoleLabel(a.role)}</span>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
     </div>
   );
 };
