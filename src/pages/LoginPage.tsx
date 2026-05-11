@@ -76,7 +76,15 @@ const LoginPage: React.FC = () => {
       await authService.login(formData);
       navigate("/");
     } catch (err: any) {
-      setError(err.message || "Ошибка при входе");
+      const status = err.response?.status;
+      const backendMsg =
+        err.response?.data?.message ||
+        (typeof err.response?.data === "string" ? err.response.data : "");
+      setError(
+        status === 401
+          ? "Неверный email или пароль"
+          : backendMsg || "Ошибка при входе",
+      );
     } finally {
       setLoading(false);
     }
