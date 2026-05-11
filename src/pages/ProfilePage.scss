@@ -49,7 +49,7 @@
     width: 40px;
     height: 40px;
     border-radius: 999px;
-    background: #4f46e5;
+    background: var(--color-primary);
     color: #ffffff;
     font-weight: 600;
     font-size: 18px;
@@ -394,11 +394,11 @@
 }
 
 .profile-task {
-  border: 1px solid #e5e7eb;
+  border: 1px solid var(--color-border);
   border-radius: 10px;
   padding: 14px;
   margin-bottom: 12px;
-  background: #fff;
+  background: var(--color-surface-elevated);
 }
 
 .profile-task__header {
@@ -414,17 +414,17 @@
 .profile-task__dates {
   margin-top: 6px;
   font-size: 14px;
-  color: #6b7280;
+  color: var(--color-text-secondary);
 }
 
 .profile-task--urgent {
-  border-color: #f59e0b;
-  background: #fff7ed;
+  border-color: var(--color-warning-border);
+  background: var(--color-warning-surface);
 }
 
 .profile-task--overdue {
-  border-color: #ef4444;
-  background: #fef2f2;
+  border-color: var(--color-danger);
+  background: var(--color-danger-light);
 }
 
 .profile-task__badge {
@@ -435,26 +435,26 @@
 }
 
 .profile-task__badge--urgent {
-  background: #f59e0b;
-  color: white;
+  background: rgba(245, 158, 11, 0.18);
+  color: var(--color-badge-yellow);
 }
 
 .profile-task__badge--overdue {
-  background: #ef4444;
-  color: white;
+  background: rgba(239, 68, 68, 0.18);
+  color: var(--color-badge-red);
 }
 
 .task-list {
   &__item {
     &--urgent {
-      border-color: #f59e0b;
-      background: #fff7ed;
+      border-color: var(--color-warning-border);
+      background: var(--color-warning-surface);
       box-shadow: 0 0 0 1px rgba(245, 158, 11, 0.12);
     }
 
     &--overdue {
-      border-color: #ef4444;
-      background: #fef2f2;
+      border-color: var(--color-danger);
+      background: var(--color-danger-light);
       box-shadow: 0 0 0 1px rgba(239, 68, 68, 0.12);
     }
   }
@@ -477,18 +477,18 @@
 
   &--urgent {
     background: rgba(245, 158, 11, 0.16);
-    color: #b45309;
+    color: var(--color-badge-yellow);
   }
 
   &--overdue {
     background: rgba(239, 68, 68, 0.16);
-    color: #b91c1c;
+    color: var(--color-badge-red);
   }
 }
 
 .task-list__item--overdue {
-  border-color: #ef4444;
-  background: #fef2f2;
+  border-color: var(--color-danger);
+  background: var(--color-danger-light);
   box-shadow: 0 0 0 1px rgba(239, 68, 68, 0.12);
 }
 
@@ -502,7 +502,7 @@
 
   &--overdue {
     background: rgba(239, 68, 68, 0.16);
-    color: #b91c1c;
+    color: var(--color-badge-red);
   }
 }
 
@@ -562,7 +562,7 @@
     }
 
     input:checked + &-track {
-      background: #4f46e5;
+      background: var(--color-primary);
 
       &::after {
         transform: translateX(20px);
@@ -606,13 +606,13 @@
     }
 
     &:hover {
-      border-color: #4f46e5;
+      border-color: var(--color-primary);
     }
 
     &--active {
-      border-color: #4f46e5;
-      background: rgba(79, 70, 229, 0.1);
-      color: #4f46e5;
+      border-color: var(--color-primary);
+      background: var(--color-primary-100);
+      color: var(--color-primary);
       font-weight: 500;
     }
   }
@@ -625,10 +625,10 @@
   }
 
   &__save-btn {
-    padding: 9px 22px;
+    padding: 7px 18px;
     border-radius: 10px;
     border: none;
-    background: #4f46e5;
+    background: var(--color-primary);
     color: #fff;
     font-size: 14px;
     font-weight: 500;
@@ -636,7 +636,7 @@
     transition: background 0.15s, transform 0.1s;
 
     &:hover:not(:disabled) {
-      background: #4338ca;
+      background: var(--color-primary-dark);
     }
 
     &:active:not(:disabled) {
@@ -653,11 +653,11 @@
     font-size: 13px;
 
     &--ok {
-      color: #059669;
+      color: var(--color-success);
     }
 
     &--err {
-      color: #dc2626;
+      color: var(--color-danger);
     }
   }
 
