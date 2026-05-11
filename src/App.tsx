@@ -10,9 +10,11 @@ import { ProfilePage } from "./pages/ProfilePage";
 import { UserProfilePage } from "./pages/UserProfilePage";
 import ProtectedRoute from "./components/ProtectedRoute";
 import { ThemeProvider } from "./context/ThemeContext";
+import { ErrorBoundary } from "./components/ErrorBoundary";
 
 const App: React.FC = () => {
   return (
+    <ErrorBoundary>
     <ThemeProvider>
       <BrowserRouter basename={import.meta.env.BASE_URL}>
         <Routes>
@@ -63,6 +65,7 @@ const App: React.FC = () => {
         </Routes>
       </BrowserRouter>
     </ThemeProvider>
+    </ErrorBoundary>
   );
 };
 

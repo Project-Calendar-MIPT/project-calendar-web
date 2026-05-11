@@ -27,9 +27,15 @@ apiClient.interceptors.response.use(
   (response) => response,
   (error) => {
     if (error.response?.status === 401) {
-      localStorage.removeItem("auth_token");
-      const base = import.meta.env.BASE_URL || "/";
-      window.location.href = base.replace(/\/$/, "") + "/login";
+      const requestUrl: string = error.config?.url ?? "";
+      const isAuthEndpoint =
+        requestUrl.includes("/auth/login") ||
+        requestUrl.includes("/auth/register");
+      if (!isAuthEndpoint) {
+        localStorage.removeItem("auth_token");
+        const base = import.meta.env.BASE_URL || "/";
+        window.location.href = base.replace(/\/$/, "") + "/login";
+      }
     }
     return Promise.reject(error);
   },
