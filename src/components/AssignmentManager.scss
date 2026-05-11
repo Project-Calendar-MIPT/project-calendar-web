@@ -144,7 +144,7 @@
 .candidate-profile__warning {
   padding: 10px 12px;
   border-radius: 10px;
-  background: #fff7ed;
-  color: #c2410c;
+  background: var(--color-warning-surface);
+  color: var(--color-warning-text);
   font-size: 14px;
 }

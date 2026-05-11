@@ -10,6 +10,8 @@
   cursor: pointer;
   transition: all $transition-base;
   font-family: $font-family-base;
+  white-space: nowrap;
+  flex-shrink: 0;
 
   &:disabled {
     opacity: 0.5;
@@ -17,18 +19,18 @@
   }
 
   &--sm {
-    padding: $spacing-2 $spacing-3;
+    padding: 5px 10px;
     font-size: $font-size-sm;
   }
 
   &--md {
-    padding: $spacing-3 $spacing-4;
-    font-size: $font-size-base;
+    padding: 7px 14px;
+    font-size: $font-size-sm;
   }
 
   &--lg {
-    padding: $spacing-4 $spacing-6;
-    font-size: $font-size-lg;
+    padding: 9px 18px;
+    font-size: $font-size-base;
   }
 
   &--primary {

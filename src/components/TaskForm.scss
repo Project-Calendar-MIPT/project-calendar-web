@@ -17,7 +17,7 @@
   &__assignee-error {
     font-size: 12px;
     font-weight: 400;
-    color: #dc2626;
+    color: var(--color-danger);
   }
 
   &__date-group {
@@ -134,30 +134,30 @@
     cursor: pointer;
 
     &:hover {
-      border-color: #4f46e5;
-      background: rgba(79, 70, 229, 0.04);
-      box-shadow: 0 2px 8px rgba(79, 70, 229, 0.1);
+      border-color: var(--color-primary);
+      background: var(--color-primary-50);
+      box-shadow: 0 2px 8px var(--color-primary-100);
     }
   }
 
   &--busy {
     cursor: not-allowed;
     opacity: 0.75;
-    background: rgba(239, 68, 68, 0.04);
-    border-color: rgba(239, 68, 68, 0.3);
+    background: var(--color-danger-light);
+    border-color: color-mix(in srgb, var(--color-danger) 40%, transparent);
   }
 
   &--selected {
-    border-color: #4f46e5;
-    background: rgba(79, 70, 229, 0.08);
-    box-shadow: 0 0 0 3px rgba(79, 70, 229, 0.15);
+    border-color: var(--color-primary);
+    background: var(--color-primary-100);
+    box-shadow: 0 0 0 3px var(--color-primary-50);
   }
 
   &__avatar {
     width: 36px;
     height: 36px;
     border-radius: 50%;
-    background: #4f46e5;
+    background: var(--color-primary);
     color: #fff;
     font-size: 15px;
     font-weight: 600;
@@ -168,7 +168,7 @@
     margin-top: 1px;
 
     .assignee-card--busy & {
-      background: #9ca3af;
+      background: var(--color-text-disabled);
     }
   }
 
@@ -194,11 +194,11 @@
     font-weight: 500;
 
     &--free {
-      color: #059669;
+      color: var(--color-badge-green);
     }
 
     &--busy {
-      color: #dc2626;
+      color: var(--color-badge-red);
     }
   }
 
@@ -235,7 +235,7 @@
 
   &__check {
     font-size: 16px;
-    color: #4f46e5;
+    color: var(--color-primary);
     font-weight: 700;
     flex-shrink: 0;
     align-self: center;
@@ -287,7 +287,7 @@
 .candidate-profile__warning {
   padding: 10px 12px;
   border-radius: 10px;
-  background: #fff7ed;
-  color: #c2410c;
+  background: var(--color-warning-surface);
+  color: var(--color-warning-text);
   font-size: 14px;
 }
