@@ -88,6 +88,7 @@ export interface CalendarEvent {
   title: string;
   start: Date;
   end: Date;
+  allDay?: boolean;
   resource: Task | any;
   isDeadline?: boolean;
   isMeeting?: boolean;

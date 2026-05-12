@@ -3,6 +3,7 @@ import { startOfMonth, endOfMonth } from "date-fns";
 
 import { CalendarView } from "../components/CalendarView";
 import { TaskDetailModal } from "../components/TaskDetailModal";
+import { MeetingDetailModal } from "../components/MeetingDetailModal";
 import { TaskForm } from "../components/TaskForm";
 import { Modal } from "../components/ui/Modal";
 import { Loader } from "../components/ui/Loader";
@@ -16,19 +17,19 @@ import "./CalendarPage.scss";
 
 export default function CalendarPage() {
   const [events, setEvents] = useState<CalendarEvent[]>([]);
+  const [backgroundEvents, setBackgroundEvents] = useState<CalendarEvent[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
   const [selectedTask, setSelectedTask] = useState<Task | null>(null);
-  const [modalOpen, setModalOpen] = useState(false);
+  const [taskModalOpen, setTaskModalOpen] = useState(false);
+
+  const [selectedMeeting, setSelectedMeeting] = useState<Meeting | null>(null);
+  const [meetingModalOpen, setMeetingModalOpen] = useState(false);
 
   const [editOpen, setEditOpen] = useState(false);
   const [editTask, setEditTask] = useState<Task | null>(null);
-
-  const [editProjectBounds, setEditProjectBounds] = useState<{
-    start?: string;
-    end?: string;
-  }>({});
+  const [editProjectBounds, setEditProjectBounds] = useState<{ start?: string; end?: string }>({});
 
   const loadEvents = useCallback(async (start: Date, end: Date) => {
     try {
@@ -47,7 +48,13 @@ export default function CalendarPage() {
         (t) => t.status !== "completed" && t.status !== "cancelled",
       );
 
+      // Задачи, на которые ссылаются другие задачи как parent_task_id — это родители/эпики
+      const parentIds = new Set(
+        active.map((t) => t.parent_task_id).filter(Boolean) as string[],
+      );
+
       const spanEvents: CalendarEvent[] = [];
+      const bgEvents: CalendarEvent[] = [];
       const deadlineEvents: CalendarEvent[] = [];
       const seenDeadlines = new Set<string>();
 
@@ -56,12 +63,28 @@ export default function CalendarPage() {
         const hasEnd = t.end_date && t.end_date !== "";
         const isPrivateForeign = t.is_private && t.created_by !== currentUserId;
         const displayTitle = isPrivateForeign ? "Занят" : t.title;
+        const isParent = parentIds.has(t.id);
 
         if (hasStart && hasEnd) {
           const s = new Date(t.start_date);
+          // Конец дня (23:59:59) чтобы событие занимало весь последний день
           const e = new Date(t.end_date);
+          e.setHours(23, 59, 59);
+
           if (s <= end && e >= start) {
-            spanEvents.push({ id: t.id, title: displayTitle, start: s, end: e, resource: t });
+            const ev: CalendarEvent = {
+              id: t.id,
+              title: displayTitle,
+              start: s,
+              end: e,
+              allDay: true,
+              resource: t,
+            };
+            if (isParent) {
+              bgEvents.push(ev);
+            } else {
+              spanEvents.push(ev);
+            }
           }
         }
 
@@ -76,6 +99,7 @@ export default function CalendarPage() {
               title: `⏰ ${t.title}`,
               start: deadline,
               end: deadlineEnd,
+              allDay: true,
               resource: t,
               isDeadline: true,
             });
@@ -85,15 +109,17 @@ export default function CalendarPage() {
 
       const meetingEvents: CalendarEvent[] = meetings.map((m: Meeting) => ({
         id: `meeting-${m.id}`,
-        title: m.meeting_url ? `🔗 ${m.title}` : `📍 ${m.title}`,
+        title: m.meeting_url ? `📹 ${m.title}` : `📍 ${m.title}`,
         start: new Date(m.start_at),
         end: new Date(new Date(m.start_at).getTime() + m.duration_min * 60_000),
+        allDay: false,
         resource: m,
         isMeeting: true,
       }));
 
       setEvents([...spanEvents, ...deadlineEvents, ...meetingEvents]);
-    } catch (e) {
+      setBackgroundEvents(bgEvents);
+    } catch {
       setError("Не удалось загрузить события календаря");
     } finally {
       setLoading(false);
@@ -106,8 +132,13 @@ export default function CalendarPage() {
   }, [loadEvents]);
 
   const handleSelectEvent = (event: CalendarEvent) => {
-    setSelectedTask(event.resource);
-    setModalOpen(true);
+    if (event.isMeeting) {
+      setSelectedMeeting(event.resource as Meeting);
+      setMeetingModalOpen(true);
+    } else {
+      setSelectedTask(event.resource as Task);
+      setTaskModalOpen(true);
+    }
   };
 
   const handleRangeChange = (range: unknown) => {
@@ -124,14 +155,12 @@ export default function CalendarPage() {
       if (!t) return {};
       let current: any = t;
       let guard = 0;
-
       while (current?.parent_task_id && guard < 20) {
         const parent = await taskService.getTask(current.parent_task_id);
         if (!parent) break;
         current = parent;
         guard += 1;
       }
-
       return { start: current?.start_date, end: current?.end_date };
     } catch {
       return {};
@@ -142,15 +171,11 @@ export default function CalendarPage() {
     try {
       const full = await taskService.getTask(taskId);
       const toEdit = (full || selectedTask) as Task | null;
-
       setEditTask(toEdit);
-
       const bounds = await loadProjectBoundsForTask(toEdit);
       setEditProjectBounds(bounds);
-
       setEditOpen(true);
     } catch {
-      // fallback
       setEditTask(selectedTask);
       const bounds = await loadProjectBoundsForTask(selectedTask);
       setEditProjectBounds(bounds);
@@ -160,43 +185,48 @@ export default function CalendarPage() {
 
   const handleUpdate = async (data: any) => {
     if (!editTask) return;
-
     try {
       setLoading(true);
-      setError(null);
-
       await taskService.updateTask(editTask.id, data);
-
-      // перезагрузка календаря
       const now = new Date();
       await loadEvents(startOfMonth(now), endOfMonth(now));
-
       setEditOpen(false);
       setEditTask(null);
       setEditProjectBounds({});
-      setModalOpen(false);
+      setTaskModalOpen(false);
       setSelectedTask(null);
-    } catch (e) {
+    } catch {
       setError("Не удалось обновить задачу");
     } finally {
       setLoading(false);
     }
   };
 
-  const handleDelete = async (taskId: string) => {
+  const handleDeleteTask = async (taskId: string) => {
     try {
       setLoading(true);
-      setError(null);
-
       await taskService.deleteTask(taskId);
-
       const now = new Date();
       await loadEvents(startOfMonth(now), endOfMonth(now));
-
-      setModalOpen(false);
+      setTaskModalOpen(false);
       setSelectedTask(null);
-    } catch (e) {
+    } catch {
       setError("Не удалось удалить задачу");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleDeleteMeeting = async (meetingId: string) => {
+    try {
+      setLoading(true);
+      await meetingService.deleteMeeting(meetingId);
+      const now = new Date();
+      await loadEvents(startOfMonth(now), endOfMonth(now));
+      setMeetingModalOpen(false);
+      setSelectedMeeting(null);
+    } catch {
+      setError("Не удалось удалить созвон");
     } finally {
       setLoading(false);
     }
@@ -207,9 +237,7 @@ export default function CalendarPage() {
       <h1 style={{ marginBottom: "16px" }}>Календарь</h1>
 
       {loading && (
-        <div
-          style={{ display: "flex", justifyContent: "center", padding: "20px" }}
-        >
+        <div style={{ display: "flex", justifyContent: "center", padding: "20px" }}>
           <Loader size="lg" />
         </div>
       )}
@@ -223,6 +251,7 @@ export default function CalendarPage() {
       {!loading && !error && (
         <CalendarView
           events={events}
+          backgroundEvents={backgroundEvents}
           onSelectEvent={handleSelectEvent}
           onRangeChange={handleRangeChange}
         />
@@ -230,10 +259,17 @@ export default function CalendarPage() {
 
       <TaskDetailModal
         task={selectedTask}
-        isOpen={modalOpen}
-        onClose={() => setModalOpen(false)}
+        isOpen={taskModalOpen}
+        onClose={() => setTaskModalOpen(false)}
         onEdit={(taskId) => handleEdit(taskId)}
-        onDelete={(taskId) => handleDelete(taskId)}
+        onDelete={(taskId) => handleDeleteTask(taskId)}
+      />
+
+      <MeetingDetailModal
+        meeting={selectedMeeting}
+        isOpen={meetingModalOpen}
+        onClose={() => setMeetingModalOpen(false)}
+        onDelete={(id) => handleDeleteMeeting(id)}
       />
 
       <Modal
