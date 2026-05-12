@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { apiClient } from "../api/client";
+import { userService } from "../api/userService";
 import { Card } from "../components/ui/Card";
 import { Loader } from "../components/ui/Loader";
 import "./ProfilePage.scss";
@@ -22,6 +23,17 @@ export const UserProfilePage: React.FC = () => {
   const [schedule, setSchedule] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
+  const [availability, setAvailability] = useState<
+    { date: string; busy_slots: { start: string; end: string }[] }[]
+  >([]);
+  const [weekOffset, setWeekOffset] = useState(0);
+
+  const getWeekStart = (offset: number): string => {
+    const d = new Date();
+    const day = d.getDay() || 7;
+    d.setDate(d.getDate() - day + 1 + offset * 7);
+    return d.toISOString().split("T")[0];
+  };
 
   useEffect(() => {
     if (!id) return;
@@ -56,6 +68,13 @@ export const UserProfilePage: React.FC = () => {
     };
     load();
   }, [id]);
+
+  useEffect(() => {
+    if (!id) return;
+    userService.getAvailability(id, getWeekStart(weekOffset))
+      .then(setAvailability)
+      .catch(() => setAvailability([]));
+  }, [id, weekOffset]);
 
   if (loading)
     return (
@@ -169,6 +188,51 @@ export const UserProfilePage: React.FC = () => {
               </div>
             </div>
           )}
+
+          <div style={{ marginTop: "24px" }}>
+            <div style={{ display: "flex", alignItems: "center", gap: "12px", marginBottom: "12px" }}>
+              <h3 style={{ margin: 0, fontSize: "16px", fontWeight: 600 }}>Занятость на неделе</h3>
+              <button onClick={() => setWeekOffset(w => w - 1)} style={{ padding: "2px 8px", cursor: "pointer" }}>←</button>
+              <span style={{ fontSize: "13px", color: "var(--color-text-secondary)" }}>{getWeekStart(weekOffset)}</span>
+              <button onClick={() => setWeekOffset(w => w + 1)} style={{ padding: "2px 8px", cursor: "pointer" }}>→</button>
+            </div>
+            <div style={{ display: "grid", gridTemplateColumns: "44px repeat(5, 1fr)", gap: "2px", fontSize: "11px" }}>
+              <div />
+              {["Пн","Вт","Ср","Чт","Пт"].map(d => (
+                <div key={d} style={{ textAlign: "center", fontWeight: 600, padding: "4px", color: "var(--color-text-secondary)" }}>{d}</div>
+              ))}
+              {Array.from({ length: 9 }, (_, i) => i + 9).map(hour => {
+                const weekMon = getWeekStart(weekOffset);
+                return (
+                  <React.Fragment key={hour}>
+                    <div style={{ textAlign: "right", padding: "4px 4px 4px 0", color: "var(--color-text-secondary)" }}>{hour}:00</div>
+                    {[0,1,2,3,4].map(dayOffset => {
+                      const d = new Date(weekMon);
+                      d.setDate(d.getDate() + dayOffset);
+                      const dateStr = d.toISOString().split("T")[0];
+                      const dayData = availability.find(a => a.date === dateStr);
+                      const isBusy = dayData?.busy_slots.some(s => {
+                        const slotH = parseInt(s.start.split(":")[0]);
+                        const endH  = parseInt(s.end.split(":")[0]);
+                        return hour >= slotH && hour < endH;
+                      }) ?? false;
+                      return (
+                        <div key={dayOffset} style={{
+                          background: isBusy ? "#fee2e2" : "#dcfce7",
+                          borderRadius: "3px",
+                          minHeight: "20px",
+                        }} />
+                      );
+                    })}
+                  </React.Fragment>
+                );
+              })}
+            </div>
+            <div style={{ display: "flex", gap: "12px", marginTop: "8px", fontSize: "11px", color: "var(--color-text-secondary)" }}>
+              <span><span style={{ display: "inline-block", width: 10, height: 10, background: "#dcfce7", borderRadius: 2, marginRight: 4 }} />Свободен</span>
+              <span><span style={{ display: "inline-block", width: 10, height: 10, background: "#fee2e2", borderRadius: 2, marginRight: 4 }} />Занят</span>
+            </div>
+          </div>
         </Card>
       </div>
     </>
