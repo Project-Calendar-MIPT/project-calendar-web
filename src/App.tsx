@@ -8,6 +8,7 @@ import ProjectDetailPage from "./pages/ProjectDetailPage";
 import CalendarPage from "./pages/CalendarPage";
 import { ProfilePage } from "./pages/ProfilePage";
 import { UserProfilePage } from "./pages/UserProfilePage";
+import MeetingsPage from "./pages/MeetingsPage";
 import ProtectedRoute from "./components/ProtectedRoute";
 import { ThemeProvider } from "./context/ThemeContext";
 
@@ -57,6 +58,14 @@ const App: React.FC = () => {
             element={
               <ProtectedRoute>
                 <UserProfilePage />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/meetings"
+            element={
+              <ProtectedRoute>
+                <MeetingsPage />
               </ProtectedRoute>
             }
           />
