@@ -24,4 +24,28 @@ export const userService = {
       return [];
     }
   },
+
+  async getAvailability(
+    userId: string,
+    week: string
+  ): Promise<{ date: string; busy_slots: { start: string; end: string }[] }[]> {
+    try {
+      const res = await apiClient.get(`/users/${userId}/availability`, { params: { week } });
+      return res.data || [];
+    } catch { return []; }
+  },
+
+  async getSubordinates(): Promise<{ id: string; display_name: string; email: string }[]> {
+    try {
+      const res = await apiClient.get("/users/my-subordinates");
+      return res.data || [];
+    } catch { return []; }
+  },
+
+  async isSubordinate(userId: string): Promise<boolean> {
+    try {
+      const res = await apiClient.get<{ is_subordinate: boolean }>(`/users/${userId}/is-subordinate`);
+      return res.data?.is_subordinate ?? false;
+    } catch { return false; }
+  },
 };
