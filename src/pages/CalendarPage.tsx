@@ -9,6 +9,8 @@ import { Loader } from "../components/ui/Loader";
 import { Card } from "../components/ui/Card";
 
 import { taskService } from "../api/taskService";
+import { meetingService, type Meeting } from "../api/meetingService";
+import { authService } from "../api/authService";
 import type { CalendarEvent, Task } from "../types";
 import "./CalendarPage.scss";
 
@@ -33,7 +35,13 @@ export default function CalendarPage() {
       setLoading(true);
       setError(null);
 
-      const allTasks = await taskService.getTasks();
+      const [allTasks, currentUser, meetings] = await Promise.all([
+        taskService.getTasks(),
+        authService.getCurrentUser().catch(() => null),
+        meetingService.listMeetings(false).catch(() => []),
+      ]);
+
+      const currentUserId = currentUser?.id ?? "";
 
       const active = allTasks.filter(
         (t) => t.status !== "completed" && t.status !== "cancelled",
@@ -46,16 +54,18 @@ export default function CalendarPage() {
       for (const t of active) {
         const hasStart = t.start_date && t.start_date !== "";
         const hasEnd = t.end_date && t.end_date !== "";
+        const isPrivateForeign = t.is_private && t.created_by !== currentUserId;
+        const displayTitle = isPrivateForeign ? "Занят" : t.title;
 
         if (hasStart && hasEnd) {
           const s = new Date(t.start_date);
           const e = new Date(t.end_date);
           if (s <= end && e >= start) {
-            spanEvents.push({ id: t.id, title: t.title, start: s, end: e, resource: t });
+            spanEvents.push({ id: t.id, title: displayTitle, start: s, end: e, resource: t });
           }
         }
 
-        if (hasEnd) {
+        if (hasEnd && !isPrivateForeign) {
           const deadline = new Date(t.end_date);
           if (deadline >= start && deadline <= end && !seenDeadlines.has(t.id)) {
             seenDeadlines.add(t.id);
@@ -73,7 +83,16 @@ export default function CalendarPage() {
         }
       }
 
-      setEvents([...spanEvents, ...deadlineEvents]);
+      const meetingEvents: CalendarEvent[] = meetings.map((m: Meeting) => ({
+        id: `meeting-${m.id}`,
+        title: m.meeting_url ? `🔗 ${m.title}` : `📍 ${m.title}`,
+        start: new Date(m.start_at),
+        end: new Date(new Date(m.start_at).getTime() + m.duration_min * 60_000),
+        resource: m,
+        isMeeting: true,
+      }));
+
+      setEvents([...spanEvents, ...deadlineEvents, ...meetingEvents]);
     } catch (e) {
       setError("Не удалось загрузить события календаря");
     } finally {

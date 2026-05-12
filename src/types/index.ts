@@ -88,8 +88,9 @@ export interface CalendarEvent {
   title: string;
   start: Date;
   end: Date;
-  resource: Task;
+  resource: Task | any;
   isDeadline?: boolean;
+  isMeeting?: boolean;
 }
 
 export interface TasksQueryParams {

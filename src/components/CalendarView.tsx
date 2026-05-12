@@ -80,12 +80,25 @@ export const CalendarView = ({ events, onSelectEvent, onRangeChange }: CalendarV
   );
 
   const eventStyleGetter = (event: CalendarEvent) => {
+    if (event.isMeeting) {
+      return {
+        style: {
+          backgroundColor: "#7c3aed",
+          color: "white",
+          borderRadius: "6px",
+          padding: "4px 6px",
+          border: "none",
+          fontSize: "14px",
+        },
+      };
+    }
+
     if (event.isDeadline) {
       const task: Task | undefined = event.resource;
       const isOverdue = task?.end_date && new Date(task.end_date) < new Date();
       return {
         style: {
-          backgroundColor: isOverdue ? "#b91c1c" : "#7c3aed",
+          backgroundColor: isOverdue ? "#b91c1c" : "#9333ea",
           color: "white",
           borderRadius: "6px",
           padding: "3px 6px",
