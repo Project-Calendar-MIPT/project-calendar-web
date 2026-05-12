@@ -41,6 +41,12 @@ export const Header: React.FC = () => {
             Календарь
           </Link>
           <Link
+            to="/meetings"
+            className={`header__link ${isActive("/meetings") ? "header__link--active" : ""}`}
+          >
+            Созвоны
+          </Link>
+          <Link
             to="/profile"
             className={`header__link ${isActive("/profile") ? "header__link--active" : ""}`}
           >

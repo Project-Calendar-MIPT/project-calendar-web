@@ -62,6 +62,7 @@ export interface Task {
   required_skills?: string[];
 
   is_public?: boolean;
+  is_private?: boolean;
 
   start_date: string;
   end_date: string;
@@ -87,8 +88,9 @@ export interface CalendarEvent {
   title: string;
   start: Date;
   end: Date;
-  resource: Task;
+  resource: Task | any;
   isDeadline?: boolean;
+  isMeeting?: boolean;
 }
 
 export interface TasksQueryParams {
