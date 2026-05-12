@@ -116,6 +116,8 @@ export const TaskForm: React.FC<TaskFormProps> = ({
     assignee_id: "",
   });
 
+  const [isPrivate, setIsPrivate] = useState<boolean>(task?.is_private ?? false);
+  const [error, setError] = useState<string>("");
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [touched, setTouched] = useState<Record<string, boolean>>({});
   const [lastChangedField, setLastChangedField] = useState<
@@ -477,10 +479,21 @@ export const TaskForm: React.FC<TaskFormProps> = ({
       return;
     }
 
-    onSubmit({
-      ...formData,
-      assignee_id: hasDates ? formData.assignee_id : "",
-    });
+    try {
+      onSubmit({
+        ...formData,
+        assignee_id: hasDates ? formData.assignee_id : "",
+        is_private: isPrivate,
+      });
+    } catch (err: any) {
+      if (err?.response?.status === 422) {
+        const body = err.response.data;
+        if (body?.error === "weekly_limit_exceeded") {
+          setError(`Превышен лимит 40ч/нед. Сейчас: ${body.current}ч`);
+          return;
+        }
+      }
+    }
   };
 
   return (
@@ -705,6 +718,22 @@ export const TaskForm: React.FC<TaskFormProps> = ({
           min="0"
           step="1"
         />
+
+        <div style={{ display: "flex", alignItems: "center", gap: "8px", marginTop: "12px" }}>
+          <input
+            type="checkbox"
+            id="is_private"
+            checked={isPrivate}
+            onChange={(e) => setIsPrivate(e.target.checked)}
+          />
+          <label htmlFor="is_private" style={{ cursor: "pointer", userSelect: "none" }}>
+            Личная задача (другие видят только «Занят»)
+          </label>
+        </div>
+
+        {error && (
+          <div style={{ color: "#ef4444", fontSize: "13px", marginTop: "8px" }}>{error}</div>
+        )}
 
         <div className="task-form__actions">
           <Button type="submit" variant="primary">

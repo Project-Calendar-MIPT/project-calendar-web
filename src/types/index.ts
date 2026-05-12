@@ -62,6 +62,7 @@ export interface Task {
   required_skills?: string[];
 
   is_public?: boolean;
+  is_private?: boolean;
 
   start_date: string;
   end_date: string;

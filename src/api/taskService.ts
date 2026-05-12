@@ -32,6 +32,7 @@ function mapTaskFromBackend(raw: any): Task {
     created_by: raw.created_by,
     created_at: raw.created_at,
     updated_at: raw.updated_at,
+    is_private: raw.is_private ?? false,
   };
 }
 
@@ -52,6 +53,7 @@ function mapTaskToBackend(data: Partial<Task>): Record<string, any> {
   if (data.complexity !== undefined) payload.complexity = data.complexity;
   if (data.novelty !== undefined) payload.novelty = data.novelty;
   if (data.duration_days !== undefined) payload.duration_days = data.duration_days;
+  if (data.is_private !== undefined) payload.is_private = data.is_private;
   return payload;
 }
 
