@@ -413,10 +413,6 @@ export const ProfilePage: React.FC = () => {
             >
               <div className="profile-info">
                 <div className="profile-info__row">
-                  <span className="profile-info__label">ФИО</span>
-                  <span className="profile-info__value">{fullName || "—"}</span>
-                </div>
-                <div className="profile-info__row">
                   <span className="profile-info__label">Фамилия</span>
                   <span className="profile-info__value">
                     {user.last_name || "—"}
