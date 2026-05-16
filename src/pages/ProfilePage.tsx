@@ -215,6 +215,7 @@ export const ProfilePage: React.FC = () => {
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
 
+
   const [notifSettings, setNotifSettings] = useState<NotificationSettings>({
     deadline_reminders_enabled: true,
     reminder_days_before: [1, 3, 7],

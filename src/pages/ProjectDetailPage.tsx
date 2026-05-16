@@ -135,7 +135,7 @@ const ProjectDetailPage: React.FC = () => {
         parent_task_id: parentId,
       });
 
-      if (assignee_id && (taskData.start_date || taskData.end_date)) {
+      if (assignee_id) {
         await assignmentService.assignUser(createdTask.id, {
           user_id: assignee_id,
           role: formData.assignee_role || "executor",
