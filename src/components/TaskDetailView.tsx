@@ -166,7 +166,7 @@ export const TaskDetailView: React.FC<TaskDetailViewProps> = ({ task, assignees 
           <div className="task-detail__assignees">
             {assignees.map((a) => (
               <div key={a.user_id} className="task-detail__assignee">
-                <span className="task-detail__assignee-name">{a.display_name}</span>
+                <span className="task-detail__assignee-name">{a.display_name} </span>
                 <span className="task-detail__assignee-role">{getRoleLabel(a.role)}</span>
               </div>
             ))}
