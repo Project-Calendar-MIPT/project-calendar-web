@@ -15,7 +15,6 @@ import type {
 } from "../types";
 import "./RegisterPage.scss";
 
-const USERNAME_ALLOWED_REGEX = /^[A-Za-z0-9._-]+$/;
 const EMAIL_ALLOWED_CHARACTERS_REGEX = /^[A-Za-z0-9._%+\-@]*$/;
 const EMAIL_FORMAT_REGEX = /^[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}$/;
 const PASSWORD_ALLOWED_CHARACTERS_REGEX =
@@ -76,7 +75,6 @@ const RegisterPage: React.FC = () => {
   const [emailSent, setEmailSent] = useState(false);
 
   const [formData, setFormData] = useState({
-    username: "",
     email: "",
     password: "",
     last_name: "",
@@ -106,12 +104,6 @@ const RegisterPage: React.FC = () => {
     if (typeof value === "boolean" || Array.isArray(value)) return "";
 
     switch (field) {
-      case "username":
-        if (!value.trim()) return "Логин обязателен";
-        if (!USERNAME_ALLOWED_REGEX.test(value)) {
-          return "Допустимы только латинские буквы, цифры и символы . _ -";
-        }
-        return "";
       case "email":
         if (!value.trim()) return "Email обязателен";
         if (!EMAIL_ALLOWED_CHARACTERS_REGEX.test(value)) {
@@ -141,7 +133,7 @@ const RegisterPage: React.FC = () => {
           return "Неверный формат часового пояса";
         return "";
       case "telegram":
-        if (value && !/^@?[a-zA-Z0-9_]{5,32}$/.test(value))
+        if (value && !/^@?[a-zA-Z0-9_]{4,32}$/.test(value))
           return "Неверный формат Telegram (например: @username)";
         return "";
       case "phone":
@@ -227,7 +219,6 @@ const RegisterPage: React.FC = () => {
 
     try {
       const registerData: RegisterData = {
-        username: normalizedFormData.username,
         email: normalizedFormData.email,
         password: normalizedFormData.password,
         last_name: normalizedFormData.last_name,
@@ -470,16 +461,6 @@ const RegisterPage: React.FC = () => {
         <form onSubmit={handleSubmit}>
           <div className="register-page__section">
             <h2 className="register-page__section-title">Учетные данные</h2>
-            <Input
-              label="Логин"
-              type="text"
-              value={formData.username}
-              onChange={handleInputChange("username")}
-              onBlur={handleInputBlur("username")}
-              error={errors.username}
-              required
-            />
-
             <Input
               label="Email"
               type="text"

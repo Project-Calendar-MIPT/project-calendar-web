@@ -141,15 +141,22 @@ async function loadProfileData(): Promise<{
   localStorage.setItem("current_user", JSON.stringify(user));
 
   const normalizeSchedule = (items: any[]): WorkScheduleDay[] => {
-    return items.map((day) => ({
-      day_of_week:
-        day.day_of_week ??
-        (typeof day.weekday === "number" ? day.weekday + 1 : 1),
-      is_working_day:
-        day.is_working_day ?? Boolean(day.start_time && day.end_time),
-      start_time: day.start_time,
-      end_time: day.end_time,
-    }));
+    return items.map((day) => {
+      const raw =
+        typeof day.day_of_week === "number"
+          ? day.day_of_week
+          : typeof day.weekday === "number"
+            ? day.weekday + 1
+            : 1;
+      const dow = raw >= 1 && raw <= 7 ? raw : raw === 0 ? 7 : 1;
+      return {
+        day_of_week: dow,
+        is_working_day:
+          day.is_working_day ?? Boolean(day.start_time && day.end_time),
+        start_time: day.start_time,
+        end_time: day.end_time,
+      };
+    });
   };
 
   const normalizeTask = (raw: any): Task => ({
@@ -351,7 +358,6 @@ export const ProfilePage: React.FC = () => {
   const avatarLetter =
     (user?.last_name && user.last_name.trim()[0]) ||
     (user?.first_name && user.first_name.trim()[0]) ||
-    (user?.username && user.username.trim()[0]) ||
     "?";
 
   const fullName = user
@@ -379,10 +385,7 @@ export const ProfilePage: React.FC = () => {
               </div>
               <div className="profile-page__user-meta">
                 <div className="profile-page__user-name">
-                  {fullName || user.username}
-                </div>
-                <div className="profile-page__user-username">
-                  @{user.username}
+                  {fullName || "—"}
                 </div>
               </div>
             </div>
@@ -430,10 +433,6 @@ export const ProfilePage: React.FC = () => {
                   <span className="profile-info__value">
                     {user.middle_name || "—"}
                   </span>
-                </div>
-                <div className="profile-info__row">
-                  <span className="profile-info__label">Логин</span>
-                  <span className="profile-info__value">@{user.username || '—'}</span>
                 </div>
                 {hasTelegram && (
                   <div className="profile-info__row">

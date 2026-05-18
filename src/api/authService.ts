@@ -14,7 +14,6 @@ interface EmailSentResponse {
 function mapBackendUser(backendUser: any): User {
   return {
     id: backendUser.id ?? "",
-    username: backendUser.display_name ?? backendUser.username ?? "",
     email: backendUser.email ?? "",
     first_name: backendUser.name ?? backendUser.first_name ?? "",
     last_name: backendUser.surname ?? backendUser.last_name ?? "",

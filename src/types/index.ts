@@ -7,7 +7,6 @@ export interface StackItem {
 
 export interface User {
   id: string;
-  username: string;
   email: string;
   last_name: string;
   first_name: string;
@@ -22,7 +21,6 @@ export interface User {
 }
 
 export interface RegisterData {
-  username: string;
   email: string;
   password: string;
   last_name: string;

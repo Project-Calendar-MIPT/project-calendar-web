@@ -249,7 +249,6 @@ export const TaskForm: React.FC<TaskFormProps> = ({
               const u = resp.data;
               return {
                 id: uid,
-                username: u.display_name ?? u.email ?? "",
                 email: u.email ?? "",
                 first_name: u.name ?? "",
                 last_name: u.surname ?? "",
@@ -581,9 +580,9 @@ export const TaskForm: React.FC<TaskFormProps> = ({
                   const isSelected = formData.assignee_id === user.id;
                   const name =
                     [user.last_name, user.first_name].filter(Boolean).join(" ") ||
-                    user.username ||
-                    user.email;
-                  const initial = (user.last_name || user.first_name || user.username || "?")[0].toUpperCase();
+                    user.email ||
+                    "—";
+                  const initial = (user.last_name || user.first_name || user.email || "?")[0].toUpperCase();
 
                   return (
                     <div
@@ -778,12 +777,8 @@ export const TaskForm: React.FC<TaskFormProps> = ({
                   selectedProfile.user.first_name,
                 ]
                   .filter(Boolean)
-                  .join(" ") || selectedProfile.user.username}
+                  .join(" ") || selectedProfile.user.email || "—"}
               </span>
-            </div>
-            <div className="candidate-profile__row">
-              <span className="candidate-profile__label">Логин:</span>
-              <span>{selectedProfile.user.username}</span>
             </div>
             <div className="candidate-profile__row">
               <span className="candidate-profile__label">Email:</span>

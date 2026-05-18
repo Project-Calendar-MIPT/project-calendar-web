@@ -236,7 +236,6 @@ export const AssignmentManager: React.FC<AssignmentManagerProps> = ({
             const u = resp.data;
             return {
               id: uid,
-              username: u.display_name ?? u.email ?? "",
               email: u.email ?? "",
               first_name: u.name ?? "",
               last_name: u.surname ?? "",
@@ -751,10 +750,9 @@ export const AssignmentManager: React.FC<AssignmentManagerProps> = ({
                   >
                     <div>
                       <div>
-                        {user.username ||
-                          [user.last_name, user.first_name]
-                            .filter(Boolean)
-                            .join(" ")}
+                        {[user.last_name, user.first_name]
+                          .filter(Boolean)
+                          .join(" ") || user.email || "—"}
                       </div>
                       <div style={{ fontSize: "12px", opacity: 0.6 }}>
                         {user.email}
@@ -819,9 +817,9 @@ export const AssignmentManager: React.FC<AssignmentManagerProps> = ({
               options={usersForDropdown.map((u) => ({
                 value: u.id,
                 label:
-                  u.username ||
                   [u.last_name, u.first_name].filter(Boolean).join(" ") ||
-                  u.email,
+                  u.email ||
+                  "—",
               }))}
               value={formData.user_id}
               onChange={(e) =>
@@ -902,12 +900,8 @@ export const AssignmentManager: React.FC<AssignmentManagerProps> = ({
                   selectedProfile.user.first_name,
                 ]
                   .filter(Boolean)
-                  .join(" ") || selectedProfile.user.username}
+                  .join(" ") || selectedProfile.user.email || "—"}
               </span>
-            </div>
-            <div className="candidate-profile__row">
-              <span className="candidate-profile__label">Логин:</span>
-              <span>{selectedProfile.user.username}</span>
             </div>
             <div className="candidate-profile__row">
               <span className="candidate-profile__label">Email:</span>

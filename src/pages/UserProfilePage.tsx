@@ -53,12 +53,16 @@ export const UserProfilePage: React.FC = () => {
             [rawUser.surname, rawUser.name].filter(Boolean).join(" "),
         });
         setSchedule(
-          (schedResp.data || []).map((day: any) => ({
-            ...day,
-            weekday:
-              day.day_of_week ??
-              (typeof day.weekday === "number" ? day.weekday + 1 : 1),
-          })),
+          (schedResp.data || []).map((day: any) => {
+            const raw =
+              typeof day.day_of_week === "number"
+                ? day.day_of_week
+                : typeof day.weekday === "number"
+                  ? day.weekday + 1
+                  : 1;
+            const dow = raw >= 1 && raw <= 7 ? raw : raw === 0 ? 7 : 1;
+            return { ...day, weekday: dow };
+          }),
         );
       } catch {
         setError("Пользователь не найден");

@@ -115,7 +115,6 @@ export const taskService = {
     const assignments = await this.getTaskAssignments(taskId);
     return assignments.map((a: any) => ({
       id: a.user_id,
-      username: a.display_name ?? "",
     }));
   },
 };

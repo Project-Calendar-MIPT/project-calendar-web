@@ -12,7 +12,6 @@ export const userService = {
       return (response.data || []).map(
         (u: any): User => ({
           id: u.id ?? "",
-          username: u.display_name ?? u.username ?? "",
           email: u.email ?? "",
           first_name: u.name ?? u.first_name ?? "",
           last_name: u.surname ?? u.last_name ?? "",

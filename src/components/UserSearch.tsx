@@ -71,7 +71,6 @@ export const UserSearch: React.FC<UserSearchProps> = ({
           const lowerQuery = query.toLowerCase().trim();
           searchBase = candidates.filter(
             (u) =>
-              u.username.toLowerCase().includes(lowerQuery) ||
               u.email.toLowerCase().includes(lowerQuery) ||
               (u.first_name &&
                 u.first_name.toLowerCase().includes(lowerQuery)) ||
@@ -95,8 +94,8 @@ export const UserSearch: React.FC<UserSearchProps> = ({
           const bTasks = bMeta.activeTasksCount || 0;
           if (aTasks !== bTasks) return aTasks - bTasks;
 
-          return (a.last_name || a.username).localeCompare(
-            b.last_name || b.username,
+          return (a.last_name || a.email || "").localeCompare(
+            b.last_name || b.email || "",
           );
         });
 
@@ -128,18 +127,18 @@ export const UserSearch: React.FC<UserSearchProps> = ({
 
   const getUserDisplayName = (user: User): string =>
     [user.last_name, user.first_name].filter(Boolean).join(" ") ||
-    user.username ||
+    user.email ||
     "Неизвестный пользователь";
 
   return (
     <div className="user-search">
-      <div className="user-search__label">Поиск по нику / имени</div>
+      <div className="user-search__label">Поиск по имени / email</div>
 
       <Input
         type="search"
         value={query}
         onChange={(e) => setQuery(e.target.value)}
-        placeholder="Введите ник, имя или email..."
+        placeholder="Введите имя или email..."
       />
 
       {loading && <div className="user-search__status">Загрузка...</div>}
@@ -168,7 +167,7 @@ export const UserSearch: React.FC<UserSearchProps> = ({
                     {getUserDisplayName(user)}
                   </div>
                   <div className="user-search__meta">
-                    @{user.username} · {user.email || "Нет email"}
+                    {user.email || "Нет email"}
                   </div>
                   {meta.workloadLabel && (
                     <div className="user-search__workload">
