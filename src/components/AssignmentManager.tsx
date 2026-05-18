@@ -681,11 +681,11 @@ export const AssignmentManager: React.FC<AssignmentManagerProps> = ({
               style={{ display: "flex", gap: "8px", alignItems: "flex-end" }}
             >
               <Input
-                label="Логин или email"
+                label="Email"
                 value={inviteQuery}
                 onChange={(e) => setInviteQuery(e.target.value)}
                 onKeyDown={(e) => e.key === "Enter" && handleInviteSearch()}
-                placeholder="Введите логин или email"
+                placeholder="Введите email"
               />
               <Button
                 onClick={handleInviteSearch}
